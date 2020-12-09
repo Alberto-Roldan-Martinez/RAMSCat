@@ -105,29 +105,31 @@ def SurfaceArea(slab_file, surf_atoms):
         area_total = (output.cell[0][0] * output.cell[1][1]) * 1e-20               # m^2
     else:
         print("Rough surface! (", round(radii, 3), "*50% >=", round(max(z_position) - min(z_position), 3), "Angs)")
-        cutOff = neighborlist.natural_cutoffs(atoms, mult=1.2)
+        cutOff = neighborlist.natural_cutoffs(atoms, mult=1.12)
         a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
         a_no_pbc, b_no_pbc = neighborlist.neighbor_list('ij', atoms_no_pbc, cutOff)
 
         area = []
-        verts = []
+        verts = verts_extra = []
         color = []
         figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
         ax = figure.add_subplot(1, 1, 1, projection='3d')
         for i in atoms:
-            neigh = [j for j in range(len(a)) if a[j] == i.index]
+            i_neigh = [j for j in range(len(a)) if a[j] == i.index]
             neighbour_no_pbc = [b_no_pbc[j] for j in range(len(a_no_pbc)) if a_no_pbc[j] == i.index]
             x = y = z = []
-            for j in neigh:
-                for k in neigh:
+            for j in i_neigh:
+                j_neigh = [k for k in range(len(a)) if a[k] == atoms[b[j]].index and k in i_neigh]
+                print(i_neigh, j, j_neigh)
+                for k in j_neigh:
                     if round(np.dot(D[j]/d[j], D[k]/d[k]), 5) > 1:
                         print(" interatomic angle must be between pi and -pi")
                         angle = 0
                     else:
                         angle = np.arccos(round(np.dot(D[j]/d[j], D[k]/d[k]), 5))
-                    if round(angle, 5) <= round(2*np.pi/(len(neigh)-1), 5) and angle > 1E-3:   # neigh -1 to have some margin
+                    if round(angle, 5) <= round(2*np.pi/(len(i_neigh)-1), 5) and angle > 1E-3:   # neigh -1 to have some margin
                         heigh = d[k] * np.sin(angle)
-                        area.append(((d[j] * heigh) / 2)/len(neigh))       # N atoms contributing to Area
+                        area.append(((d[j] * heigh) / 2)/len(i_neigh))       # N atoms contributing to Area
                         if b[j] in neighbour_no_pbc and b[k] in neighbour_no_pbc:
                             x = [i.position[0], atoms[b[j]].position[0], atoms[b[k]].position[0]]
                             y = [i.position[1], atoms[b[j]].position[1], atoms[b[k]].position[1]]
@@ -137,7 +139,14 @@ def SurfaceArea(slab_file, surf_atoms):
                             z = [round((value-min(z_position))/z_max, 2) for value in z]
                             color.append(sum(z)/len(z))
                             verts.append(list(zip(x, y, z)))
-        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", facecolors=plt.cm.jet(color)), zdir="z")
+                            ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", facecolors=plt.cm.jet(color)), zdir="z")
+
+                            x2 = [round(value/x_max + 1, 2) for value in x]
+#                            verts_extra.append(list(zip(x2, y, z)))
+                            y2 = [round(value/y_max + 1, 2) for value in y]
+#                            verts_extra.append(list(zip(x, y2, z)))
+#                            verts_extra.append(list(zip(x2, y2, z)))
+#                            ax.add_collection3d(Poly3DCollection(verts_extra, edgecolors="k", facecolors=plt.cm.jet(color), alpha=0.5), zdir="z")
         ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10)
         ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10)
         ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
