@@ -111,8 +111,7 @@ def SurfaceArea(slab_file, surf_atoms):
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 #    a_no_pbc, b_no_pbc = neighborlist.neighbor_list('ij', atoms_no_pbc, cutOff)
 
-    print([b[j] for j in range(len(a)) if a[j] == 0])
-
+    atom_max_z = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] == max(z_position)]
 
 #    atoms_positions = atoms.get_scaled_positions()
     atoms_positions = atoms.get_positions()
@@ -124,64 +123,45 @@ def SurfaceArea(slab_file, surf_atoms):
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
     ax = figure.add_subplot(1, 1, 1, projection='3d')
     for i in atoms:
-        i=atoms[0]
-        i_neigh = [b[j] for j in range(len(a)) if a[j] == i.index]
-#        neighbour_no_pbc = [b_no_pbc[j] for j in range(len(a_no_pbc)) if a_no_pbc[j] == i.index]
-        x = []
-        y = []
-        z = []
+        i_neigh = [j for j in range(len(a)) if a[j] == i.index]
+        i_neigh_index = [b[j] for j in i_neigh]
+        x = [atoms_positions[i.index][0]]
+        y = [atoms_positions[i.index][1]]
+        z = [atoms_positions[i.index][2]]
+#        print(y[0]*np.cos(atoms.get_cell_lengths_and_angles()[-1]), atoms.get_cell()[0][0], np.cos(atoms.get_cell_lengths_and_angles()[-1]*2*np.pi/360))
         for j in i_neigh:
-            j_neigh = [b[k] for k in range(len(a)) if a[k] == atoms[j].index and b[k] in i_neigh]
-#            print(i_neigh, j_neigh)
+            j_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] in i_neigh_index]
             for k in i_neigh:
-                ij_distance = atoms.get_distance(i.index, j)
-                ij_vector = atoms.get_distance(i.index, j, vector=True)
-                ik_distance = atoms.get_distance(i.index, k)
-                ik_vector = atoms.get_distance(i.index, k, vector=True)
                 if round(np.dot(D[j]/d[j], D[k]/d[k]), 5) > 1: #ij_vector/ij_distance, ik_vector/ik_distance), 5) > 1:
                     print(" interatomic angle must be between pi and -pi")
                     angle = 0
                 else:
                     angle = np.arccos(round(np.dot(D[j]/d[j], D[k]/d[k]), 5)) #ij_vector/ij_distance, ik_vector/ik_distance), 5))
                 if round(angle, 5) <= round(2*np.pi/(len(i_neigh)-1), 5) and angle > 1E-3:   # neigh -1 to have some margin
-                    ii = i.index
-                    jj = j
-                    kk = k
-#                   if str(ii)+str(jj)+str(kk) not in vertex_done:
                     area.append(((d[j] * (d[k] * np.sin(angle))) / 2)/len(i_neigh))       # N atoms contributing to Area
 
-                    vertex_done.append(str(ii)+str(jj)+str(kk))
-                    vertex_done.append(str(ii)+str(kk)+str(jj))
-                    vertex_done.append(str(jj)+str(kk)+str(ii))
-                    vertex_done.append(str(jj)+str(ii)+str(kk))
-                    vertex_done.append(str(kk)+str(jj)+str(ii))
-                    vertex_done.append(str(kk)+str(ii)+str(jj))
-                    x = [atoms_positions[i.index][0], atoms_positions[j][0], atoms_positions[k][0]]
-                    y = [atoms_positions[i.index][1], atoms_positions[j][1], atoms_positions[k][1]]
-                    z = [atoms_positions[i.index][2], atoms_positions[j][2], atoms_positions[k][2]]
-                    x = [round(value, 2) for value in x]
-                    y = [round(value, 2) for value in y]
-                    z = [round(value, 2) for value in z]
-                    ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="k", normalize=True)
-#                    ax.quiver(x[0], y[0], z[0], D[k][0], D[k][1], D[k][2], length=1, color="k", normalize=True)
-#                            color.append(sum(z)/len(z))
-#                            verts.append(list(zip(x, y, z)))
-#                            ax.add_collection3d(Poly3DCollection(verts))#, edgecolors="k", facecolors=plt.cm.jet(color)), zdir="z")
+                    x = [x[0], x[0]+D[j][0], x[0]+D[k][0]]
+                    y = [y[0], y[0]+D[j][1], y[0]+D[k][1]]
+                    z = [z[0], z[0]+D[j][2], z[0]+D[k][2]]
 
-#                            x2 = [round(value/x_max + 1, 2) for value in x]
-#                            verts_extra.append(list(zip(x2, y, z)))
-#                            y2 = [round(value/y_max + 1, 2) for value in y]
-#                            verts_extra.append(list(zip(x, y2, z)))
-#                            verts_extra.append(list(zip(x2, y2, z)))
-#                            ax.add_collection3d(Poly3DCollection(verts_extra, edgecolors="k", facecolors=plt.cm.jet(color), alpha=0.5), zdir="z")
-#                        else:
-#                            print(str(ii)+str(jj)+str(kk)," is done!")
+                    cell_x1 = [atoms.get_cell()[0][0], y[1]*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360)]
+                    cell_x2 = [atoms.get_cell()[0][0], y[2]*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360)]
+                    cell_y = atoms.get_cell_lengths_and_angles()[1]
+                    if cell_x1[1] < x[1] < sum(cell_x1) and cell_x2[1] < x[2] < sum(cell_x2) and 0 < y[1] < cell_y and 0 < y[2] < cell_y:
+                        ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="b", lw=2, normalize=True)
+                        x = [round(value, 2) for value in x]
+                        y = [round(value, 2) for value in y]
+                        z = [round(value, 2) for value in z]
+                        color.append(sum(z)/len(z))
+                        verts.append(list(zip(x, y, z)))
+#                        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.15, facecolors=plt.cm.jet(color), alpha=0.02), zdir="z")
 
-    print("area=", len(area), len(verts))
+    print("n area=", len(area), "n verts=", len(verts))
     x = [atoms_positions[i.index][0] for i in atoms]
     y = [atoms_positions[i.index][1] for i in atoms]
     z = [atoms_positions[i.index][2] for i in atoms]
-
+    for i in range(len(atoms)):
+        ax.text(x[i], y[i], z[i], str(atoms[i].index))
     ax.scatter3D(x, y, z, c="k", s=50)#, edgecolor='none', linewidth=0, antialiased=False)
     ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10)
     ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10)
@@ -193,6 +173,7 @@ def SurfaceArea(slab_file, surf_atoms):
     plt.show()
 
     area_total = sum(area) * 1e-20         # m^2
+    print("tiling area=", area_total)
 #    flat_area = (output.cell[0][0] * output.cell[1][1]) * 1e-20                # m^2
 #    print("Area=",Area,"||","Flat_Area=",flat_area,"| Surf_atoms=",len(Surf_Atoms),"neighbouring=",neighbouring)
 
