@@ -88,6 +88,21 @@ def SurfaceArea(slab_file, surf_atoms):
     cell_pbc = output.get_pbc()
     output = read(str(slab_file + "CONTCAR"))
     atoms = Atoms([Atom(output[i].symbol, (output[i].position)) for i in surf_atoms], cell=cell, pbc=cell_pbc)
+#    atoms_positions = atoms.get_scaled_positions()
+#    for i in range(len(atoms)):
+#        y = atoms_positions[i][1]
+#        if atoms_positions[i][0] < 0:
+#            atoms_positions[i][0] = atoms_positions[i][0] + 1
+#        elif atoms_positions[i][0] > atoms.get_cell()[0][0] + y*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360):
+#            atoms_positions[i][0] = atoms_positions[i][0] - 1
+#        if atoms_positions[i][1] < 0:
+#            atoms_positions[i][1] = atoms_positions[i][1] + 1
+#        elif atoms_positions[i][1] > atoms.get_cell_lengths_and_angles()[1]:
+#            atoms_positions[i][1] = atoms_positions[i][1] - 1
+#
+#        print(atoms[i].position, atoms_positions[i])
+#    atoms.set_scaled_positions(atoms_positions)
+
     atoms_no_pbc = Atoms([Atom(output[i].symbol, (output[i].position)) for i in surf_atoms], cell=cell, pbc=[False])
 
     z_position = [output[i].position[2] for i in range(len(output)) if output[i].index in surf_atoms]
@@ -107,11 +122,11 @@ def SurfaceArea(slab_file, surf_atoms):
     else:
         print("Rough surface! (", round(radii, 3), "*50% >=", round(max(z_position) - min(z_position), 3), "Angs)")
 
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.15)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.2)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 #    a_no_pbc, b_no_pbc = neighborlist.neighbor_list('ij', atoms_no_pbc, cutOff)
 
-    atom_max_z = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] == max(z_position)]
+    atoms_max_z = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
 
 #    atoms_positions = atoms.get_scaled_positions()
     atoms_positions = atoms.get_positions()
@@ -125,9 +140,11 @@ def SurfaceArea(slab_file, surf_atoms):
     for i in atoms:
         i_neigh = [j for j in range(len(a)) if a[j] == i.index]
         i_neigh_index = [b[j] for j in i_neigh]
+        if i.index in atoms_max_z:
+            print(i.index, i_neigh_index)
         x = [atoms_positions[i.index][0]]
         y = [atoms_positions[i.index][1]]
-        z = [atoms_positions[i.index][2]]
+        z = [atoms_positions[i.index][2]-min(z_position)]
 #        print(y[0]*np.cos(atoms.get_cell_lengths_and_angles()[-1]), atoms.get_cell()[0][0], np.cos(atoms.get_cell_lengths_and_angles()[-1]*2*np.pi/360))
         for j in i_neigh:
             j_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] in i_neigh_index]
@@ -140,26 +157,28 @@ def SurfaceArea(slab_file, surf_atoms):
                 if round(angle, 5) <= round(2*np.pi/(len(i_neigh)-1), 5) and angle > 1E-3:   # neigh -1 to have some margin
                     area.append(((d[j] * (d[k] * np.sin(angle))) / 2)/len(i_neigh))       # N atoms contributing to Area
 
+#                    ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="b", lw=2, normalize=True)
                     x = [x[0], x[0]+D[j][0], x[0]+D[k][0]]
                     y = [y[0], y[0]+D[j][1], y[0]+D[k][1]]
                     z = [z[0], z[0]+D[j][2], z[0]+D[k][2]]
-
                     cell_x1 = [atoms.get_cell()[0][0], y[1]*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360)]
                     cell_x2 = [atoms.get_cell()[0][0], y[2]*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360)]
                     cell_y = atoms.get_cell_lengths_and_angles()[1]
-                    if cell_x1[1] < x[1] < sum(cell_x1) and cell_x2[1] < x[2] < sum(cell_x2) and 0 < y[1] < cell_y and 0 < y[2] < cell_y:
-                        ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="b", lw=2, normalize=True)
-                        x = [round(value, 2) for value in x]
-                        y = [round(value, 2) for value in y]
-                        z = [round(value, 2) for value in z]
-                        color.append(sum(z)/len(z))
-                        verts.append(list(zip(x, y, z)))
-#                        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.15, facecolors=plt.cm.jet(color), alpha=0.02), zdir="z")
+#                    if cell_x1[1] < x[1] < sum(cell_x1) and cell_x2[1] < x[2] < sum(cell_x2) and 0 < y[1] < cell_y and 0 < y[2] < cell_y:
+#                    ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="b", lw=2, normalize=True)
+                    x = [round(value, 2) for value in x]
+                    y = [round(value, 2) for value in y]
+                    z = [round(value, 2) for value in z]
+                    color.append(sum(z)/len(z))
+                    verts.append(list(zip(x, y, z)))
+#                    if cell_x1[1] < x[1] < sum(cell_x1) and cell_x2[1] < x[2] < sum(cell_x2) and 0 < y[1] < cell_y and 0 < y[2] < cell_y:
+#                        ax.quiver(x[0], y[0], z[0], D[j][0], D[j][1], D[j][2], length=1, color="b", lw=2, normalize=True)
+    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.05, facecolors=plt.cm.jet(color), alpha=0.02), zdir="z")
 
     print("n area=", len(area), "n verts=", len(verts))
     x = [atoms_positions[i.index][0] for i in atoms]
     y = [atoms_positions[i.index][1] for i in atoms]
-    z = [atoms_positions[i.index][2] for i in atoms]
+    z = [atoms_positions[i.index][2]-min(z_position) for i in atoms]
     for i in range(len(atoms)):
         ax.text(x[i], y[i], z[i], str(atoms[i].index))
     ax.scatter3D(x, y, z, c="k", s=50)#, edgecolor='none', linewidth=0, antialiased=False)
