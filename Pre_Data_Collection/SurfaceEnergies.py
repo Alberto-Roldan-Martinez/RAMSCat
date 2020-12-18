@@ -109,12 +109,6 @@ def SurfaceArea(slab_file, surf_atoms):
     x_max = max([output[i].position[0] for i in range(len(output)) if output[i].index in surf_atoms])
     y_max = max([output[i].position[1] for i in range(len(output)) if output[i].index in surf_atoms])
 
-    radii = 0
-    for i in surf_atoms:
-        radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
-    radii = radii/len(surf_atoms)
-    atoms_peaks = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
-
     cutOff = neighborlist.natural_cutoffs(atoms, mult=1.2)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 
@@ -124,49 +118,86 @@ def SurfaceArea(slab_file, surf_atoms):
     color = []
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
     ax = figure.add_subplot(1, 1, 1, projection='3d')
+# plotting the atoms, their number and the vector towards neighbours
     for i in atoms:
         ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-min(z_position), str(i.index))
         ax.scatter3D(i.position[0], i.position[1], i.position[2]-min(z_position), c="k", s=50)
         i_neigh = [j for j in range(len(a)) if a[j] == i.index]
-        for j in i_neigh:
+        for j in sorted(i_neigh):
             ax.quiver(i.position[0], i.position[1], i.position[2]-min(z_position),
                       D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
+# defining the peak and valley atoms : adatoms & vacancies at the surface
+    radii = 0
+    for i in surf_atoms:
+        radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
+    radii = radii/len(surf_atoms)
+    atoms_peaks = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
+    atoms_valleys = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] < sum(z_position)/len(z_position)-radii*0.25]
 
+# finding neighbours of i and neighbours of neighbours that are also neighbours of i
     for i in atoms:
         i_neigh = [j for j in range(len(a)) if a[j] == i.index]
         i_neigh_index = [b[j] for j in i_neigh]
-
-        if i.index in atoms_peaks:
-            print(i.index, i_neigh_index)
-
-        for j in i_neigh:
+        for j in sorted(i_neigh):
             j_neigh_index = [b[k] for k in range(len(a)) if a[k] == b[j] and b[k] in i_neigh_index]
             j_neigh = [k for k in i_neigh if b[k] in j_neigh_index]
-            for k in j_neigh:
+# are i, j and k neighbours of a valley atom
+            if i.index in atoms_valleys and b[j] in atoms_valleys:
+                j_exclusive = []
+                j_exclusive_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] not in i_neigh_index and b[k] not in atoms_valleys]
+                for k in j_exclusive_neigh:
+                    k_neigh = [n for n in range(len(a)) if a[n] == b[k] if b[n] in i_neigh_index and b[n] not in atoms_valleys]
+                    if len(k_neigh) > 0:
+                        j_exclusive.append(k)
+                ik_distance = []
+                for k in j_exclusive:
+                    ik_distance.append(atoms.get_distance(i.index, b[k], mic=True))
+                for k in j_exclusive:
+                    dist = atoms.get_distance(i.index, b[k], mic=True)
+                    if dist == min(ik_distance) and dist < sum(cutOff)/len(cutOff)*2.75:
+                        print(i.index, b[j], b[k], atoms.get_distance(i.index, b[k], mic=True), sum(cutOff)/len(cutOff)*2.75)
+                        j_neigh_index.append(b[k])
+                        j_neigh.append(k)
+            for k in sorted(j_neigh):
                 x = y = z = []
-                if round(np.dot(D[j]/d[j], D[k]/d[k]), 5) > 1: #ij_vector/ij_distance, ik_vector/ik_distance), 5) > 1:
+                done = 0                            # vertex is not done
+# are i, j and k neighbours of a peak atom
+                for peak in atoms_peaks:
+                    peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
+                    if i.index in peaks_neigh_index and b[j] in peaks_neigh_index and b[k] in peaks_neigh_index:
+                        done = 1
+# are i, j and k neighbours of a valley atom
+                if b[k] in i_neigh_index:
+                    ik_dist = d[k]
+                    ik_vect = D[k]
+                else:
+                    ik_dist = atoms.get_distance(i.index, b[k])
+                    ik_vect = D[j]+D[k]
+# finding the angle between neighbours i, j and k
+                if round(np.dot(D[j]/d[j], ik_vect/ik_dist), 5) > 1: #ij_vector/ij_distance, ik_vector/ik_distance), 5) > 1:
                     print(" interatomic angle must be between pi and -pi")
                     angle = 0
                 else:
-                    angle = np.arccos(round(np.dot(D[j]/d[j], D[k]/d[k]), 5)) #ij_vector/ij_distance, ik_vector/ik_distance), 5))
-                if round(angle, 5) < round(np.pi, 5) and angle > 0:   # neigh -1 to have some margin
-                    done = 0
+                    angle = np.arccos(round(np.dot(D[j]/d[j], ik_vect/ik_dist), 5)) #ij_vector/ij_distance, ik_vector/ik_distance), 5))
+                if round(angle, 5) < round(np.pi/1.25, 5) and angle > 0:   # neigh -1 to have some margin
+# is this triangle already measured?
                     for triangle in vertex_done:
                         if i.index in triangle and b[j] in triangle and b[k] in triangle:
                             done = 1
+# calculating the area and plotting the triangle
                     if done == 0:
-                        area.append((d[j] * (d[k] * np.sin(angle))) / 2)       # N atoms contributing to Area
-                        print("   triangle between  ", i.index, b[j], b[k], "  of area  ", round(area[-1], 3), "$\AA$")
+                        area.append((d[j] * (ik_dist * np.sin(angle))) / 2)       # N atoms contributing to Area
+#                        print("   triangle between  ", i.index, b[j], b[k], "  of area  ", round(area[-1], 3), "$\AA^{2}$")
                         vertex_done.append((i.index, b[j], b[k]))
                         x = [i.position[0]]
                         y = [i.position[1]]
                         z = [i.position[2]-min(z_position)]
-                        x = [x[0], x[0]+D[j][0], x[0]+D[k][0]]
-                        y = [y[0], y[0]+D[j][1], y[0]+D[k][1]]
-                        z = [z[0], z[0]+D[j][2], z[0]+D[k][2]]
+                        x = [x[0], x[0]+D[j][0], x[0]+ik_vect[0]]
+                        y = [y[0], y[0]+D[j][1], y[0]+ik_vect[1]]
+                        z = [z[0], z[0]+D[j][2], z[0]+ik_vect[2]]
                         color.append(sum(z)/len(z))
                         verts.append(list(zip(x, y, z)))
-    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.05, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
     ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10)
     ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10)
     ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
@@ -197,7 +228,7 @@ ifile = open("E_surf.dat", 'w+')
 #                                                                                     e_surf_constrained, e_surf,
 #                                                                                     relaxation))
 ifile.write("# Area(m^2) γ_r(J/m^2) || Coordination_list\n")
-ifile.write("  %.3G       %.3f " % (area, e_surf))
+ifile.write("  %.5G       %.3f " % (area, e_surf))
 ifile.write("||  ")
 for i in coordination_list:
     ifile.write("%5s x %d" %(i, coordination_list[i]))
