@@ -118,6 +118,7 @@ def SurfaceArea(slab_file, surf_atoms):
     color = []
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
     ax = figure.add_subplot(1, 1, 1, projection='3d')
+    plt.ion()
 # plotting the atoms, their number and the vector towards neighbours
     for i in atoms:
         ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-min(z_position), str(i.index))
@@ -155,7 +156,6 @@ def SurfaceArea(slab_file, surf_atoms):
                 for k in j_exclusive:
                     dist = atoms.get_distance(i.index, b[k], mic=True)
                     if dist == min(ik_distance) and dist < sum(cutOff)/len(cutOff)*2.75:
-                        print(i.index, b[j], b[k], atoms.get_distance(i.index, b[k], mic=True), sum(cutOff)/len(cutOff)*2.75)
                         j_neigh_index.append(b[k])
                         j_neigh.append(k)
             for k in sorted(j_neigh):
@@ -166,46 +166,45 @@ def SurfaceArea(slab_file, surf_atoms):
                     peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
                     if i.index in peaks_neigh_index and b[j] in peaks_neigh_index and b[k] in peaks_neigh_index:
                         done = 1
-# are i, j and k neighbours of a valley atom
-                if b[k] in i_neigh_index:
-                    ik_dist = d[k]
-                    ik_vect = D[k]
-                else:
-                    ik_dist = atoms.get_distance(i.index, b[k])
-                    ik_vect = D[j]+D[k]
-# finding the angle between neighbours i, j and k
-                if round(np.dot(D[j]/d[j], ik_vect/ik_dist), 5) > 1: #ij_vector/ij_distance, ik_vector/ik_distance), 5) > 1:
-                    print(" interatomic angle must be between pi and -pi")
-                    angle = 0
-                else:
-                    angle = np.arccos(round(np.dot(D[j]/d[j], ik_vect/ik_dist), 5)) #ij_vector/ij_distance, ik_vector/ik_distance), 5))
-                if round(angle, 5) < round(np.pi/1.25, 5) and angle > 0:   # neigh -1 to have some margin
 # is this triangle already measured?
-                    for triangle in vertex_done:
-                        if i.index in triangle and b[j] in triangle and b[k] in triangle:
-                            done = 1
+                for triangle in vertex_done:
+                    if i.index in triangle and b[j] in triangle and b[k] in triangle:
+                        done = 1
 # calculating the area and plotting the triangle
-                    if done == 0:
-                        area.append((d[j] * (ik_dist * np.sin(angle))) / 2)       # N atoms contributing to Area
-#                        print("   triangle between  ", i.index, b[j], b[k], "  of area  ", round(area[-1], 3), "$\AA^{2}$")
+                if done == 0:
+                    d1, d2, angle, color, verts = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position), color, verts)
+                    if angle > 0:
+                        area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
                         vertex_done.append((i.index, b[j], b[k]))
-                        x = [i.position[0]]
-                        y = [i.position[1]]
-                        z = [i.position[2]-min(z_position)]
-                        x = [x[0], x[0]+D[j][0], x[0]+ik_vect[0]]
-                        y = [y[0], y[0]+D[j][1], y[0]+ik_vect[1]]
-                        z = [z[0], z[0]+D[j][2], z[0]+ik_vect[2]]
-                        color.append(sum(z)/len(z))
-                        verts.append(list(zip(x, y, z)))
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
-    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10)
-    ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10)
-    ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
-    ax.xaxis.set_ticklabels([])
-    ax.yaxis.set_ticklabels([])
-    ax.zaxis.set_ticklabels([])
+#    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
+#    ax.xaxis.set_ticklabels([]); ax.yaxis.set_ticklabels([]); ax.zaxis.set_ticklabels([])
+    figure.patch.set_visible(False)
+    ax.axis('off')
     ax.view_init(azim=-90, elev=90)
+    plt.draw()
     plt.show()
+
+    answer = "y"
+    while answer == "y":
+        answer = str(input("Would you like to cover any other area (y/n)?\n"))
+        if answer == "y":
+            vertices = input("Which three atoms form the triangle's vertices?\n").split()
+            vertices = [int(i) for i in vertices]
+            print(len(vertices),[i for i in vertices])
+            if len(vertices) != 3:
+                print("  Only three vertices are accepted")
+                vertices = list(input("Which three atoms form the triangle's vertices?"))
+            d1, d2, angle, color, verts = Add_triangle(atoms, vertices, min(z_position), color, verts)
+            area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
+            vertex_done.append((vertices[0], vertices[1], vertices[2]))
+        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+        print("caca")
+        plt.draw()
+        plt.show()
+    plt.ioff()
+    plt.show()
+
 
     area_total = sum(area) * 1e-20         # m^2
     print("cell area = ", output.cell[0][0] * output.cell[1][1] * 1e-20, "/$m^{2}$",
@@ -214,6 +213,28 @@ def SurfaceArea(slab_file, surf_atoms):
 #    print("Area=",Area,"||","Flat_Area=",flat_area,"| Surf_atoms=",len(Surf_Atoms),"neighbouring=",neighbouring)
 
     return area_total
+
+def Add_triangle(atoms, vertices, z_min, color, verts):
+    x = [atoms[vertices[0]].position[0]]
+    y = [atoms[vertices[0]].position[1]]
+    z = [atoms[vertices[0]].position[2]-z_min]
+    v1 = atoms.get_distance(vertices[0], vertices[1], mic=True, vector=True)
+    d1 = atoms.get_distance(vertices[0], vertices[1], mic=True)
+    v2 = atoms.get_distance(vertices[0], vertices[2], mic=True, vector=True)
+    d2 = atoms.get_distance(vertices[0], vertices[2], mic=True)
+    x = [x[0], x[0]+v1[0], x[0]+v2[0]]
+    y = [y[0], y[0]+v1[1], y[0]+v2[1]]
+    z = [z[0], z[0]+v1[2], z[0]+v2[2]]
+    if round(np.dot(v1 / d1, v2 / d2), 5) > 1:
+        print(" interatomic angle must be between pi and -pi")
+        angle = 0
+    else:
+        angle = np.arccos(round(np.dot(v1 / d1, v2 / d2), 5))
+    if round(angle, 5) <= round(np.pi/1.25, 5) and angle > 1E-3:
+        color.append(sum(z)/len(z))
+        verts.append(list(zip(x, y, z)))
+
+    return d1, d2, angle, color, verts
 
 
 ##############################################################################################
