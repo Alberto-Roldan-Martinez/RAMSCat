@@ -4,13 +4,17 @@
 '''
 import os, sys, math
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from ase.io import read #, write
 from ase import Atoms, Atom, neighborlist
 from ase.build import bulk
-
 
 
 surf_file = "./"
@@ -118,7 +122,6 @@ def SurfaceArea(slab_file, surf_atoms):
     color = []
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
     ax = figure.add_subplot(1, 1, 1, projection='3d')
-    plt.ion()
 # plotting the atoms, their number and the vector towards neighbours
     for i in atoms:
         ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-min(z_position), str(i.index))
@@ -172,49 +175,44 @@ def SurfaceArea(slab_file, surf_atoms):
                         done = 1
 # calculating the area and plotting the triangle
                 if done == 0:
-                    d1, d2, angle, color, verts = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position), color, verts)
-                    if angle > 0:
-                        area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
-                        vertex_done.append((i.index, b[j], b[k]))
+                    area, color, verts = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position), color, verts, area)
+                    vertex_done.append((i.index, b[j], b[k]))
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 #    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
 #    ax.xaxis.set_ticklabels([]); ax.yaxis.set_ticklabels([]); ax.zaxis.set_ticklabels([])
     figure.patch.set_visible(False)
     ax.axis('off')
     ax.view_init(azim=-90, elev=90)
-    plt.draw()
+    plt.ion()
     plt.show()
 
     answer = "y"
     while answer == "y":
         answer = str(input("Would you like to cover any other area (y/n)?\n"))
         if answer == "y":
-            vertices = input("Which three atoms form the triangle's vertices?\n").split()
+            vertices = input("   Which three atoms form the triangle's vertices?\n").split()
             vertices = [int(i) for i in vertices]
             print(len(vertices),[i for i in vertices])
             if len(vertices) != 3:
                 print("  Only three vertices are accepted")
-                vertices = list(input("Which three atoms form the triangle's vertices?"))
-            d1, d2, angle, color, verts = Add_triangle(atoms, vertices, min(z_position), color, verts)
-            area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
+                vertices = list(input("   Which three atoms form the triangle's vertices?"))
+            area, color, verts = Add_triangle(atoms, vertices, min(z_position), color, verts, area)
             vertex_done.append((vertices[0], vertices[1], vertices[2]))
+            ax.clear()  #<<<<<<<<<<<<<<<<<<<<<<<<??
         ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
-        print("caca")
-        plt.draw()
-        plt.show()
-    plt.ioff()
-    plt.show()
+#    plt.show()
 
-
+    if len(area)/len(verts) != 1:
+        print("n_area/n_verts=", len(area)/len(verts), "\n   n areas=", len(area), "\n   n vertex=", len(verts))
     area_total = sum(area) * 1e-20         # m^2
     print("cell area = ", output.cell[0][0] * output.cell[1][1] * 1e-20, "/$m^{2}$",
-          "\ntiling area=", area_total, "/$m^{2}$", "n_area/n_verts=", len(area)/len(verts))
+          "\ntiling area=", area_total, "/$m^{2}$\n--------------------------------------------\n")
 #    flat_area = (output.cell[0][0] * output.cell[1][1]) * 1e-20                # m^2
 #    print("Area=",Area,"||","Flat_Area=",flat_area,"| Surf_atoms=",len(Surf_Atoms),"neighbouring=",neighbouring)
 
     return area_total
 
-def Add_triangle(atoms, vertices, z_min, color, verts):
+def Add_triangle(atoms, vertices, z_min, color, verts, area):
     x = [atoms[vertices[0]].position[0]]
     y = [atoms[vertices[0]].position[1]]
     z = [atoms[vertices[0]].position[2]-z_min]
@@ -231,10 +229,11 @@ def Add_triangle(atoms, vertices, z_min, color, verts):
     else:
         angle = np.arccos(round(np.dot(v1 / d1, v2 / d2), 5))
     if round(angle, 5) <= round(np.pi/1.25, 5) and angle > 1E-3:
+        area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
         color.append(sum(z)/len(z))
         verts.append(list(zip(x, y, z)))
 
-    return d1, d2, angle, color, verts
+    return area, color, verts
 
 
 ##############################################################################################
