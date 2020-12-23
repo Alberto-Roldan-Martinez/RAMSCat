@@ -249,7 +249,6 @@ def Remove_tile(vertices, vertex_done, color, verts, area):
         if vertices[0] in tile and vertices[1] in tile and vertices[2] in tile:
             print("  Tile formed by", vertices, "has been removed")
         else:
-            print("...", i, tile, len(vertex_done), len(verts))
             new_verts.append(verts[i])
             new_color.append(color[i])
             new_area.append(area[i])
