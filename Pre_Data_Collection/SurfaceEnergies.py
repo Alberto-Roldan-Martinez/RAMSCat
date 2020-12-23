@@ -121,7 +121,6 @@ def SurfaceArea(slab_file, surf_atoms):
     radii = radii/len(surf_atoms)
     atoms_peaks = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
     atoms_valleys = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] < sum(z_position)/len(z_position)-radii*0.25]
-
 # finding neighbours of i and neighbours of neighbours that are also neighbours of i
     for i in atoms:
         i_neigh = [j for j in range(len(a)) if a[j] == i.index]
@@ -186,7 +185,6 @@ def SurfaceArea(slab_file, surf_atoms):
             verts.append(add_verts)
             ax.add_collection3d(Poly3DCollection(add_verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 
-#    plt.show()
 # Removing tiles
     answer = "y"
     while answer == "y":
@@ -201,9 +199,6 @@ def SurfaceArea(slab_file, surf_atoms):
             n_verts = len(verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, b, d, D, color, verts)
-#            ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
-
-
 
     if len(area)/n_verts != 1:
         print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
