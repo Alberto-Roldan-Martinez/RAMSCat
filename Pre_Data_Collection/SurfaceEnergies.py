@@ -92,22 +92,6 @@ def SurfaceArea(slab_file, surf_atoms):
     cell_pbc = output.get_pbc()
     output = read(str(slab_file + "CONTCAR"))
     atoms = Atoms([Atom(output[i].symbol, (output[i].position)) for i in surf_atoms], cell=cell, pbc=cell_pbc)
-#    atoms_positions = atoms.get_scaled_positions()
-#    for i in range(len(atoms)):
-#        y = atoms_positions[i][1]
-#        if atoms_positions[i][0] < 0:
-#            atoms_positions[i][0] = atoms_positions[i][0] + 1
-#        elif atoms_positions[i][0] > atoms.get_cell()[0][0] + y*np.cos(2*np.pi*atoms.get_cell_lengths_and_angles()[-1]/360):
-#            atoms_positions[i][0] = atoms_positions[i][0] - 1
-#        if atoms_positions[i][1] < 0:
-#            atoms_positions[i][1] = atoms_positions[i][1] + 1
-#        elif atoms_positions[i][1] > atoms.get_cell_lengths_and_angles()[1]:
-#            atoms_positions[i][1] = atoms_positions[i][1] - 1
-#
-#        print(atoms[i].position, atoms_positions[i])
-#    atoms.set_scaled_positions(atoms_positions)
-
-    atoms_no_pbc = Atoms([Atom(output[i].symbol, (output[i].position)) for i in surf_atoms], cell=cell, pbc=[False])
 
     z_position = [output[i].position[2] for i in range(len(output)) if output[i].index in surf_atoms]
     x_max = max([output[i].position[0] for i in range(len(output)) if output[i].index in surf_atoms])
@@ -175,8 +159,9 @@ def SurfaceArea(slab_file, surf_atoms):
                         done = 1
 # calculating the area and plotting the triangle
                 if done == 0:
-                    area, color, verts = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position), color, verts, area)
-                    vertex_done.append((i.index, b[j], b[k]))
+                    area, color, verts, vertex_done = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position),
+                                                      color, verts, area, vertex_done)
+    n_verts = len(verts)
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 #    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
 #    ax.xaxis.set_ticklabels([]); ax.yaxis.set_ticklabels([]); ax.zaxis.set_ticklabels([])
@@ -186,24 +171,42 @@ def SurfaceArea(slab_file, surf_atoms):
     plt.ion()
     plt.show()
 
+# Adding additional tiles
     answer = "y"
     while answer == "y":
         answer = str(input("Would you like to cover any other area (y/n)?\n"))
         if answer == "y":
-            vertices = input("   Which three atoms form the triangle's vertices?\n").split()
+            vertices = input(">>> Which three atoms form the tile's vertices?\n").split()
             vertices = [int(i) for i in vertices]
-            print(len(vertices),[i for i in vertices])
             if len(vertices) != 3:
-                print("  Only three vertices are accepted")
-                vertices = list(input("   Which three atoms form the triangle's vertices?"))
-            area, color, verts = Add_triangle(atoms, vertices, min(z_position), color, verts, area)
-            vertex_done.append((vertices[0], vertices[1], vertices[2]))
-            ax.clear()  #<<<<<<<<<<<<<<<<<<<<<<<<??
-        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
-#    plt.show()
+                print(">>> Only three vertices are accepted")
+                vertices = list(input(">>> Which three atoms form the tile's vertices?"))
+            area, color, add_verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, [], area, vertex_done)
+            n_verts += len(add_verts)
+            verts.append(add_verts)
+            ax.add_collection3d(Poly3DCollection(add_verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 
-    if len(area)/len(verts) != 1:
-        print("n_area/n_verts=", len(area)/len(verts), "\n   n areas=", len(area), "\n   n vertex=", len(verts))
+#    plt.show()
+# Removing tiles
+    answer = "y"
+    while answer == "y":
+        answer = str(input("Would you like to remove any tile (y/n)?\n"))
+        if answer == "y":
+            vertices = input(">>> Which three atoms form the tile's vertices?\n").split()
+            vertices = [int(i) for i in vertices]
+            if len(vertices) != 3:
+                print(">>> Only three vertices are accepted")
+                vertices = list(input(">>> Which three atoms form the tile's vertices?"))
+            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
+            n_verts = len(verts)
+            ax.clear
+            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, b, d, D, color, verts)
+#            ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+
+
+
+    if len(area)/n_verts != 1:
+        print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
     area_total = sum(area) * 1e-20         # m^2
     print("cell area = ", output.cell[0][0] * output.cell[1][1] * 1e-20, "/$m^{2}$",
           "\ntiling area=", area_total, "/$m^{2}$\n--------------------------------------------\n")
@@ -212,7 +215,7 @@ def SurfaceArea(slab_file, surf_atoms):
 
     return area_total
 
-def Add_triangle(atoms, vertices, z_min, color, verts, area):
+def Add_triangle(atoms, vertices, z_min, color, verts, area, vertex_done):
     x = [atoms[vertices[0]].position[0]]
     y = [atoms[vertices[0]].position[1]]
     z = [atoms[vertices[0]].position[2]-z_min]
@@ -232,8 +235,45 @@ def Add_triangle(atoms, vertices, z_min, color, verts, area):
         area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
         color.append(sum(z)/len(z))
         verts.append(list(zip(x, y, z)))
+        vertex_done.append(vertices)
 
-    return area, color, verts
+    return area, color, verts, vertex_done
+
+def Remove_tile(vertices, vertex_done, color, verts, area):
+    new_verts = []
+    new_color = []
+    new_area = []
+    new_vertex_done = []
+# is this triangle already measured?
+    for i, tile in enumerate(vertex_done):
+        if vertices[0] in tile and vertices[1] in tile and vertices[2] in tile:
+            print("  Tile formed by", vertices, "has been removed")
+        else:
+            print("...", i, tile, len(vertex_done), len(verts))
+            new_verts.append(verts[i])
+            new_color.append(color[i])
+            new_area.append(area[i])
+            new_vertex_done.append(vertices)
+
+    return new_area, new_color, new_verts, new_vertex_done
+
+def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, b, d, D, color, verts):
+    ax = figure.add_subplot(1, 1, 1, projection='3d')
+# plotting the atoms, their number and the vector towards neighbours
+    for i in atoms:
+        ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-z_min, str(i.index))
+        ax.scatter3D(i.position[0], i.position[1], i.position[2]-z_min, c="k", s=50)
+        i_neigh = [j for j in range(len(a)) if a[j] == i.index]
+        for j in sorted(i_neigh):
+            ax.quiver(i.position[0], i.position[1], i.position[2]-z_min,
+                      D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
+    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+    figure.patch.set_visible(False)
+    ax.axis('off')
+    ax.view_init(azim=-90, elev=90)
+    plt.ion()
+    plt.show()
+
 
 
 ##############################################################################################
