@@ -196,10 +196,8 @@ def SurfaceArea(slab_file, surf_atoms):
                 vertices = [int(i) for i in vertices]
             area, color, verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, verts, area, vertex_done)
             n_verts += 1
-#            verts.append(add_verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
-#            ax.add_collection3d(Poly3DCollection(add_verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 
     if len(area)/n_verts != 1:
         print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
