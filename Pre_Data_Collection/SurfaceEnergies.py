@@ -8,9 +8,6 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from ase.io import read #, write
 from ase import Atoms, Atom, neighborlist
@@ -170,35 +167,39 @@ def SurfaceArea(slab_file, surf_atoms):
     plt.ion()
     plt.show()
 
-# Adding additional tiles
-    answer = "y"
-    while answer == "y":
-        answer = str(input("Would you like to cover any other area (y/n)?\n"))
-        if answer == "y":
-            vertices = input(">>> Which three atoms form the tile's vertices?\n").split()
-            vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
-                print(">>> Only three vertices are accepted")
-                vertices = list(input(">>> Which three atoms form the tile's vertices?"))
-            area, color, add_verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, [], area, vertex_done)
-            n_verts += len(add_verts)
-            verts.append(add_verts)
-            ax.add_collection3d(Poly3DCollection(add_verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
-
 # Removing tiles
     answer = "y"
     while answer == "y":
         answer = str(input("Would you like to remove any tile (y/n)?\n"))
         if answer == "y":
-            vertices = input(">>> Which three atoms form the tile's vertices?\n").split()
+            vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
             if len(vertices) != 3:
                 print(">>> Only three vertices are accepted")
-                vertices = list(input(">>> Which three atoms form the tile's vertices?"))
+                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                vertices = [int(i) for i in vertices]
             area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts = len(verts)
+            n_verts -= 1
             ax.clear
-            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, b, d, D, color, verts)
+            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+
+# Adding additional tiles
+    answer = "y"
+    while answer == "y":
+        answer = str(input("Would you like to cover any other area (y/n)?\n"))
+        if answer == "y":
+            vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
+            vertices = [int(i) for i in vertices]
+            if len(vertices) != 3:
+                print(">>> Only three vertices are accepted")
+                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                vertices = [int(i) for i in vertices]
+            area, color, verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, verts, area, vertex_done)
+            n_verts += 1
+#            verts.append(add_verts)
+            ax.clear
+            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+#            ax.add_collection3d(Poly3DCollection(add_verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
 
     if len(area)/n_verts != 1:
         print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
@@ -247,11 +248,11 @@ def Remove_tile(vertices, vertex_done, color, verts, area):
             new_verts.append(verts[i])
             new_color.append(color[i])
             new_area.append(area[i])
-            new_vertex_done.append(vertices)
+            new_vertex_done.append(vertex_done[i])
 
     return new_area, new_color, new_verts, new_vertex_done
 
-def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, b, d, D, color, verts):
+def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts):
     ax = figure.add_subplot(1, 1, 1, projection='3d')
 # plotting the atoms, their number and the vector towards neighbours
     for i in atoms:
