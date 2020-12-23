@@ -158,7 +158,7 @@ def SurfaceArea(slab_file, surf_atoms):
                     area, color, verts, vertex_done = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position),
                                                       color, verts, area, vertex_done)
     n_verts = len(verts)
-    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.4), zdir="z")
 #    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
 #    ax.xaxis.set_ticklabels([]); ax.yaxis.set_ticklabels([]); ax.zaxis.set_ticklabels([])
     figure.patch.set_visible(False)
@@ -260,7 +260,7 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
         for j in sorted(i_neigh):
             ax.quiver(i.position[0], i.position[1], i.position[2]-z_min,
                       D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
-    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.2), zdir="z")
+    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.4), zdir="z")
     figure.patch.set_visible(False)
     ax.axis('off')
     ax.view_init(azim=-90, elev=90)
