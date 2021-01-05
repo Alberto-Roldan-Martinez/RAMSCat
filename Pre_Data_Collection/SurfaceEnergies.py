@@ -36,10 +36,10 @@ def Surface_Energy(bulk_file, surf_constrained_file, surf_file, top_surf_atoms):
     e_surf0 = surf0_out.get_total_energy()                      # in eV
     e = output.get_total_energy()
 
-    area = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
+    area, vertex_done = SurfaceArea(surf_constrained_file, top_surf_atoms, [])            # in m^2
     e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area)
 
-    area = SurfaceArea(surf_file, top_surf_atoms)				# in m^2
+    area, vertex_done = SurfaceArea(surf_file, top_surf_atoms, vertex_done)				# in m^2
     e_surf = (e - (len(output)/len(bulk_out)) * e_bulk) / area - e_surf_constrained
 
 #    print(E_bulk,E_Surf0,E)
@@ -51,11 +51,10 @@ def Surface_Energy(bulk_file, surf_constrained_file, surf_file, top_surf_atoms):
 
 def Surface_Atoms(surf_file):
     surf_atoms_unconstrained = []
-    surf_atoms_constrained = []
     constrained_atoms = []
     output = read(str(surf_file + "CONTCAR"))
 
-    cutOff = neighborlist.natural_cutoffs(output, mult=1.2)
+    cutOff = neighborlist.natural_cutoffs(output, mult=1.5)
     a,b,d = neighborlist.neighbor_list('ijd', output, cutOff)
 
 
@@ -67,10 +66,18 @@ def Surface_Atoms(surf_file):
     z_max = []
     for atom in output:
         if np.bincount(a)[atom.index] < 12 and atom.index not in constrainment[0]:
-                surf_atoms_unconstrained.append(atom.index)
-                z_max.append(atom.position[2])
+            surf_atoms_unconstrained.append(atom.index)
+            z_max.append(atom.position[2])
 
-    top_surf_atoms = [i for i in surf_atoms_unconstrained if output[i].position[2]+2 >= sum(z_max)/len(z_max)]
+#    print([i for i in surf_atoms_unconstrained])
+
+    radii = 0
+    for i in surf_atoms_unconstrained:
+        radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
+    radii = radii/len(surf_atoms_unconstrained)
+    top_surf_atoms = [i for i in surf_atoms_unconstrained if output[i].position[2]+radii >= sum(z_max)/len(z_max)]
+
+#    print([i for i in top_surf_atoms])
 
     coordination_list = {}
     for index in top_surf_atoms:
@@ -83,121 +90,135 @@ def Surface_Atoms(surf_file):
     return len(output), top_surf_atoms, coordination_list
 
 
-def SurfaceArea(slab_file, surf_atoms):
+def SurfaceArea(slab_file, surf_atoms, vertex_done):
     output = read(str(slab_file + "OUTCAR"))
     cell = output.get_cell()
     cell_pbc = output.get_pbc()
     output = read(str(slab_file + "CONTCAR"))
     atoms = Atoms([Atom(output[i].symbol, (output[i].position)) for i in surf_atoms], cell=cell, pbc=cell_pbc)
 
+#    print([i for i in surf_atoms])
+
     z_position = [output[i].position[2] for i in range(len(output)) if output[i].index in surf_atoms]
     x_max = max([output[i].position[0] for i in range(len(output)) if output[i].index in surf_atoms])
     y_max = max([output[i].position[1] for i in range(len(output)) if output[i].index in surf_atoms])
 
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.2)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.5)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 
     area = []
-    vertex_done = []
     verts = []
     color = []
+
+#    print(vertex_done)
+
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
-    ax = figure.add_subplot(1, 1, 1, projection='3d')
+    if len(vertex_done) > 0:
+        for i in range(len(vertex_done)):
+#            print(vertex_done[i])
+            area, color, verts, new_vertex_done = Add_triangle(atoms, vertex_done[i], min(z_position), color, verts, area, vertex_done)
+        n_verts = len(verts)
+        Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+    else:
+        ax = figure.add_subplot(1, 1, 1, projection='3d')
 # plotting the atoms, their number and the vector towards neighbours
-    for i in atoms:
-        ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-min(z_position), str(i.index))
-        ax.scatter3D(i.position[0], i.position[1], i.position[2]-min(z_position), c="k", s=50)
-        i_neigh = [j for j in range(len(a)) if a[j] == i.index]
-        for j in sorted(i_neigh):
-            ax.quiver(i.position[0], i.position[1], i.position[2]-min(z_position),
-                      D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
+        for i in atoms:
+            ax.text(i.position[0]+x_max*0.02, i.position[1]+y_max*0.02, i.position[2]-min(z_position), str(i.index))
+            ax.scatter3D(i.position[0], i.position[1], i.position[2]-min(z_position), c="k", s=50)
+            i_neigh = [j for j in range(len(a)) if a[j] == i.index]
+            for j in sorted(i_neigh):
+                ax.quiver(i.position[0], i.position[1], i.position[2]-min(z_position),
+                          D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
 # defining the peak and valley atoms : adatoms & vacancies at the surface
-    radii = 0
-    for i in surf_atoms:
-        radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
-    radii = radii/len(surf_atoms)
-    atoms_peaks = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
-    atoms_valleys = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] < sum(z_position)/len(z_position)-radii*0.25]
+        radii = 0
+        for i in surf_atoms:
+            radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
+        radii = radii/len(surf_atoms)
+        atoms_peaks = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] > sum(z_position)/len(z_position)+radii*0.25]
+        atoms_valleys = [atoms[i].index for i in range(len(atoms)) if atoms[i].position[2] < sum(z_position)/len(z_position)-radii*0.25]
 # finding neighbours of i and neighbours of neighbours that are also neighbours of i
-    for i in atoms:
-        i_neigh = [j for j in range(len(a)) if a[j] == i.index]
-        i_neigh_index = [b[j] for j in i_neigh]
-        for j in sorted(i_neigh):
-            j_neigh_index = [b[k] for k in range(len(a)) if a[k] == b[j] and b[k] in i_neigh_index]
-            j_neigh = [k for k in i_neigh if b[k] in j_neigh_index]
+        for i in atoms:
+            i_neigh = [j for j in range(len(a)) if a[j] == i.index]
+            i_neigh_index = [b[j] for j in i_neigh]
+            for j in sorted(i_neigh):
+                j_neigh_index = [b[k] for k in range(len(a)) if a[k] == b[j] and b[k] in i_neigh_index]
+                j_neigh = [k for k in i_neigh if b[k] in j_neigh_index]
 # are i, j and k neighbours of a valley atom
-            if i.index in atoms_valleys and b[j] in atoms_valleys:
-                j_exclusive = []
-                j_exclusive_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] not in i_neigh_index and b[k] not in atoms_valleys]
-                for k in j_exclusive_neigh:
-                    k_neigh = [n for n in range(len(a)) if a[n] == b[k] if b[n] in i_neigh_index and b[n] not in atoms_valleys]
-                    if len(k_neigh) > 0:
-                        j_exclusive.append(k)
-                ik_distance = []
-                for k in j_exclusive:
-                    ik_distance.append(atoms.get_distance(i.index, b[k], mic=True))
-                for k in j_exclusive:
-                    dist = atoms.get_distance(i.index, b[k], mic=True)
-                    if dist == min(ik_distance) and dist < sum(cutOff)/len(cutOff)*2.75:
-                        j_neigh_index.append(b[k])
-                        j_neigh.append(k)
-            for k in sorted(j_neigh):
-                x = y = z = []
-                done = 0                            # vertex is not done
+                if i.index in atoms_valleys and b[j] in atoms_valleys:
+                    j_exclusive = []
+                    j_exclusive_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] not in i_neigh_index and b[k] not in atoms_valleys]
+                    for k in j_exclusive_neigh:
+                        k_neigh = [n for n in range(len(a)) if a[n] == b[k] if b[n] in i_neigh_index and b[n] not in atoms_valleys]
+                        if len(k_neigh) > 0:
+                            j_exclusive.append(k)
+                    ik_distance = []
+                    for k in j_exclusive:
+                        ik_distance.append(atoms.get_distance(i.index, b[k], mic=True))
+                    for k in j_exclusive:
+                        dist = atoms.get_distance(i.index, b[k], mic=True)
+                        if dist == min(ik_distance) and dist < sum(cutOff)/len(cutOff)*2.75:
+                            j_neigh_index.append(b[k])
+                            j_neigh.append(k)
+                for k in sorted(j_neigh):
+                    x = y = z = []
+                    done = 0                            # vertex is not done
 # are i, j and k neighbours of a peak atom
-                for peak in atoms_peaks:
-                    peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
-                    if i.index in peaks_neigh_index and b[j] in peaks_neigh_index and b[k] in peaks_neigh_index:
-                        done = 1
+                    for peak in atoms_peaks:
+                        peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
+                        if i.index in peaks_neigh_index and b[j] in peaks_neigh_index and b[k] in peaks_neigh_index:
+                            done = 1
 # is this triangle already measured?
-                for triangle in vertex_done:
-                    if i.index in triangle and b[j] in triangle and b[k] in triangle:
-                        done = 1
+                    for triangle in vertex_done:
+                        if i.index in triangle and b[j] in triangle and b[k] in triangle:
+                            done = 1
 # calculating the area and plotting the triangle
-                if done == 0:
-                    area, color, verts, vertex_done = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position),
-                                                      color, verts, area, vertex_done)
-    n_verts = len(verts)
-    ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.4), zdir="z")
+                    if done == 0:
+                        area, color, verts, vertex_done = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position),
+                                                          color, verts, area, vertex_done)
+        n_verts = len(verts)
+        ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.jet(color), alpha=0.4), zdir="z")
 #    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
 #    ax.xaxis.set_ticklabels([]); ax.yaxis.set_ticklabels([]); ax.zaxis.set_ticklabels([])
-    figure.patch.set_visible(False)
-    ax.axis('off')
-    ax.view_init(azim=-90, elev=90)
-    plt.ion()
-    plt.show()
+        figure.patch.set_visible(False)
+        ax.axis('off')
+        ax.view_init(azim=-90, elev=90)
+#        plt.ion()
+        ax.set_xlim3d([0, x_max])
+        ax.set_ylim3d([0, y_max])
+        ax.set_zlim3d([0, (x_max+y_max)/2])
+        plt.show()
 
 # Removing tiles
-    answer = "y"
-    while answer == "y":
-        answer = str(input("Would you like to remove any tile (y/n)?\n"))
-        if answer == "y":
-            vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
-            vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
-                print(">>> Only three vertices are accepted")
-                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+        answer = "y"
+        while answer == "y":
+            answer = str(input("Would you like to remove any tile (y/n)?\n"))
+            if answer == "y":
+                vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
                 vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts -= 1
-            ax.clear
-            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+                if len(vertices) != 3:
+                    print(">>> Only three vertices are accepted")
+                    vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                    vertices = [int(i) for i in vertices]
+                area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
+                n_verts -= 1
+                ax.clear
+                Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
 
 # Adding additional tiles
-    answer = "y"
-    while answer == "y":
-        answer = str(input("Would you like to cover any other area (y/n)?\n"))
-        if answer == "y":
-            vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
-            vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
-                print(">>> Only three vertices are accepted")
-                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+        answer = "y"
+        while answer == "y":
+            answer = str(input("Would you like to cover any other area (y/n)?\n"))
+            if answer == "y":
+                vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
                 vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, verts, area, vertex_done)
-            n_verts += 1
-            ax.clear
-            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+                if len(vertices) != 3:
+                    print(">>> Only three vertices are accepted")
+                    vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                    vertices = [int(i) for i in vertices]
+                area, color, verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), color, verts, area, vertex_done)
+                n_verts += 1
+                ax.clear
+                Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
 
     if len(area)/n_verts != 1:
         print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
@@ -207,7 +228,7 @@ def SurfaceArea(slab_file, surf_atoms):
 #    flat_area = (output.cell[0][0] * output.cell[1][1]) * 1e-20                # m^2
 #    print("Area=",Area,"||","Flat_Area=",flat_area,"| Surf_atoms=",len(Surf_Atoms),"neighbouring=",neighbouring)
 
-    return area_total
+    return area_total, vertex_done
 
 def Add_triangle(atoms, vertices, z_min, color, verts, area, vertex_done):
     x = [atoms[vertices[0]].position[0]]
@@ -264,7 +285,10 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
     figure.patch.set_visible(False)
     ax.axis('off')
     ax.view_init(azim=-90, elev=90)
-    plt.ion()
+#    plt.ion()
+    ax.set_xlim3d([0, x_max])
+    ax.set_ylim3d([0, y_max])
+    ax.set_zlim3d([0, (x_max+y_max)/2])
     plt.show()
 
 
