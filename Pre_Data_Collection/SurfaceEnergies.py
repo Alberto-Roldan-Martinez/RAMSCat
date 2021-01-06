@@ -54,7 +54,7 @@ def Surface_Atoms(surf_file):
     constrained_atoms = []
     output = read(str(surf_file + "CONTCAR"))
 
-    cutOff = neighborlist.natural_cutoffs(output, mult=1.5)
+    cutOff = neighborlist.natural_cutoffs(output, mult=1.25)
     a,b,d = neighborlist.neighbor_list('ijd', output, cutOff)
 
 
@@ -75,7 +75,7 @@ def Surface_Atoms(surf_file):
     for i in surf_atoms_unconstrained:
         radii += sum(bulk(output[i].symbol).get_cell_lengths_and_angles()[0:3])/3
     radii = radii/len(surf_atoms_unconstrained)
-    top_surf_atoms = [i for i in surf_atoms_unconstrained if output[i].position[2]+radii >= sum(z_max)/len(z_max)]
+    top_surf_atoms = [i for i in surf_atoms_unconstrained if output[i].position[2]+radii*1.2 >= sum(z_max)/len(z_max)]
 
 #    print([i for i in top_surf_atoms])
 
@@ -103,7 +103,7 @@ def SurfaceArea(slab_file, surf_atoms, vertex_done):
     x_max = max([output[i].position[0] for i in range(len(output)) if output[i].index in surf_atoms])
     y_max = max([output[i].position[1] for i in range(len(output)) if output[i].index in surf_atoms])
 
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.5)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 
     area = []
@@ -193,7 +193,7 @@ def SurfaceArea(slab_file, surf_atoms, vertex_done):
         while answer == "y":
             answer = str(input("Would you like to remove any tile (y/n)?\n"))
             if answer == "y":
-                vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
+                vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
                 vertices = [int(i) for i in vertices]
                 if len(vertices) != 3:
                     print(">>> Only three vertices are accepted")
@@ -209,7 +209,7 @@ def SurfaceArea(slab_file, surf_atoms, vertex_done):
         while answer == "y":
             answer = str(input("Would you like to cover any other area (y/n)?\n"))
             if answer == "y":
-                vertices = input(">>> Which three atoms form the tile's vertices? e.g. a b c\n").split()
+                vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
                 vertices = [int(i) for i in vertices]
                 if len(vertices) != 3:
                     print(">>> Only three vertices are accepted")
@@ -285,7 +285,7 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
     figure.patch.set_visible(False)
     ax.axis('off')
     ax.view_init(azim=-90, elev=90)
-    plt.ion()
+#    plt.ion()
     ax.set_xlim3d([0, x_max])
     ax.set_ylim3d([0, y_max])
     ax.set_zlim3d([0, (x_max+y_max)/2])
