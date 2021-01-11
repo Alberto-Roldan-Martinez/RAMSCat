@@ -31,7 +31,7 @@ cluster_elements = ["Au"]                           # Elements in the Cluster
 support = "MgO"                             # Surface name
 inputfiles = ["OUTCAR", "CONTCAR"]
 isolated_cluster = arguments[1]+"/gas/OUTCAR"           # ".../OTHER/Supported/MgO/Au/Basin_Hopping/1Au/gas/OUTCAR"
-isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/rPBE/Supports/MgO/MgO/Surface/OUTCAR"
+isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
 
 
 #from ase.io import read
