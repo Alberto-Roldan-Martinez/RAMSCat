@@ -38,7 +38,7 @@ for i in range(len(sys.argv)-2):
     plt.plot(x, y, label=str(i+1))
 
 y_mean = [i/(len(sys.argv)-2) for i in y_mean]
-plt.plot(x, y_mean, "k:", label="mean", lw=2)
+plt.plot(x, y_mean, "k--", label="mean", lw=2)
 #plt.plot(x, y_mean, "k", lw=10, alpha=0.15)
 
 plt.xlabel("$dist_{" + str(sys.argv[1]) + "}$" +" ($\\AA$)", fontsize=14)
