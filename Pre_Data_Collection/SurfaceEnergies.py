@@ -214,6 +214,22 @@ def SurfaceArea(slab_file, surf_atoms):
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
 
+# Removing tiles
+    answer = "y"
+    while answer == "y":
+        answer = str(input("Would you like to remove any tile (y/n)?\n"))
+        if answer == "y":
+            vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
+            vertices = [int(i) for i in vertices]
+            if len(vertices) != 3:
+                print(">>> Only three vertices are accepted")
+                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                vertices = [int(i) for i in vertices]
+            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
+            n_verts -= 1
+            ax.clear
+            Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
+
     if len(area)/n_verts != 1:
         print("n_area/n_verts=", len(area)/n_verts, "\n   n areas=", len(area), "\n   n vertex=", n_verts)
     area_total = sum(area) * 1e-20         # m^2
@@ -244,11 +260,7 @@ def Add_triangle(atoms, vertices, z_min, z_max, color, verts, area, vertex_done)
         area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
         verts.append(list(zip(x, y, z)))
         vertex_done.append(vertices)
-        z_color = (sum(z)/len(z))
-        for i in z:
-            if (sum(z)/len(z))*0.8 < i > (sum(z)/len(z))*1.2:
-                z_color = i/(z_max-z_min)
-        color.append(z_color)
+        color.append((sum(z)/len(z))/((z_max-z_min)*2))
 
     return area, color, verts, vertex_done
 
