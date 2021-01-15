@@ -37,12 +37,13 @@ def Surface_Energy(bulk_file, surf_constrained_file, surf_file):
     e = output.get_total_energy()
 
     total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_constrained_file)
-    area = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
-    e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area)
+    area_constrained = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
+    e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area_constrained)
 
     total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_file)
     area = SurfaceArea(surf_file, top_surf_atoms)				# in m^2
-    e_surf = (e - (len(output)/len(bulk_out)) * e_bulk) / area - e_surf_constrained
+# area constrained and unconstrained are completely different, e.g. pristine vs. vacancy
+    e_surf = (e - (len(output)/len(bulk_out)) * e_bulk - e_surf_constrained * area_constrained) / area
 
 #    print(E_bulk,E_Surf0,E)
 #    if len(surf0_out) != len(output):
