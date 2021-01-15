@@ -261,7 +261,10 @@ def Add_triangle(atoms, vertices, z_min, z_max, color, verts, area, vertex_done)
         area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
         verts.append(list(zip(x, y, z)))
         vertex_done.append(vertices)
-        color.append((sum(z)/len(z))/((z_max-z_min)*2))
+        if z_max-z_min > 0.5:
+            color.append((sum(z)/len(z))/((z_max-z_min)*2))
+        else:
+            color.append((sum(z)/len(z)))
 
     return area, color, verts, vertex_done
 
