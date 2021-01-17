@@ -168,7 +168,7 @@ def SurfaceArea(slab_file, surf_atoms):
                         done = 1
 # calculating the area and plotting the triangle
                 if done == 0:
-                    area, color, verts, vertex_done = Add_triangle(atoms, [i.index, b[j], b[k]], min(z_position), max(z_position),
+                    area, color, verts, vertex_done = Add_area(atoms, [i.index, b[j], b[k]], min(z_position), max(z_position),
                                                       color, verts, area, vertex_done)
     n_verts = len(verts)
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.inferno(color), alpha=0.4), zdir="z")
@@ -210,7 +210,7 @@ def SurfaceArea(slab_file, surf_atoms):
                 print(">>> Only three vertices are accepted")
                 vertices = input(">>> Which three atoms form the tile's vertices?").split()
                 vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Add_triangle(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
+            area, color, verts, vertex_done = Add_area(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
             n_verts += 1
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
@@ -241,30 +241,37 @@ def SurfaceArea(slab_file, surf_atoms):
 
     return area_total
 
-def Add_triangle(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
+def Add_area(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
     x = [atoms[vertices[0]].position[0]]
     y = [atoms[vertices[0]].position[1]]
     z = [atoms[vertices[0]].position[2]-z_min]
-    v1 = atoms.get_distance(vertices[0], vertices[1], mic=True, vector=True)
-    d1 = atoms.get_distance(vertices[0], vertices[1], mic=True)
-    v2 = atoms.get_distance(vertices[0], vertices[2], mic=True, vector=True)
-    d2 = atoms.get_distance(vertices[0], vertices[2], mic=True)
-    x = [x[0], x[0]+v1[0], x[0]+v2[0]]
-    y = [y[0], y[0]+v1[1], y[0]+v2[1]]
-    z = [z[0], z[0]+v1[2], z[0]+v2[2]]
-    if round(np.dot(v1 / d1, v2 / d2), 5) > 1:
-        print(" interatomic angle must be between pi and -pi")
-        angle = 0
-    else:
-        angle = np.arccos(round(np.dot(v1 / d1, v2 / d2), 5))
-    if round(angle, 5) <= round(np.pi/1.25, 5) and angle > 1E-3:
-        area.append((d1 * (d2 * np.sin(angle))) / 2)       # N atoms contributing to Area
-        verts.append(list(zip(x, y, z)))
-        vertex_done.append(vertices)
-        if z_max-z_min > 0.5:
-            color.append((sum(z)/len(z))/((z_max-z_min)*2))
+    v = []
+    d = []
+    for nv in range(1, len(vertices)):
+        v.append(atoms.get_distance(vertices[0], vertices[nv], mic=True, vector=True))
+        d.append(atoms.get_distance(vertices[0], vertices[nv], mic=True))
+        x.append(x[0]+v[nv-1][0])
+        y.append(y[0]+v[nv-1][1])
+        z.append(z[0]+v[nv-1][2])
+    if len(vertices) == 3:
+        if round(np.dot(v[0] / d[0], v[1] / d[1]), 5) > 1:
+            print(" interatomic angle must be between pi and -pi")
+            angle = 0
         else:
-            color.append((sum(z)/len(z)))
+            angle = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
+        if round(angle, 5) <= round(np.pi/1.25, 5) and angle > 1E-3:
+            area_0 = (d[0] * (d[1] * np.sin(angle))) / 2
+    elif len(vertices) == 4:
+        sorted(d)
+        area_0 = d[0] * d[1]
+
+    area.append(area_0)
+    verts.append(list(zip(x, y, z)))
+    vertex_done.append(vertices)
+    if z_max-z_min > 0.5:
+        color.append((sum(z)/len(z))/((z_max-z_min)*2))
+    else:
+        color.append((sum(z)/len(z)))
 
     return area, color, verts, vertex_done
 
@@ -294,7 +301,7 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
         i_neigh = [j for j in range(len(a)) if a[j] == i.index]
         for j in sorted(i_neigh):
             ax.quiver(i.position[0], i.position[1], i.position[2]-z_min,
-                      D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.1, color="b", lw=2, normalize=True)
+                      D[j][0], D[j][1], D[j][2], length=1, arrow_length_ratio=0.05, color="b", lw=2, normalize=True)
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.inferno(color), alpha=0.4), zdir="z")
     figure.patch.set_visible(False)
     ax.axis('off')
