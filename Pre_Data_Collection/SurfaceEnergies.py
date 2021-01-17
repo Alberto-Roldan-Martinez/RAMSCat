@@ -168,7 +168,7 @@ def SurfaceArea(slab_file, surf_atoms):
                         done = 1
 # calculating the area and plotting the triangle
                 if done == 0:
-                    area, color, verts, vertex_done = Add_area(atoms, [i.index, b[j], b[k]], min(z_position), max(z_position),
+                    area, color, verts, vertex_done = Add_tile(atoms, [i.index, b[j], b[k]], min(z_position), max(z_position),
                                                       color, verts, area, vertex_done)
     n_verts = len(verts)
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.inferno(color), alpha=0.4), zdir="z")
@@ -188,11 +188,11 @@ def SurfaceArea(slab_file, surf_atoms):
     while answer == "y":
         answer = str(input("Would you like to remove any tile (y/n)?\n"))
         if answer == "y":
-            vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
+            vertices = input("   Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
             if len(vertices) != 3:
                 print(">>> Only three vertices are accepted")
-                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+                vertices = input(">>> Which atoms form the tile's vertices?").split()
                 vertices = [int(i) for i in vertices]
             area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
             n_verts -= 1
@@ -204,13 +204,13 @@ def SurfaceArea(slab_file, surf_atoms):
     while answer == "y":
         answer = str(input("Would you like to cover any other area (y/n)?\n"))
         if answer == "y":
-            vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
+            vertices = input("   Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
-                print(">>> Only three vertices are accepted")
-                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+            if len(vertices) != 3 or len(vertices) != 4:
+                print(">>> Only 3 or 4 vertices are accepted")
+                vertices = input(">>> Which atoms form the tile's vertices?").split()
                 vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Add_area(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
+            area, color, verts, vertex_done = Add_tile(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
             n_verts += 1
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
@@ -222,9 +222,9 @@ def SurfaceArea(slab_file, surf_atoms):
         if answer == "y":
             vertices = input("   Which three atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
-                print(">>> Only three vertices are accepted")
-                vertices = input(">>> Which three atoms form the tile's vertices?").split()
+            if len(vertices) != 3 or len(vertices) != 4:
+                print(">>> Only 3 or 4 vertices are accepted")
+                vertices = input(">>> Which atoms form the tile's vertices?").split()
                 vertices = [int(i) for i in vertices]
             area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
             n_verts -= 1
@@ -241,7 +241,7 @@ def SurfaceArea(slab_file, surf_atoms):
 
     return area_total
 
-def Add_area(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
+def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
     x = [atoms[vertices[0]].position[0]]
     y = [atoms[vertices[0]].position[1]]
     z = [atoms[vertices[0]].position[2]-z_min]
@@ -272,6 +272,7 @@ def Add_area(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
         color.append((sum(z)/len(z))/((z_max-z_min)*2))
     else:
         color.append((sum(z)/len(z)))
+    print("  Tile formed by", vertices, "has been added")
 
     return area, color, verts, vertex_done
 
