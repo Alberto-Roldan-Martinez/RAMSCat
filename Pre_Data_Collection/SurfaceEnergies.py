@@ -180,7 +180,7 @@ def SurfaceArea(slab_file, surf_atoms):
                     k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
                     k_neigh_index = int([b[l] for l in k_neigh][0])
                     for tile in vertex_done:
-                        if i.index in tile and b[j] in tile and b[k] in tile and b[j] in tile and k_neigh_index in tile:
+                        if i.index in tile and b[j] in tile and k_neigh_index in tile:
                             done = 1
                     vertices = [i.index, b[j], b[k], k_neigh_index]
 
