@@ -155,21 +155,17 @@ def SurfaceArea(slab_file, surf_atoms):
                         j_neigh_index.append(b[k])
                         j_neigh.append(k)
 # 4 vertex areas
-            l = ""
-            if len(j_neigh_index) < 1:
+            n_l = 3
+            if len(j_neigh_index) < 2:
                 i_2neigh_index = [b[k] for k in range(len(a)) if a[k] in i_neigh_index and b[k] != i.index]
                 j_neigh_index = set([k for k in i_2neigh_index if i_2neigh_index.count(k) == 2])
                 j_neigh = [k for k in range(len(a)) if a[k] == b[j] and b[k] in j_neigh_index]
-                l = 1
+                n_l = 4
 
             for k in sorted(j_neigh):
                 x = y = z = []
                 done = 0                            # vertex is not done
-
-                if l == 1:
-                    k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
-                    k_neigh_index = [b[l] for l in k_neigh][0]
-                    l = k_neigh[0]
+                vertices = [i.index, b[j], b[k]]
 # are i, j and k neighbours of a peak atom
                 for peak in atoms_peaks:
                     peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
@@ -179,10 +175,15 @@ def SurfaceArea(slab_file, surf_atoms):
                 for tile in vertex_done:
                     if i.index in tile and b[j] in tile and b[k] in tile and b[j] in tile:
                         done = 1
-                if l == "":
-                    vertices = [i.index, b[j], b[k]]
-                elif type(l) == int:
+# 4 vertices tile
+                if n_l == 4:
+                    k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
+                    k_neigh_index = int([b[l] for l in k_neigh][0])
+                    for tile in vertex_done:
+                        if i.index in tile and b[j] in tile and b[k] in tile and b[j] in tile and k_neigh_index in tile:
+                            done = 1
                     vertices = [i.index, b[j], b[k], k_neigh_index]
+
 # calculating the area and plotting the tile
                 if done == 0:
                     area, color, verts, vertex_done = Add_tile(atoms, vertices, min(z_position), max(z_position),
@@ -286,7 +287,6 @@ def SurfaceArea(slab_file, surf_atoms):
     return area_total
 
 
-
 def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
     x = [atoms[vertices[0]].position[0]]
     y = [atoms[vertices[0]].position[1]]
@@ -314,8 +314,9 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
                 else:
                     color.append((sum(z)/len(z)))
     elif len(vertices) == 4:
-        sorted(d)
+        d.sort()
         area.append(d[0] * d[1])
+        print(d, d[0], d[1], area[-1])
         verts.append(list(zip(x, y, z)))
         vertex_done.append(vertices)
         if z_max-z_min > 0.5:
