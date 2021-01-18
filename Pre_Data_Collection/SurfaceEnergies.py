@@ -203,8 +203,10 @@ def SurfaceArea(slab_file, surf_atoms):
 
 # Removing tiles
     answer = "y"
-    while answer == "y" or type(answer) is list and len(answer) > 2:
+    while answer == "y" or type(answer) is list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
+        if len(answer) < 2:
+            answer = str(answer)
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -225,8 +227,10 @@ def SurfaceArea(slab_file, surf_atoms):
 
 # Adding additional tiles
     answer = "y"
-    while answer == "y" or type(answer) is list and len(answer) > 2:
+    while answer == "y" or type(answer) is list:
         answer = input("Would you like to cover any other area (y/n)?\n").split()
+        if len(answer) < 2:
+            answer = str(answer)
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -249,8 +253,10 @@ def SurfaceArea(slab_file, surf_atoms):
 
 # Removing tiles
     answer = "y"
-    while answer == "y" or type(answer) == list and len(answer) > 2:
+    while answer == "y" or type(answer) == list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
+        if len(answer) < 2:
+            answer = str(answer)
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -287,7 +293,6 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
     z = [atoms[vertices[0]].position[2]-z_min]
     v = []
     d = []
-    area_0 = 0
     for nv in range(1, len(vertices)):
         v.append(atoms.get_distance(vertices[0], vertices[nv], mic=True, vector=True))
         d.append(atoms.get_distance(vertices[0], vertices[nv], mic=True))
@@ -300,19 +305,23 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
             angle = 0
         else:
             angle = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
-            if round(angle, 5) <= round(np.pi/1.25, 5) and angle > 1E-3:
-                area_0 = (d[0] * (d[1] * np.sin(angle))) / 2
+            if round(angle, 5) <= 2.1 and angle > 0.2:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
+                area.append((d[0] * (d[1] * np.sin(angle))) / 2)
+                verts.append(list(zip(x, y, z)))
+                vertex_done.append(vertices)
+                if z_max-z_min > 0.5:
+                    color.append((sum(z)/len(z))/((z_max-z_min)*2))
+                else:
+                    color.append((sum(z)/len(z)))
     elif len(vertices) == 4:
         sorted(d)
         area_0 = d[0] * d[1]
-
-    area.append(area_0)
-    verts.append(list(zip(x, y, z)))
-    vertex_done.append(vertices)
-    if z_max-z_min > 0.5:
-        color.append((sum(z)/len(z))/((z_max-z_min)*2))
-    else:
-        color.append((sum(z)/len(z)))
+        verts.append(list(zip(x, y, z)))
+        vertex_done.append(vertices)
+        if z_max-z_min > 0.5:
+            color.append((sum(z)/len(z))/((z_max-z_min)*2))
+        else:
+            color.append((sum(z)/len(z)))
 
     return area, color, verts, vertex_done
 
