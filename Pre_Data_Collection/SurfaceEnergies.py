@@ -316,7 +316,6 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
     elif len(vertices) == 4:
         d.sort()
         area.append(d[0] * d[1])
-        print(d, d[0], d[1], area[-1])
         verts.append(list(zip(x, y, z)))
         vertex_done.append(vertices)
         if z_max-z_min > 0.5:
