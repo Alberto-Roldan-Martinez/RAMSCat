@@ -207,7 +207,7 @@ def SurfaceArea(slab_file, surf_atoms):
     while answer == "y" or type(answer) is list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
         if len(answer) < 2:
-            answer = str(answer)
+            answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -231,7 +231,7 @@ def SurfaceArea(slab_file, surf_atoms):
     while answer == "y" or type(answer) is list:
         answer = input("Would you like to cover any other area (y/n)?\n").split()
         if len(answer) < 2:
-            answer = str(answer)
+            answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -257,7 +257,7 @@ def SurfaceArea(slab_file, surf_atoms):
     while answer == "y" or type(answer) == list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
         if len(answer) < 2:
-            answer = str(answer)
+            answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
             vertices = [int(i) for i in vertices]
@@ -317,7 +317,7 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
         d.sort()
         area.append(d[0] * d[1])
         verts.append(list(zip(x, y, z)))
-        vertex_done.append(vertices)
+        vertex_done.append([vertices[0], vertices[1], vertices[3]])
         if z_max-z_min > 0.5:
             color.append((sum(z)/len(z))/((z_max-z_min)*2))
         else:
