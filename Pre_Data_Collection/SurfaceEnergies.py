@@ -180,7 +180,7 @@ def SurfaceArea(slab_file, surf_atoms):
                     k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
                     k_neigh_index = int([b[l] for l in k_neigh][0])
                     for tile in vertex_done:
-                        if i.index in tile and b[j] in tile and k_neigh_index in tile:
+                        if i.index in tile and k_neigh_index in tile:
                             done = 1
                     vertices = [i.index, b[j], b[k], k_neigh_index]
 
@@ -317,7 +317,7 @@ def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
         d.sort()
         area.append(d[0] * d[1])
         verts.append(list(zip(x, y, z)))
-        vertex_done.append([vertices[0], vertices[1], vertices[3]])
+        vertex_done.append(vertices)
         if z_max-z_min > 0.5:
             color.append((sum(z)/len(z))/((z_max-z_min)*2))
         else:
