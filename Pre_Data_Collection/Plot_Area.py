@@ -4,22 +4,32 @@
 
 import sys
 import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
-#DataSet = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
-#DataSet_2 = np.loadtxt(sys.argv[2], comments="#")
-DataFile = open(sys.argv[1])
-DataSet = DataFile.readlines()[1:]
-DataSet = [DataSet[i].split() for i in range(len(DataSet)-1) if float(DataSet[i][0]) > 0]
+data_coord = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
+data = open(sys.argv[1]).readlines()
+
+x0 = data_coord[:, 0]
+y0 = [i*1E20 for i in data_coord[:, 1]]         # 1= Areas in m^2
+#y0 = data_coord[:, 2]                           # 2= SurfEnergy
 
 
-def annotation(note,x0,y0,x,y):
+def SaveFig():
+        answer = str(input("Would you like to save the figure (y/n)?\n"))
+        if answer == "y":
+                figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
+                plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
+                                        bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
+
+def annotation(note, x0, y0, x, y):
     return  plt.annotate(note, xy=(x0,y0), xycoords="data", size=14,
                                xytext=(x,y), textcoords="data",
                                arrowprops=dict(arrowstyle="<-", color="b", fc="0.6"),
                                horizontalalignment="right", verticalalignment="top")
-
 def notes(i):
     line = DataSet[i]
     if line[4] != str(0):
@@ -28,9 +38,55 @@ def notes(i):
         note = str("$\it p$("+line[2]+")$\cdot$("+line[3]+")")
     return note
 
+def trendline(x, a, b, c, d):
+#    return a*x + b                      # linear
+#    return a*np.cos(b+x*c)
+#    return (a / (np.sqrt(2*np.pi) * c )) * np.exp(-(x-b)**2 / (2*c**2))    # GAUSSIAN
+    return a + (2 * -c * d/np.pi) / (4 * (x - b)**2 - c**2)     # LORENTZIAN
+
+
+# Find the Trendline
+popt, pcov = curve_fit(trendline, x, y) #, bounds=([d0_eq*0.8, 0, r0_eq*0.8], [d0_eq*1.2, 50, r0_eq*1.2]))
+r2 = 1-np.sqrt(sum([(y[i] - trendline(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+if len(popt) == 2:
+    a, b = popt
+    trend_label = "$Area = %.3f %s + %.3f ; R^{2}$= %.2f$" %(a, "coord", b, r2)
+elif len(popt) == 3:
+    a, b, c = popt
+    trend_label = "$Area = %.3f cos(%.3f \plus %.3f %s ; R^{2}$= %.2f$" %(a, b, c, "coord", r2)     # cos
+elif len(popt) == 4:
+    a, b, c, d = popt
+    trend_label = "$Area = %.3f - \frac{%.3f}{4 * (%s - %.3f) - %.3f} ; R^{2}$= %.2f$" %(a, 2*c*d/np.pi, "coord", b**2, c**2, r2)
+
+r2 = 1-np.sqrt(sum([(y[i] - trendline(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+print(popt, r2)
+
+figure1 = plt.figure(figsize=(12, 10), clear=True)
+plt.plot(x0, y0, "o")
+plt.plot(np.linspace(0, 12, 150), trendline(np.linspace(0, 12, 150), *popt), "b--", label=trend_label)
+plt.xlabel("Coordination", fontsize=14)
+plt.ylabel("Area $(\\AA^{2} \cdot atom^{\minus 1})$", fontsize=14)
+#       plt.xticks(np.arange(0,Xmax, 0.25))
+plt.xlim([0, 12])
+plt.ylim([0, max(y)*1.1])
+plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
+#plt.title("$TM_{" + str(int(data[0,0])) + "}$ $dist_{" + str(sys.argv[2]) + "}$")
+plt.legend(loc='best')
+plt.grid(True)
+plt.tight_layout()
+plt.ion()
+plt.show()
+SaveFig()
+
+
+
+
+
+
+
 
 # What to plot?
-X = [float(DataSet[i][0]) for i in range(len(DataSet)) if float(DataSet[i][0]) > 0]
+x = [float(DataSet[i][1]) for i in range(len(DataSet)) if float(DataSet[i][0]) > 0]
 Y = [float(DataSet[i][1]) for i in range(len(DataSet)) if float(DataSet[i][0]) > 0]
 
 plt.plot(np.linspace(0,max(X)+10,2),np.linspace(0,max(X)+10,2), "k-", lw=1.5)
@@ -77,8 +133,8 @@ i = 31 ;  x = X[i]+55  ;  y = Y[i]+3   ; annotation(notes(i),X[i],Y[i],x,y)
 i = 32 ;  x = X[i]-20  ;  y = Y[i]+20  ; annotation(notes(i),X[i],Y[i],x,y)
 
 
-plt.tight_layout()
 plt.grid(True)
-plt.savefig("Area.png", figsize=(11.69,16.53), clear=True, dpi=300, orientation='portrait',transparent=True)
+plt.tight_layout()
+plt.ion()
 plt.show()
-
+SaveFig()

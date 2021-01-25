@@ -49,7 +49,7 @@ def Surface_Energy(bulk_file, surf_constrained_file, surf_file):
 #    if len(surf0_out) != len(output):
 #        print("   Asymmetric slab: n_bulk=", len(bulk_out), "   n_S0=", len(surf0_out), "   n_S=", len(output))
 
-    return area, e, e_surf * to_J, e_surf_constrained * to_J, (e_surf_constrained-e_surf)/e_surf_constrained*100, coordination_list
+    return area_constrained, area, e_surf_constrained * to_J, e_surf * to_J, coordination_list
 
 
 def Surface_Atoms(surf_file):
@@ -366,17 +366,22 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
 
 ##############################################################################################
 
-area, e, e_surf, e_surf_constrained, relaxation, coordination_list = Surface_Energy(bulk_file, surf_constrained_file, surf_file)
+area_constrained, area, e_surf_constrained, e_surf, coordination_list = Surface_Energy(bulk_file, surf_constrained_file, surf_file)
+
+path = os.getcwd()
+name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
+
 ifile = open("E_surf.dat", 'w+')
-#ifile.write("# Tatoms Satoms Area(m^2) E(eV/atom) γ_0(J/m^2) γ_r(J/m^2) (γ_0-γ_r)/γ_0(%)  || Coordination_list\n")
-#ifile.write("    %d      %d     %.3G    %.3f      %.3f      %.3f         %.3f   " % (total_n_atoms, len(top_surf_atoms),
-#                                                                                     area, e/total_n_atoms,
-#                                                                                     e_surf_constrained, e_surf,
-#                                                                                     relaxation))
-ifile.write("# Area(m^2)   γ_r(J/m^2) || Coordination_list\n")
-ifile.write("  %.5G       %.3f " % (area, e_surf))
-ifile.write("||  ")
-for i in coordination_list:
-    ifile.write("%5s x %d" %(i, coordination_list[i]))
+ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) || Coordination:")
+for i in range(3, 11):
+    ifile.write("  {:d}" .format(i))
 ifile.write("\n")
+ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}\t\t\t" .format(area_constrained, area, e_surf_constrained, e_surf))
+for i in range(3, 11):
+    if str(i) in coordination_list:
+        coord = coordination_list[str(i)]
+    else:
+        coord = 0
+    ifile.write(" {:>2d}" .format(coord))
+ifile.write("\t# {:<50s}\n" .format(name))
 ifile.close()

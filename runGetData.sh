@@ -12,13 +12,13 @@
 			cat data.dat >> ../Data.tmp
 			rm data.dat
 			mv labels.txt ../.
-      python3 ~/Software/OTHER/NeuralNetwork/CatStructure.py
+#      python3 ~/Software/OTHER/NeuralNetwork/CatStructure.py
 		fi
 		cd ..
        	done
 	cat labels.txt Data.tmp >> Data.dat
 	rm labels.txt Data.tmp
-	python3 /home/alberto/Software/OTHER/NeuralNetwork/Plot.py Data.dat
+#	python3 /home/alberto/Software/OTHER/NeuralNetwork/Plot.py Data.dat
 
 # to normalise -- implemented before Ebinding
 #	python3 /home/alberto/software/OTHER/NeuralNetwork/ENormalisation.py Data.dat
