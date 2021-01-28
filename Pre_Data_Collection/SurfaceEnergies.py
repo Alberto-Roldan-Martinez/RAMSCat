@@ -371,12 +371,18 @@ area_constrained, area, e_surf_constrained, e_surf, coordination_list = Surface_
 path = os.getcwd()
 name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
+coord_sum = []
+for i in coordination_list:
+    coord_sum.append(int(i)*coordination_list[i])
+coord_average = sum(coord_sum)/sum([coordination_list[i] for i in coordination_list])
+
 ifile = open("E_surf.dat", 'w+')
 ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) || Coordination:")
 for i in range(3, 11):
     ifile.write("  {:d}" .format(i))
 ifile.write("\n")
-ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}\t\t\t" .format(area_constrained, area, e_surf_constrained, e_surf))
+ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(area_constrained, area, e_surf_constrained,
+                                                                             e_surf, coord_average))
 for i in range(3, 11):
     if str(i) in coordination_list:
         coord = coordination_list[str(i)]
