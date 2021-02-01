@@ -147,18 +147,6 @@ plt.plot(np.linspace(0, 12, 150), trendline_1(np.linspace(0, 12, 150), *popt2), 
 
 Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15], [min(y0)-min(y0)*1.1, max(y0)*1.15], trend_label)
 
-# What to plot?
-coord = [float(data[i][4]) for i in range(len(data))]               # coordination to get predicted surf E
-natoms = [float(data[i][3]) for i in range(len(data))]              # number of atoms with such coordination
-x = [float(data[i][2]) for i in range(len(data))]
-y = [trendline_1(coord[i], *popt2) for i in range(len(data))]
-
-plt.plot([min(x), max(x)], [min(x), max(x)], "k-", lw=1.5)
-plt.plot(x, y, "rs")
-
-Display("$\\gamma$ ($J \cdot m^{\minus 2}$)", "Predicted $\\gamma$ ($J \cdot m^{\minus 2}$)", [min(x)-min(x)*0.1, max(x)*1.02],
-        [min(x)-min(x)*0.1, max(x)*1.02], "")
-
 #-------------------------------------------------------------------------------------------------
 # What to plot?
 toeV = 1.60218E19
@@ -220,7 +208,7 @@ i = 24 ;   annotation(note[i], x[i], y[i], x[i]-0.10, y[i]+0.08);  xx.append(x[i
 
 plt.plot([0, 3], [0, 3], "k-", lw=1.5)
 plt.plot(xx, yy, "bo")
-#plt.plot(x, y2, "ro")
+plt.plot(x, y2, "ro")
 
 Display("$\\gamma$ ($eV \cdot atom^{\minus 1}$)", "Predicted $\\gamma$ ($eV \cdot atom^{\minus 1}$)", [min(x)-min(x)*0.1, max(x)*1.02],
         [min(x)-min(x)*0.1, max(x)*1.02], "")
