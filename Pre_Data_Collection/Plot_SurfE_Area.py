@@ -1,10 +1,9 @@
 '''
 
 USAGE: Plot_area.py coord_area_data all_areas_data
+   coord_area_data : 3 columns with coord, area(m^2) and SurfE(J.m^-2)
 
 '''
-
-
 
 import sys
 import numpy as np
