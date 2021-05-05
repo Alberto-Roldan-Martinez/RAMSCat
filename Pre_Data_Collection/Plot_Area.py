@@ -14,12 +14,12 @@ import matplotlib.pyplot as plt
 
 data = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
 
-areas = [float(i) for i in data[:, 0]]
-surf_e = [float(i) for i in data[:, 1]]
+areas = [float(i) for i in data[:, 0]]							# in m^2
+surf_e = [float(i) for i in data[:, 1]]							# in J . m^2
 coord_matrix = data[:, 2:].astype(int)
 
-coord_areas = np.linalg.solve(coord_matrix, areas)
-coord_surf_e = np.linalg.solve(coord_matrix, surf_e)
+coord_areas = np.linalg.solve(coord_matrix, areas)				# in m^2 . atom^-1
+coord_surf_e = np.linalg.solve(coord_matrix, surf_e)			# in J . m^-2 . atom^-1
 x_axis = np.arange(3, 12, 1)
 
 
@@ -85,21 +85,23 @@ def trend_2(x, y):
 Area trend
 
 '''
-y = coord_areas * 1E20
+y = coord_areas * 1E20										# in Angstroms
 #trend_label = trend_1(x_axis, y)
+#plt.plot(x_axis,y0)
 #Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 '''
 
 Surface energy trend
 
 '''
-#trend_label = trend_2(x_axis, coord_surf_e)
-#Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
+y = coord_surf_e											# in J . m^-2 . atom^-1
+#trend_label = trend_2(x_axis, y)
+#Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
 
-toeV = 1.60218E19
-y = coord_surf_e * toeV * coord_areas          # energies in eV . atom^-1
-trend_label = trend_2(x_axis, y)
-Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+toeV = 1.60218E+19
+y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
+#trend_label = trend_2(x_axis, y)
+#Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
 
 
