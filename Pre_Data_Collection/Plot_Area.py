@@ -11,6 +11,7 @@ from scipy.optimize import curve_fit
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from Plot_SurfE_Area import Area, Surf_E
 
 data = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
 
@@ -46,20 +47,16 @@ def SaveFig():
 		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
-def annotation(note, x0, y0, x, y):
-	return plt.annotate(note, xy=(x0,y0), xycoords="data", size=14,
-							   xytext=(x,y), textcoords="data",
-							   arrowprops=dict(arrowstyle="<-", color="k", fc="0.6"),
-							   horizontalalignment="center", verticalalignment="center")
-
 def trendline_1(x, a, b, c, d):
-	return a - (b + x**c)/d     # LORENTZIAN
+	return a - (b + x**c)/d     		# LORENTZIAN
 
 def trendline_2(x, a, b):
 	return a*x + b                      # linear
 
 def trend_1(x, y):
-	popt1, pcov1 = curve_fit(trendline_1, x, y) #, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
+#          3  4  5  6  7   8    9  10 11
+	weights = [1, 1, 1, 1, 1, 0.2, 0.2, 1, 1]
+	popt1, pcov1 = curve_fit(trendline_1, x, y, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
 	r2 = 1-np.sqrt(sum([(y[i] - trendline_1(x[i], *popt1))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c, d = popt1
 	trend_label = "Lorentzian: a, b, c, d =" + str(round(a, 5)) + ", " +\
@@ -71,13 +68,14 @@ def trend_1(x, y):
 	return trend_label
 
 def trend_2(x, y):
-	popt2, pcov2 = curve_fit(trendline_2, x, y) #, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
+	weights = [1, 1, 1, 1, 1, 0.2, 0.2, 1, 1]
+	popt2, pcov2 = curve_fit(trendline_2, x, y, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
 	r2 = 1-np.sqrt(sum([(y[i] - trendline_2(x[i], *popt2))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b = popt2
 	trend_label = "a*x + b =" + str(round(a, 5)) + "x +" + str(round(b, 5))
-	plt.plot(x, y, "rs")
+	plt.plot(x, y, "bo")
 	plt.plot(np.linspace(0, 12, 150), trendline_2(np.linspace(0, 12, 150), *popt2),
-			 "r--", label="$R^{2}$= "+str(round(r2, 2)))
+			 "b--", label="$R^{2}$= "+str(round(r2, 2)))
 
 	return trend_label
 '''
@@ -85,24 +83,24 @@ def trend_2(x, y):
 Area trend
 
 '''
-y = coord_areas * 1E20										# in Angstroms
+y = coord_areas * 1E20										# in Angstroms^2
 #trend_label = trend_1(x_axis, y)
-#plt.plot(x_axis,y0)
-#Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+#Display("Coordination", "Area ($\\AA ^{2}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+#Area(sys.argv[1], y)
 '''
 
 Surface energy trend
 
 '''
 y = coord_surf_e											# in J . m^-2 . atom^-1
-#trend_label = trend_2(x_axis, y)
-#Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
+trend_label = trend_2(x_axis, y)
+Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
+Surf_E(sys.argv[1], y)
 
 toeV = 1.60218E+19
 y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
-#trend_label = trend_2(x_axis, y)
-#Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
-
+trend_label = trend_1(x_axis, y)
+Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
 
 
