@@ -1,6 +1,6 @@
 '''
 
-USAGE: Plot_area.py input
+USAGE: Trend_SEnergy.py input
    input: area(m^2) SurfE(J.m^-2) and matrix of number of atoms with coordination
 
 '''
@@ -11,7 +11,6 @@ from scipy.optimize import curve_fit
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from Plot_SurfE_Area import Area, Surf_E
 
 data = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
 
@@ -84,9 +83,8 @@ Area trend
 
 '''
 y = coord_areas * 1E20										# in Angstroms^2
-#trend_label = trend_1(x_axis, y)
-#Display("Coordination", "Area ($\\AA ^{2}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
-#Area(sys.argv[1], y)
+trend_label = trend_1(x_axis, y)
+Display("Coordination", "Area ($\\AA ^{2}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 '''
 
 Surface energy trend
@@ -95,19 +93,9 @@ Surface energy trend
 y = coord_surf_e											# in J . m^-2 . atom^-1
 trend_label = trend_2(x_axis, y)
 Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
-Surf_E(sys.argv[1], y)
 
-toeV = 1.60218E+19
-y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
-trend_label = trend_1(x_axis, y)
-Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
-
-
-
-
-
-
-
-
-
+#toeV = 1.60218E+19
+#y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
+#trend_label = trend_1(x_axis, y)
+#Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
