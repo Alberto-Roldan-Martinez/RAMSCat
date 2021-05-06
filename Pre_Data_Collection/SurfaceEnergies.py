@@ -369,7 +369,7 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
 area_constrained, area, e_surf_constrained, e_surf, coordination_list = Surface_Energy(bulk_file, surf_constrained_file, surf_file)
 
 path = os.getcwd()
-name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
+name = path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
 coord_sum = []
 for i in coordination_list:
@@ -377,17 +377,17 @@ for i in coordination_list:
 coord_average = sum(coord_sum)/sum([coordination_list[i] for i in coordination_list])
 
 ifile = open("E_surf.dat", 'w+')
-ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) || Coordination:")
-for i in range(3, 11):
-    ifile.write("  {:d}" .format(i))
-ifile.write("\n")
+ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) average_top_surface_coordination\n")
 ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(area_constrained, area, e_surf_constrained,
                                                                              e_surf, coord_average))
-for i in range(3, 11):
+ifile.close()
+ifile = open("Trend_SEnergy.dat", 'w+')
+ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area, e_surf))
+for i in range(3, 12):
     if str(i) in coordination_list:
         coord = coordination_list[str(i)]
     else:
         coord = 0
-    ifile.write(" {:>2d}" .format(coord))
+    ifile.write(" {:>3d}" .format(coord))
 ifile.write("\t# {:<50s}\n" .format(name))
 ifile.close()

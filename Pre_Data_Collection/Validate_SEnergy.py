@@ -79,8 +79,8 @@ def Area(file_name, coord_areas):
         surf_coord = [int(iline[j]) for j in range(2, len(iline)-2)]
         y.append(np.dot(coord_areas, surf_coord))                    # in Angstroms^2
 
-    x_min = min(x)*0.9
-    x_max = max(x)*1.15
+    x_min = min([i for i in x + y])*0.9
+    x_max = max([i for i in x + y])*1.15
     plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
     plt.plot(x, y, "rs", ms=3)
     for i in range(len(x)):
@@ -110,8 +110,8 @@ def Surf_E(file_name, coord_surf_e):
         surf_coord = [int(iline[j]) for j in range(2, len(iline)-2)]
         y.append(np.dot(coord_surf_e, surf_coord))                    # in Angstroms^2
 
-    x_min = min(x)*0.9
-    x_max = max(x)*1.15
+    x_min = min([i for i in x + y])*0.9
+    x_max = max([i for i in x + y])*1.15
     plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
     plt.plot(x, y, "bo", ms=3)
     for i in range(len(x)):
