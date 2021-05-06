@@ -94,42 +94,43 @@ def ecoh_trend(element):                         # cohesion energies trend param
 def areas(element, coordination):                # Atomic areas previously calculated from surfaces as a function of the atom's coordination [0-->12]
     area = {                                    #   interpolated using a  LORENTZIAN function(x,a,b,c,d):   a + b / (4 * ( x - c )**2 - d**2)
 #           element || areas vs coordination [0-->12] in Angstroms || a,b,c,d and R^2 of interpolation
-# 3rd row           0       1       2       3       4       5       6       7       8       9    10      11    12      a        b       c       d       R^2            
+# 3rd row           a        b       c       d       R^2
             'Co': [-7.1245, 12], # hcp
             'Ni': [-5.6273, 12],
             'Cu': [-4.0698, 12],
-# 4rd row           0       1       2       3       4       5       6       7       8       9    10      11    12      a        b       c       d       R^2 
+# 4rd row           a        b       c       d       R^2
             'Ru': [-9.4469, 12], # hcp
             'Rh': [-7.5247, 12],
             'Pd': [-5.5162, 12],
             'Ag': [-3.0364, 12],
-# 5rd row           0       1       2       3       4       5       6       7       8       9    10      11    12      a        b       c       d       R^2            
+# 5rd row           a        b       c       d       R^2
             'Ir': [-9.4589, 12],                
             'Pt': [-6.5738, 12],
-            'Au': [15.033, -3126.937, 19.167, 0.491, 0.9665],
+            'Au': [17.4706, 91.61526, 1.94987, 16.54962, 0.94],
            }
     a, b, c, d, r2 = area[element]
-    return a + b / (4 * (int(coordination) - c)**2 - d**2)
+    return a - (b + int(coordination)**c)/d  #a + b / (4 * (int(coordination) - c)**2 - d**2)
 
 
 def surf_energies(element, coordination):        # Atomic Surface energies previously calculated from surfaces as a function of the atom's coordination [0-->12]
     surf_energy = {                                 #   interpolated using a straigh line a*x + b
 #           element || energies vs coordination [0-->12] in Angstroms || a,b and R^2 of interpolation
-# 3rd row           0       1       2       3       4       5       6       7       8       9    10      11    12      a        b       R^2 
+# 3rd row           a        b       R^2
             'Co': [-7.1245, 12], # hcp
             'Ni': [-5.6273, 12],
             'Cu': [-4.0698, 12],
-# 4rd row           0       1       2       3       4       5       6       7       8       9    10      11    12      a        b        R^2 
+# 4rd row           a        b        R^2
             'Ru': [-9.4469, 12], # hcp
             'Rh': [-7.5247, 12],
             'Pd': [-5.5162, 12],
             'Ag': [-3.0364, 12],
-# 5rd row           0       1       2       3       4    5     6      7      8      9     10      11    12      a      b      R^2
+# 5rd row           a      b      R^2
             'Ir': [-9.4589, 12],                
             'Pt': [-6.5738, 12],
-            'Au': [2.001, 1.837, 1.673, 1.509, 1.345, 1.181, 1.067, 0.802, 0.656, 0.517, 0.361, 0.269, 0.000, -0.164, 2.001, 0.9108],
+            'Au': [-0.00637, 0.10435, 0.71],
             }
-    return surf_energy[element][coordination]
+    a, b, r2 = surf_energy[element]
+    return a * int(coordination) + b
 
 
 def morse_potential_depth(support, element, ics):                # considering as reference O sites and d_z

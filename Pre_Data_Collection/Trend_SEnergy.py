@@ -52,10 +52,10 @@ def trendline_1(x, a, b, c, d):
 def trendline_2(x, a, b):
 	return a*x + b                      # linear
 
-def trend_1(x, y):
+def trend_lorentzian(x, y):
 #          3  4  5  6  7   8    9  10 11
-	weights = [1, 1, 1, 1, 1, 0.2, 0.2, 1, 1]
-	popt1, pcov1 = curve_fit(trendline_1, x, y, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
+	weights = [1, 1, 1, 1, 1, 0.5, 0.5, 1, 1]
+	popt1, pcov1 = curve_fit(trendline_1, x, y, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - trendline_1(x[i], *popt1))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c, d = popt1
 	trend_label = "Lorentzian: a, b, c, d =" + str(round(a, 5)) + ", " +\
@@ -66,8 +66,8 @@ def trend_1(x, y):
 
 	return trend_label
 
-def trend_2(x, y):
-	weights = [1, 1, 1, 1, 1, 0.2, 0.2, 1, 1]
+def trend_lineal(x, y):
+	weights = [1, 1, 1, 1, 1, 0.5, 0.5, 1, 1]
 	popt2, pcov2 = curve_fit(trendline_2, x, y, sigma=weights)#, absolute_sigma=True)#, bounds=([0, 0, 0, 20000], [50, 150, 150, 40000]))
 	r2 = 1-np.sqrt(sum([(y[i] - trendline_2(x[i], *popt2))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b = popt2
@@ -83,7 +83,7 @@ Area trend
 
 '''
 y = coord_areas * 1E20										# in Angstroms^2
-trend_label = trend_1(x_axis, y)
+trend_label = trend_lorentzian(x_axis, y)
 Display("Coordination", "Area ($\\AA ^{2}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 '''
 
@@ -91,7 +91,7 @@ Surface energy trend
 
 '''
 y = coord_surf_e											# in J . m^-2 . atom^-1
-trend_label = trend_2(x_axis, y)
+trend_label = trend_lineal(x_axis, y)
 Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
 
 #toeV = 1.60218E+19
