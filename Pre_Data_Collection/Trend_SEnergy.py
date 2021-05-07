@@ -13,18 +13,25 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 data = np.loadtxt(sys.argv[1], comments="#")                    # import and reads data
+x_axis = np.arange(3, 12, 1)
 
 areas = [float(i) for i in data[:, 0]]							# in m^2
 surf_e = [float(i) for i in data[:, 1]]							# in J . m^2
 coord_matrix = data[:, 2:].astype(int)
+coord_matrix_norm = []
+
+for i in range(len(coord_matrix)):
+	row = coord_matrix[i, :]
+	coord_matrix_norm.append([float(row[j]/sum(row)) for j in range(len(row))])
+coord_matrix_norm = np.reshape(coord_matrix_norm, (len(coord_matrix), len(coord_matrix)))
 
 # solving the coordination matrix
+# Areas
 coord_areas = np.linalg.solve(coord_matrix, areas)				# in m^2 . atom^-1
-fun = lambda x: np.linalg.norm(np.dot(coord_matrix, x) - surf_e)
-sol = minimize(fun, np.zeros(len(areas)), bounds=[(0., None) for x in range(len(areas))])
+# Surface Energies
+fun = lambda x: np.linalg.norm(np.dot(coord_matrix_norm, x) - surf_e)
+sol = minimize(fun, np.zeros(len(surf_e)), bounds=[(0., None) for x in range(len(surf_e))])
 coord_surf_e = sol['x']											# in J . m^-2 . atom^-1
-
-x_axis = np.arange(3, 12, 1)
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -89,18 +96,19 @@ Area trend
 y = coord_areas * 1E20										# in Angstroms^2
 trend_label = trend_lorentzian(x_axis, y)
 trend_label = trend_lineal(x_axis, y)
-Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 '''
 
 Surface energy trend
 
 '''
-y = coord_surf_e										# in J . m^-2 . atom^-1
+y = coord_surf_e										# in J . m^-2
 trend_label = trend_lineal(x_axis, y)
-Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2} \cdot atom^{\minus 1}$)", [1, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
+#trend_label = trend_lorentzian(x_axis, y)
+Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15], [min(coord_surf_e)-np.abs(min(coord_surf_e)*0.15), max(coord_surf_e)*1.15], trend_label)
 
 toeV = 1.60218E+19
 y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
 trend_label = trend_lineal(x_axis, y)
-Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [1, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [0, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
