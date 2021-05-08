@@ -389,5 +389,10 @@ for i in range(3, 12):
     else:
         coord = 0
     ifile.write(" {:>3d}" .format(coord))
-ifile.write("\t# {:<50s}\n" .format(name))
+essential_surf = ["111/5x5", "111/5x5_v1", "111/5x5_v2", "111/5x5_ad1", "111/5x5_ad2", "111/5x5_ad3",
+                  "001/5x5", "001/5x5_v1", "001/5x5_v2"]
+if name in essential_surf:
+    ifile.write("\t# {:<50s}\n" .format(name))
+else:
+    ifile.write("\t# VAL{:<50s}\n" .format(name))
 ifile.close()

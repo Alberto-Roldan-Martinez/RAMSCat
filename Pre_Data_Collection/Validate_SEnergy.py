@@ -11,7 +11,6 @@ from scipy.optimize import curve_fit
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from Library import areas, surf_energies
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -129,11 +128,11 @@ def Surf_E(file_name, coord_surf_e):
 
 #-----------------------------------------------------------------------------------
 
-file_name = sys.argv[1]
-element = sys.argv[2]
-print("\nThe element is {}\n\n" .format(element))
-coord_areas = [areas(element, i) for i in range(3, 12)]
-coord_surf_e = [surf_energies(element, i) for i in range(3, 12)]
+#file_name = sys.argv[1]
+#element = sys.argv[2]
+#print("\nThe element is {}\n\n" .format(element))
+#coord_areas = [areas(element, i) for i in range(3, 12)]
+#coord_surf_e = [surf_energies(element, i) for i in range(3, 12)]
 
-Area(file_name, coord_areas)
-Surf_E(file_name, coord_surf_e)
+#Area(file_name, coord_areas)
+#Surf_E(file_name, coord_surf_e)
