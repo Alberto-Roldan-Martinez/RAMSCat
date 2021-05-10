@@ -45,11 +45,12 @@ def Surface_Energy(bulk_file, surf_constrained_file, surf_file):
 # area constrained and unconstrained are completely different, e.g. pristine vs. vacancy
     e_surf = (e - (len(output)/len(bulk_out)) * e_bulk - e_surf_constrained * area_constrained) / area
 
+    element = output.get_chemical_symbols()[0]          # assuming that all the elements in the slab are the same
 #    print(E_bulk,E_Surf0,E)
 #    if len(surf0_out) != len(output):
 #        print("   Asymmetric slab: n_bulk=", len(bulk_out), "   n_S0=", len(surf0_out), "   n_S=", len(output))
 
-    return area_constrained, area, e_surf_constrained * to_J, e_surf * to_J, coordination_list
+    return area_constrained, area, e_surf_constrained * to_J, e_surf * to_J, coordination_list, element
 
 
 def Surface_Atoms(surf_file):
@@ -366,7 +367,9 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
 
 ##############################################################################################
 
-area_constrained, area, e_surf_constrained, e_surf, coordination_list = Surface_Energy(bulk_file, surf_constrained_file, surf_file)
+area_constrained, area, e_surf_constrained, e_surf, coordination_list, element = Surface_Energy(bulk_file,
+                                                                                                surf_constrained_file,
+                                                                                                surf_file)
 
 path = os.getcwd()
 name = path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
@@ -392,7 +395,7 @@ for i in range(3, 12):
 essential_surf = ["111/5x5", "111/5x5_v1", "111/5x5_v2", "111/5x5_ad1", "111/5x5_ad2", "111/5x5_ad3",
                   "001/5x5", "001/5x5_v1", "001/5x5_v2"]
 if name in essential_surf:
-    ifile.write("\t# {:<50s}\n" .format(name))
+    ifile.write("\t# {} {:<50s}\n" .format(element, name))
 else:
-    ifile.write("\t# VAL{:<50s}\n" .format(name))
+    ifile.write("\t# {} VAL{:<50s}\n" .format(element, name))
 ifile.close()
