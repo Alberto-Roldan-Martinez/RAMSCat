@@ -72,7 +72,8 @@ def get_data(lines, element):
 #	sol = minimize(fun, np.zeros(len(surf_e)), bounds=[(0., None) for x in range(len(surf_e))])
 #	coord_surf_e = sol['x']											# in J . m^-2
 
-	return coord_areas, areas, areas_validation, coord_surf_e, surf_e, surf_e_validation, coord_matrix, coord_matrix_validation, coord_matrix_norm, coord_matrix_validation_norm, notes_validation
+	return coord_areas, areas, areas_validation, coord_surf_e, surf_e, surf_e_validation, coord_matrix,\
+		   coord_matrix_validation, coord_matrix_norm, coord_matrix_norm_validation, notes_validation
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -101,7 +102,7 @@ def SaveFig():
 
 
 def annotation(note, arrow_site, x0, y0, x, y):
-	return plt.annotate(note, xy=(x0,y0), xycoords="data", size=14,
+	return plt.annotate(note, xy=(x0,y0), xycoords="data", size=12,
 							   xytext=(x,y), textcoords="data",
 							   arrowprops=dict(arrowstyle="<-", color="k", fc="0.6"),
 							   horizontalalignment=arrow_site, verticalalignment="center")
@@ -183,31 +184,26 @@ def Areas_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_va
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
-				x_margin = x_max - max([len(str(i)) for i in note]) - 20
+				x_margin = x_max - (x_max - x_min) * 0.25 #- max([len(str(i)) for i in note]) - 20
 				y_margin = y_validate[i]
 				annotation(note[i], "left", x_validate[i], y_validate[i], x_margin, y_margin)
 			else:
-				x_margin = x_min + max([len(str(i)) for i in note]) + 30
+				x_margin = x_min + (x_max - x_min) * 0.25 # max([len(str(i)) for i in note]) + 30
 				y_margin = y_validate[i]
 				annotation(note[i], "right", x_validate[i], y_validate[i], x_margin, y_margin)
 
 
-def SEnergy_Validation(ele, surf_e, surf_e_validation, coord_matrix_norm, coord_matrix_validation_norm, popt_lineal,
+def SEnergy_Validation(ele, surf_e, surf_e_validation, matrix_norm, matrix_validation_norm, popt_lineal,
 					 notes_val, imarker, icolour, x_min, x_max):
 	x0_validate = surf_e
 	x_validate = surf_e_validation
 	y0_validate = []
 	y_validate = []
 
-	for i in range(len(coord_matrix_norm)):
-		surf_coord = [int(coord_matrix_norm[i][j]) for j in range(len(coord_matrix_norm[i]))]
-		y0_validate.append(sum([trendline_2(j, *popt_lineal)*surf_coord[j-3] for j in range(3, 12)]))          # in Angstroms^2
-
-
-	print(coord_matrix_validation, coord_matrix_validation_norm)
-	for i in range(len(coord_matrix_validation_norm)):
-		surf_coord = [int(coord_matrix_validation_norm[i][j]) for j in range(len(coord_matrix_validation_norm[i]))]
-		y_validate.append(sum([trendline_2(j, *popt_lineal)*surf_coord[j-3] for j in range(3, 12)]))          # in Angstroms^2
+	for i in range(len(matrix_norm)):
+		y0_validate.append(sum([trendline_2(j, *popt_lineal)*matrix_norm[i][j-3] for j in range(3, 12)]))          # in Angstroms^2
+	for i in range(len(matrix_validation_norm)):
+		y_validate.append(sum([trendline_2(j, *popt_lineal)*matrix_validation_norm[i][j-3] for j in range(3, 12)]))          # in Angstroms^2
 	note = [notes(i) for i in notes_val if i != "#"]
 
 	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
@@ -215,11 +211,11 @@ def SEnergy_Validation(ele, surf_e, surf_e_validation, coord_matrix_norm, coord_
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
-				x_margin = x_max - max([len(str(i)) for i in note]) - 20
+				x_margin = x_max - (x_max - x_min) * 0.25
 				y_margin = y_validate[i]
 				annotation(note[i], "left", x_validate[i], y_validate[i], x_margin, y_margin)
 			else:
-				x_margin = x_min + max([len(str(i)) for i in note]) + 30
+				x_margin = x_min + (x_max - x_min) * 0.25 #max([len(str(i)) for i in note])
 				y_margin = y_validate[i]
 				annotation(note[i], "right", x_validate[i], y_validate[i], x_margin, y_margin)
 
@@ -242,7 +238,9 @@ coord_matrix_validation_norm = {}
 inotes = {}
 area_popt = {}
 surf_e_popt = {}
+surf_e_eV_popt = {}
 
+# ------------------------ SURFACE AREA in Angstroms^2 ---------------------
 for i, ele in enumerate(set(elements)):
 	returned_data = get_data(lines, ele)
 	coord_areas[ele], areas[ele], areas_validation[ele] = returned_data[0:3]
@@ -253,13 +251,23 @@ for i, ele in enumerate(set(elements)):
 # Area trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_areas[ele] * 1E20										# in Angstroms^2
-#	trend_label, area_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+	trend_label, area_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 #	trend_label, popt_lineal[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[-i], iliner[i+1])
 	areas_excel = [1.016E-19, 9.990E-20, 9.618E-20, 9.340E-20, 9.252E-20, 8.702E-20, 7.54E-20, 6.238E-20, 5.847E-20]
 #	print(y, "\n", [float(i)*1E20 for i in areas_excel])
-#	plt.plot(x_axis, [float(i)*1E20 for i in areas_excel], "ko", ms=2)
-#Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+	plt.plot(x_axis, [float(i)*1E20 for i in areas_excel], "ko", ms=2)
+Display("Coordination", "Area ($\\AA ^{2}$)", [0, 12.15],
+		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
+x_min = min([min([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.9
+x_max = max([max([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
+plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
+for i, ele in enumerate(set(elements)):
+	Areas_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele], coord_matrix_validation[ele],
+					 area_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
+Display("Area ($\\AA ^{2}$)", "Predicted Area ($\\AA ^{2}$)", [x_min, x_max], [x_min, x_max], set(elements))
+
+# ------------------------ SURFACE ENERGY in J . m^-1 ---------------------
 for i, ele in enumerate(set(elements)):
 # Surface energy trend
 	x_axis = np.arange(3, 12, 1)
@@ -269,34 +277,37 @@ for i, ele in enumerate(set(elements)):
 	surf_e_excel = [2.796, 2.525, 2.383, 1.917, 1.785, 1.513, 1.368, 0.813, 0.374]
 #	print(y, "\n", surf_e_excel)
 	plt.plot(x_axis, surf_e_excel, "ko", ms=2)
-Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
-#
-#	toeV = 1.60218E+19
-#	x_axis = np.arange(3, 12, 1)
-#	y = coord_surf_e * toeV * coord_areas        				# energies in eV . atom^-1
-#	trend_label, popt_lineal = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-#	Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [0, 12.15], [min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15],
+		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
-
-x_min = min([min([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.9
-x_max = max([max([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)])*1.15
-plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
-#for i, ele in enumerate(set(elements)):
-#	Areas_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele], coord_matrix_validation[ele],
-#					 area_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
-#Display("Area ($\\AA ^{2}$)", "Predicted Area ($\\AA ^{2}$)", [x_min, x_max], [x_min, x_max], set(elements))
-
-x_min = min([min([i*1E20 for i in surf_e[ele] + surf_e_validation[ele]]) for ele in set(elements)]) * 0.9
-x_max = max([max([i*1E20 for i in surf_e[ele] + surf_e_validation[ele]]) for ele in set(elements)])*1.15
+x_min = min([min([i for i in surf_e[ele] + surf_e_validation[ele]]) for ele in set(elements)]) * 0.9
+x_max = max([max([i for i in surf_e[ele] + surf_e_validation[ele]]) for ele in set(elements)]) * 1.15
 plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
 for i, ele in enumerate(set(elements)):
-	ele = str(ele)
-	print(ele, coord_matrix_validation_norm[ele])
 	SEnergy_Validation(ele, surf_e[ele], surf_e_validation[ele], coord_matrix_norm[ele],
 					   coord_matrix_validation_norm[ele], surf_e_popt[ele], inotes[ele],
 					   imarker[i], icolour[i], x_min, x_max)
-Display("$\\gamma$ ($eV \cdot atom^{\minus 1}$)", "Predicted $\\gamma$ ($eV \cdot atom^{\minus 1}$)",
+Display("$\\gamma$ ($J \cdot m^{\minus 2}$)", "Predicted $\\gamma$ ($J\cdot m^{\minus 2}$)",
 		[x_min, x_max], [x_min, x_max], set(elements))
 
+# ------------------------ SURFACE ENERGY in eV ---------------------
+surf_e_eV = {}
+surf_e_validation_eV = {}
+toeV = 1.60218E+19
+for i, ele in enumerate(set(elements)):
+	surf_e_eV[ele] = [float(surf_e[ele][j]*areas[ele][j]*toeV) for j in range(len(surf_e[ele]))]
+	surf_e_validation_eV[ele] = [float(surf_e_validation[ele][j]*areas_validation[ele][j]*toeV) for j in range(len(surf_e_validation[ele]))]
+	x_axis = np.arange(3, 12, 1)
+	y = coord_surf_e[ele] * toeV * coord_areas[ele]        				# energies in eV . atom^-1
+	trend_label, surf_e_eV_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+Display("Coordination", "$\\gamma$ ($eV$)", [0, 12.15],	[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
+x_min = min([min([i for i in surf_e_eV[ele] + surf_e_validation_eV[ele]]) for ele in set(elements)]) * 0.9
+x_max = max([max([i for i in surf_e_eV[ele] + surf_e_validation_eV[ele]]) for ele in set(elements)]) * 1.15
+plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
+for i, ele in enumerate(set(elements)):
+	SEnergy_Validation(ele, surf_e_eV[ele], surf_e_validation_eV[ele], coord_matrix[ele],
+					   coord_matrix_validation[ele], surf_e_eV_popt[ele], inotes[ele],
+					   imarker[i], icolour[i], x_min, x_max)
+Display("$\\gamma$ ($eV$)", "Predicted $\\gamma$ ($eV$)", [x_min, x_max], [x_min, x_max], set(elements))
 
