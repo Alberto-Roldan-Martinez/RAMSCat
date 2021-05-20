@@ -11,7 +11,6 @@ from scipy.optimize import minimize, curve_fit
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from Validate_SEnergy import Area, Surf_E
 
 
 elements = []								# contains the elements forming each slab in input_file
@@ -178,9 +177,11 @@ def Areas_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_va
 		surf_coord = [int(coord_matrix_validation[i][j]) for j in range(len(coord_matrix_validation[i]))]
 		y_validate.append(sum([trendline_1(j, *popt_lorentzian)*surf_coord[j-3] for j in range(3, 12)]))          # in Angstroms^2
 	note = [notes(i) for i in notes_val if i != "#"]
+	max_deviation = max([(y_validate[i] - x_validate[i])*100/x_validate[i] for i in range(len(x_validate))])
 
 	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
-	plt.plot(x_validate, y_validate, label=str(ele), marker=imarker, color=icolour, linestyle="None")
+	plt.plot(x_validate, y_validate,  marker=imarker, color=icolour, linestyle="None",
+			 label=str(ele) + "$\cdot \\tau$= " + str(round(max_deviation, 1)) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
@@ -205,9 +206,11 @@ def SEnergy_Validation(ele, surf_e, surf_e_validation, matrix_norm, matrix_valid
 	for i in range(len(matrix_validation_norm)):
 		y_validate.append(sum([trendline_2(j, *popt_lineal)*matrix_validation_norm[i][j-3] for j in range(3, 12)]))          # in Angstroms^2
 	note = [notes(i) for i in notes_val if i != "#"]
+	max_deviation = max([(y_validate[i] - x_validate[i])*100/x_validate[i] for i in range(len(x_validate))])
 
 	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
-	plt.plot(x_validate, y_validate, label=str(ele), marker=imarker, color=icolour, linestyle="None")
+	plt.plot(x_validate, y_validate, marker=imarker, color=icolour, linestyle="None",
+			 label=str(ele) + "$\cdot \\tau$= " + str(round(max_deviation, 1)) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
