@@ -181,7 +181,7 @@ def Areas_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_va
 
 	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
 	plt.plot(x_validate, y_validate,  marker=imarker, color=icolour, linestyle="None",
-			 label=str(ele) + "$\cdot \\tau$= " + str(round(max_deviation, 1)) + "%")
+			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
@@ -210,7 +210,7 @@ def SEnergy_Validation(ele, surf_e, surf_e_validation, matrix_norm, matrix_valid
 
 	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
 	plt.plot(x_validate, y_validate, marker=imarker, color=icolour, linestyle="None",
-			 label=str(ele) + "$\cdot \\tau$= " + str(round(max_deviation, 1)) + "%")
+			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
