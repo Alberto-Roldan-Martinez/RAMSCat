@@ -385,7 +385,7 @@ ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(a
                                                                              e_surf, coord_average))
 ifile.close()
 ifile = open("Trend_SEnergy.dat", 'w+')
-ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area, e_surf))
+ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area*1E20, e_surf))
 for i in range(3, 12):
     if str(i) in coordination_list:
         coord = coordination_list[str(i)]

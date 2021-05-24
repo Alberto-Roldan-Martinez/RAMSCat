@@ -22,12 +22,12 @@ for i in range(len(lines)):
 	elements.append(str(iline[-2]))
 
 def get_data(lines, element):
-	areas_validation = []						# contains the surface areas in m^2 that will be used for validation
+	areas_validation = []						# contains the surface areas in A^2 that will be used for validation
 	surf_e_validation = []						# contains the surface energies in J.m^2 that will be used for validation
 	coord_matrix_validation = []				# contains the surface coordination
 	coord_matrix_norm_validation = []			# contains the coordination matrix normalised (for surf energy)
 	notes_validation = []
-	areas = []									# contains the surface areas in m^2 to extract the trend
+	areas = []									# contains the surface areas in A^2 to extract the trend
 	surf_e = []									# contains the surface energies in J.m^2 to extract the trend
 	coord_matrix = []
 	coord_matrix_norm = []
@@ -38,13 +38,13 @@ def get_data(lines, element):
 		if iline[-2] == element:
 # data for validation plot
 			if iline[-1].startswith("VAL") is True or iline[-1].startswith("#VAL") is True:
-				areas_validation.append(float(iline[0]))				# in m^2
+				areas_validation.append(float(iline[0]))				# in A^2
 				surf_e_validation.append(float(iline[1]))			 	# in J . m^2
 				coord_matrix_validation.append([int(iline[j]) for j in range(2, 11)])
 				notes_validation.append(iline[-1][3:])
 # data for interpolation and trend plot
 			else:
-				areas.append(float(iline[0]))				# in m^2
+				areas.append(float(iline[0]))				# in A^2
 				surf_e.append(float(iline[1]))			 	# in J . m^2
 				coord_matrix.append([int(iline[j]) for j in range(2, 11)])
 				notes_validation.append("#")
@@ -61,7 +61,7 @@ def get_data(lines, element):
 
 # solving the coordination matrix
 # Areas
-	coord_areas = np.linalg.solve(coord_matrix, areas)				# in m^2
+	coord_areas = np.linalg.solve(coord_matrix, areas)				# in A^2
 #	fun = lambda x: np.linalg.norm(np.dot(coord_matrix, x) - areas)
 #	sol = minimize(fun, np.zeros(len(areas)), bounds=[(0., None) for x in range(len(areas))])
 #	coord_areas = sol['x']
@@ -165,8 +165,8 @@ def trend_lineal(x, y, element, colour, marker, line):
 
 def Areas_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_validation, popt_lorentzian,
 					 notes_val, imarker, icolour, x_min, x_max):
-	x0_validate = [i*1E20 for i in areas]
-	x_validate = [i*1E20 for i in areas_validation]
+	x0_validate = [i for i in areas]
+	x_validate = [i for i in areas_validation]
 	y0_validate = []
 	y_validate = []
 
@@ -253,17 +253,16 @@ for i, ele in enumerate(set(elements)):
 
 # Area trend
 	x_axis = np.arange(3, 12, 1)
-	y = coord_areas[ele] * 1E20										# in Angstroms^2
+	y = coord_areas[ele]										# in Angstroms^2
 	trend_label, area_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-#	trend_label, popt_lineal[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[-i], iliner[i+1])
+#	trend_label, area_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[-i], iliner[i+1])
 	areas_excel = [1.016E-19, 9.990E-20, 9.618E-20, 9.340E-20, 9.252E-20, 8.702E-20, 7.54E-20, 6.238E-20, 5.847E-20]
-#	print(y, "\n", [float(i)*1E20 for i in areas_excel])
 	plt.plot(x_axis, [float(i)*1E20 for i in areas_excel], "ko", ms=2)
 Display("Coordination", "Area ($\\AA ^{2}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
-x_min = min([min([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.9
-x_max = max([max([i*1E20 for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
+x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.9
+x_max = max([max([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
 plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
 for i, ele in enumerate(set(elements)):
 	Areas_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele], coord_matrix_validation[ele],
@@ -277,9 +276,6 @@ for i, ele in enumerate(set(elements)):
 	y = coord_surf_e[ele]										# in J . m^-2
 #	trend_label, surf_e_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 	trend_label, surf_e_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-	surf_e_excel = [2.796, 2.525, 2.383, 1.917, 1.785, 1.513, 1.368, 0.813, 0.374]
-#	print(y, "\n", surf_e_excel)
-	plt.plot(x_axis, surf_e_excel, "ko", ms=2)
 Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
