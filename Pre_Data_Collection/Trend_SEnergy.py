@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 
 elements = []								# contains the elements forming each slab in input_file
 
-lines = open(sys.argv[1]).readlines()
+ifile = open(sys.argv[1]).readlines()
 # set every array as list of each element
-for i in range(len(lines)):
-	iline = lines[i].split()
-	elements.append(str(iline[-2]))
+lines = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
+for line in lines:
+	elements.append(str(line[-2]))
 
 def get_data(lines, element):
 	areas_validation = []						# contains the surface areas in A^2 that will be used for validation
@@ -32,9 +32,8 @@ def get_data(lines, element):
 	coord_matrix = []
 	coord_matrix_norm = []
 
-
 	for i in range(len(lines)):
-		iline = lines[i].split()
+		iline = lines[i]
 		if iline[-2] == element:
 # data for validation plot
 			if iline[-1].startswith("VAL") is True or iline[-1].startswith("#VAL") is True:
@@ -185,11 +184,11 @@ def Areas_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_va
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
-				x_margin = x_max - (x_max - x_min) * 0.25 #- max([len(str(i)) for i in note]) - 20
+				x_margin = x_max - (x_max - x_min) * 0.3 #- max([len(str(i)) for i in note]) - 20
 				y_margin = y_validate[i]
 				annotation(note[i], "left", x_validate[i], y_validate[i], x_margin, y_margin)
 			else:
-				x_margin = x_min + (x_max - x_min) * 0.25 # max([len(str(i)) for i in note]) + 30
+				x_margin = x_min + (x_max - x_min) * 0.3 # max([len(str(i)) for i in note]) + 30
 				y_margin = y_validate[i]
 				annotation(note[i], "right", x_validate[i], y_validate[i], x_margin, y_margin)
 
@@ -214,11 +213,11 @@ def SEnergy_Validation(ele, surf_e, surf_e_validation, matrix_norm, matrix_valid
 	for i in range(len(x_validate)):
 		if note[i] != "#":
 			if y_validate[i] <= x_min + (x_max - x_min)/2:
-				x_margin = x_max - (x_max - x_min) * 0.25
+				x_margin = x_max - (x_max - x_min) * 0.3
 				y_margin = y_validate[i]
 				annotation(note[i], "left", x_validate[i], y_validate[i], x_margin, y_margin)
 			else:
-				x_margin = x_min + (x_max - x_min) * 0.25 #max([len(str(i)) for i in note])
+				x_margin = x_min + (x_max - x_min) * 0.3 #max([len(str(i)) for i in note])
 				y_margin = y_validate[i]
 				annotation(note[i], "right", x_validate[i], y_validate[i], x_margin, y_margin)
 
@@ -261,7 +260,7 @@ for i, ele in enumerate(set(elements)):
 Display("Coordination", "Area ($\\AA ^{2}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
-x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.9
+x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.85
 x_max = max([max([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
 plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
 for i, ele in enumerate(set(elements)):
@@ -292,7 +291,7 @@ Display("$\\gamma$ ($J \cdot m^{\minus 2}$)", "Predicted $\\gamma$ ($J\cdot m^{\
 # ------------------------ SURFACE ENERGY in eV ---------------------
 surf_e_eV = {}
 surf_e_validation_eV = {}
-toeV = 1.60218E+19
+toeV = 1.60218E+19/1E20
 for i, ele in enumerate(set(elements)):
 	surf_e_eV[ele] = [float(surf_e[ele][j]*areas[ele][j]*toeV) for j in range(len(surf_e[ele]))]
 	surf_e_validation_eV[ele] = [float(surf_e_validation[ele][j]*areas_validation[ele][j]*toeV) for j in range(len(surf_e_validation[ele]))]
