@@ -110,9 +110,6 @@ def SurfaceArea(slab_file, surf_atoms):
     cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 
-    area = []
-    verts = []
-    color = []
     vertex_done = []
 
     figure = plt.figure(figsize=(10, 10), clear=True)       # prepares a figure
@@ -164,9 +161,7 @@ def SurfaceArea(slab_file, surf_atoms):
                 n_l = 4
 
             for k in sorted(j_neigh):
-                x = y = z = []
                 done = 0                            # vertex is not done
-                vertices = [i.index, b[j], b[k]]
 # are i, j and k neighbours of a peak atom
                 for peak in atoms_peaks:
                     peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
@@ -174,22 +169,28 @@ def SurfaceArea(slab_file, surf_atoms):
                         done = 1
 # is this tile already measured?
                 for tile in vertex_done:
-                    if i.index in tile and b[j] in tile and b[k] in tile and b[j] in tile:
+                    if i.index in tile and b[j] in tile and b[k] in tile:
                         done = 1
+# calculating the area and plotting the tile
+                if done == 0:
+                    vertex_done.append(sorted([i.index, b[j], b[k]]))
 # 4 vertices tile
                 if n_l == 4:
                     k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
                     k_neigh_index = int([b[l] for l in k_neigh][0])
                     for tile in vertex_done:
-                        if i.index in tile and k_neigh_index in tile:
+                        if i.index in tile and k_neigh_index in tile and b[k] in tile:
                             done = 1
-                    vertices = [i.index, b[j], b[k], k_neigh_index]
-
+                        if i.index in tile and k_neigh_index in tile and b[j] in tile:
+                            done = 1
+                        if b[j] in tile and k_neigh_index in tile and b[k] in tile:
+                            done = 1
 # calculating the area and plotting the tile
-                if done == 0:
-                    area, color, verts, vertex_done = Add_tile(atoms, vertices, min(z_position), max(z_position),
-                                                      color, verts, area, vertex_done)
-#                    print(i.index, b[j], b[k], "||", vertex_done)
+                    if done == 0:
+                        vertex_done.append(sorted([i.index, k_neigh_index, b[k]]))
+#                        vertex_done.append(sorted([i.index, b[j], b[k]]))
+
+    verts, area, color = Verts(atoms, vertex_done, min(z_position))
     n_verts = len(verts)
     ax.add_collection3d(Poly3DCollection(verts, edgecolors="k", lw=0.1, facecolors=plt.cm.inferno(color), alpha=0.4), zdir="z")
 #    ax.set_xlabel("a /$\\AA$", rotation=0, fontsize=10); ax.set_ylabel("b /$\\AA$", rotation=0, fontsize=10); ax.set_zlabel("c /$\\AA$", rotation=0, fontsize=10)
@@ -207,23 +208,25 @@ def SurfaceArea(slab_file, surf_atoms):
     answer = "y"
     while answer == "y" or type(answer) is list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
-        if len(answer) < 2:
+        if len(answer) < 2:                        # finished the loop when answer = n
             answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
-            vertices = [int(i) for i in vertices]
-            if 2 > len(vertices) or len(vertices) > 4:
-                print(">>> Only 3 or 4 vertices are accepted")
+            while len(vertices) != 3:
+                print(">>> Only 3 vertices are accepted")
                 vertices = input(">>> Which atoms form the tile's vertices?\n").split()
-                vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts -= 1
+            else:
+                vertices = sorted([int(i) for i in vertices])
+                vertex_done = Remove_tile(vertices, vertex_done)
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
-        elif type(answer) is list and 2 < len(answer) <= 4:
-            vertices = [int(i) for i in answer]
-            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts -= 1
+        elif type(answer) is list and 2 < len(answer) < 4:
+            vertices = sorted([int(i) for i in answer])
+            vertex_done = Remove_tile(vertices, vertex_done)
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
 
@@ -231,49 +234,58 @@ def SurfaceArea(slab_file, surf_atoms):
     answer = "y"
     while answer == "y" or type(answer) is list:
         answer = input("Would you like to cover any other area (y/n)?\n").split()
-        if len(answer) < 2:
+        if len(answer) < 2:                        # finished the loop when answer = n
             answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
-            vertices = [int(i) for i in vertices]
-            if len(vertices) != 3:
+            while len(vertices) != 3:
                 print(">>> Only 3 vertices are accepted")
                 vertices = input(">>> Which atoms form the tile's vertices?\n").split()
-                vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Add_tile(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
-            n_verts += 1
+#            else:
+            n0_verts = len(verts)
+            vertex_done.append(sorted([int(i) for i in vertices]))
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
+            if n_verts > n0_verts:
+                print("  Tile formed by", [int(i) for i in vertices], "has been added")
+            else:
+                vertex_done.pop()
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
-            print("  Tile formed by", vertices, "has been added")
-        elif type(answer) == list and 2 < len(answer) <= 4:
-            vertices = [int(i) for i in answer]
-            area, color, verts, vertex_done = Add_tile(atoms, vertices, min(z_position), max(z_position), color, verts, area, vertex_done)
-            n_verts += 1
+        elif type(answer) == list and 2 < len(answer) < 4:
+            n0_verts = len(verts)
+            vertex_done.append(sorted([int(i) for i in answer]))
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
+            if n_verts > n0_verts:
+                print("  Tile formed by", [int(i) for i in answer], "has been added")
+            else:
+                vertex_done.pop()
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
-            print("  Tile formed by", vertices, "has been added")
 
 # Removing tiles
     answer = "y"
     while answer == "y" or type(answer) == list:
         answer = input("Would you like to remove any tile (y/n)?\n").split()
-        if len(answer) < 2:
+        if len(answer) < 2:                        # finished the loop when answer = n
             answer = str(answer[0])
         if answer == "y":
             vertices = input(">>> Which atoms form the tile's vertices? e.g. a b c\n").split()
-            vertices = [int(i) for i in vertices]
-            if 2 > len(vertices) or len(vertices) > 4:
-                print(">>> Only 3 or 4 vertices are accepted")
+            if len(vertices) != 3:
+                print(">>> Only 3 vertices are accepted")
                 vertices = input(">>> Which atoms form the tile's vertices?").split()
-                vertices = [int(i) for i in vertices]
-            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts -= 1
+            vertices = sorted([int(i) for i in vertices])
+            vertex_done = Remove_tile(vertices, vertex_done)
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
-        elif type(answer) == list and 2 < len(answer) <= 4:
-            vertices = [int(i) for i in answer]
-            area, color, verts, vertex_done = Remove_tile(vertices, vertex_done, color, verts, area)
-            n_verts -= 1
+        elif type(answer) == list and 2 < len(answer) < 4:
+            vertices = sorted([int(i) for i in answer])
+            vertex_done = Remove_tile(vertices, vertex_done)
+            verts, area, color = Verts(atoms, vertex_done, min(z_position))
+            n_verts = len(verts)
             ax.clear
             Add_quiver_and_tiles(figure, atoms, x_max, y_max, min(z_position), a, D, color, verts)
 
@@ -287,61 +299,47 @@ def SurfaceArea(slab_file, surf_atoms):
 
     return area_total
 
-
-def Add_tile(atoms, vertices, z_min, z_max, color, verts, area, vertex_done):
-    x = [atoms[vertices[0]].position[0]]
-    y = [atoms[vertices[0]].position[1]]
-    z = [atoms[vertices[0]].position[2]-z_min]
-    v = []
-    d = []
-    for nv in range(1, len(vertices)):
-        v.append(atoms.get_distance(vertices[0], vertices[nv], mic=True, vector=True))
-        d.append(atoms.get_distance(vertices[0], vertices[nv], mic=True))
-        x.append(x[0]+v[nv-1][0])
-        y.append(y[0]+v[nv-1][1])
-        z.append(z[0]+v[nv-1][2])
-    if len(vertices) == 3:
+def Verts(atoms, vertex_done, z_min):
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
+    cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.5
+    verts = []
+    area = []
+    color = []
+    for tile in vertex_done:
+        tile = sorted(tile)
+        x = [atoms[tile[0]].position[0]]
+        y = [atoms[tile[0]].position[1]]
+        z = [atoms[tile[0]].position[2]-z_min]
+        v = []
+        d = []
+        for nv in range(1, 3):
+            v.append(atoms.get_distance(tile[0], tile[nv], mic=True, vector=True))
+            d.append(atoms.get_distance(tile[0], tile[nv], mic=True))
+            x.append(x[0]+v[nv-1][0])
+            y.append(y[0]+v[nv-1][1])
+            z.append(z[0]+v[nv-1][2])
         if round(np.dot(v[0] / d[0], v[1] / d[1]), 5) > 1:
             print(" interatomic angle must be between pi and -pi")
             angle = 0
-        else:
+        elif d[0] <= cutOff and d[1] <= cutOff:
             angle = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
             if round(angle, 5) <= 2.1 and angle > 0.2:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
                 area.append((d[0] * (d[1] * np.sin(angle))) / 2)
                 verts.append(list(zip(x, y, z)))
-                vertex_done.append(vertices)
-                if z_max-z_min > 0.5:
-                    color.append((sum(z)/len(z))/((z_max-z_min)*2))
-                else:
-                    color.append((sum(z)/len(z)))
-    elif len(vertices) == 4:
-        d.sort()
-        area.append(d[0] * d[1])
-        verts.append(list(zip(x, y, z)))
-        vertex_done.append(vertices)
-        if z_max-z_min > 0.5:
-            color.append((sum(z)/len(z))/((z_max-z_min)*2))
-        else:
-            color.append((sum(z)/len(z)))
+                color.append(max(z))
 
-    return area, color, verts, vertex_done
+    return verts, area, color
 
-def Remove_tile(vertices, vertex_done, color, verts, area):
-    new_verts = []
-    new_color = []
-    new_area = []
+def Remove_tile(vertices, vertex_done):
     new_vertex_done = []
 # is this triangle already measured?
     for i, tile in enumerate(vertex_done):
         if vertices[0] in tile and vertices[1] in tile and vertices[2] in tile:
             print("  Tile formed by", vertices, "has been removed")
         else:
-            new_verts.append(verts[i])
-            new_color.append(color[i])
-            new_area.append(area[i])
             new_vertex_done.append(vertex_done[i])
 
-    return new_area, new_color, new_verts, new_vertex_done
+    return new_vertex_done
 
 def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts):
     ax = figure.add_subplot(1, 1, 1, projection='3d')
