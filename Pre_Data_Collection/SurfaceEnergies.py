@@ -305,6 +305,7 @@ def SurfaceArea(slab_file, surf_atoms):
 def Verts(atoms, vertex_done, z_min):
     cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
     cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.75
+    z_max = max([atoms[i].position[2]-z_min for i in range(len(atoms))])
     new_vertex_done = []
     verts = []
     area = []
@@ -330,7 +331,7 @@ def Verts(atoms, vertex_done, z_min):
             if round(angle, 5) <= 2.1 and angle > 0.2:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
                 area.append((d[0] * (d[1] * np.sin(angle))) / 2)
                 verts.append(list(zip(x, y, z)))
-                color.append((max(z)-min(z))/2)
+                color.append((sum(z)/len(z))/z_max)
 
     return verts, area, color
 
