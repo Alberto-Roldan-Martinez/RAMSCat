@@ -306,7 +306,6 @@ def Verts(atoms, vertex_done, z_min):
     cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
     cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.75
     z_max = max([atoms[i].position[2]-z_min for i in range(len(atoms))])
-    new_vertex_done = []
     verts = []
     area = []
     color = []
@@ -325,13 +324,15 @@ def Verts(atoms, vertex_done, z_min):
             z.append(z[0]+v[nv-1][2])
         if round(np.dot(v[0] / d[0], v[1] / d[1]), 5) > 1:
             print(" interatomic angle must be between pi and -pi")
-            angle = 0
         elif d[0] <= cutOff and d[1] <= cutOff:
             angle = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
             if round(angle, 5) <= 2.1 and angle > 0.2:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
                 area.append((d[0] * (d[1] * np.sin(angle))) / 2)
                 verts.append(list(zip(x, y, z)))
-                color.append((sum(z)/len(z))/z_max)
+                if z_max > 0:
+                    color.append((sum(z)/len(z))/z_max)
+                else:
+                    color.append(sum(z)/len(z))
 
     return verts, area, color
 
