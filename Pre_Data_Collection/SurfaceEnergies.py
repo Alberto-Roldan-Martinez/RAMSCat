@@ -330,9 +330,9 @@ def Verts(atoms, vertex_done, z_min):
                 area.append((d[0] * (d[1] * np.sin(angle))) / 2)
                 verts.append(list(zip(x, y, z)))
                 if z_max > 0:
-                    color.append((sum(z)/len(z))/z_max)
+                    color.append((sum(z)/len(z)-min(z))/z_max)
                 else:
-                    color.append(sum(z)/len(z))
+                    color.append(sum(z)/len(z)-min(z))
 
     return verts, area, color
 
@@ -399,7 +399,7 @@ for i in range(3, 12):
 essential_surf = ["111/5x5", "111/5x5_v1", "111/5x5_v2", "111/5x5_ad1", "111/5x5_ad2", "111/5x5_ad3",
                   "001/5x5", "001/5x5_v1", "001/5x5_v2"]
 if name in essential_surf:
-    ifile.write("\t# {} {:<50s}\n" .format(element, name))
+    ifile.write("\t# {} {}\n" .format(element, name))
 else:
-    ifile.write("\t# {} VAL{:<50s}\n" .format(element, name))
+    ifile.write("\t# {} VAL{}\n" .format(element, name))
 ifile.close()

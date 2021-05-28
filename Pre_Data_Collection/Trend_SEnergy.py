@@ -253,8 +253,8 @@ for i, ele in enumerate(set(elements)):
 # Area trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_areas[ele]										# in Angstroms^2
+	trend_label, area_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[-i], iliner[i+1])
 	trend_label, area_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-#	trend_label, area_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[-i], iliner[i+1])
 	areas_excel = [1.016E-19, 9.990E-20, 9.618E-20, 9.340E-20, 9.252E-20, 8.702E-20, 7.54E-20, 6.238E-20, 5.847E-20]
 	plt.plot(x_axis, [float(i)*1E20 for i in areas_excel], "ko", ms=2)
 Display("Coordination", "Area ($\\AA ^{2}$)", [0, 12.15],
