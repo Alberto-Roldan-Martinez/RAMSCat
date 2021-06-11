@@ -14,8 +14,10 @@ from ase import Atoms, Atom, neighborlist
 from ase.build import bulk
 
 
+'''
+        CHECK for the bulk path ! ! !
+'''
 surf_file = "./"
-bulk_file = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Metals/Au/Bulk/fcc/"
 try:
     surf_constrained_file = str(os.getcwd() + "/" + sys.argv[1] + "/")
 except:
@@ -23,14 +25,30 @@ except:
 #Surf_constrained = "/home/alberto/RESEARCH/OTHER/Metals/RPBE/no_dispersion/Pure/Au/Surface/fcc/111/1x1x_Dipole/11L0R/"
 
 
-
-
-def Surface_Energy(bulk_file, surf_constrained_file, surf_file):
+def Surface_Energy(surf_constrained_file, surf_file):
     to_J = 1.60218E-19
 
-    bulk_out = read(str(bulk_file + "OUTCAR"))
     surf0_out = read(str(surf_constrained_file + "OUTCAR"))
     output = read(str(surf_file + "OUTCAR"))
+
+# Checking the BULK and cell lattice agreement between slabs.
+    if output.get_chemical_symbols()[0] == surf0_out.get_chemical_symbols()[0]:
+        try:
+            bulk_file = str("/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Metals/" + output.get_chemical_symbols()[0] + "/Bulk/fcc/")
+        except:    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            print("Inexistent ", output.get_chemical_symbols()[0], "bulk files\n")
+            exit()
+    else:
+        print("Top surface in not proportional to bottom surface in the slab\n")
+        exit()
+    if sum([output.get_cell_lengths_and_angles()[i]/surf0_out.get_cell_lengths_and_angles()[i] for i in range(2)]) != 2.0:
+        if sum([output.get_cell_lengths_and_angles()[i]/surf0_out.get_cell_lengths_and_angles()[i] for i in range(3, 6)]) != 3.0:
+            print("Top surface in not proportional to bottom surface in the slab\n")
+            print("Top surface:    ", output.get_cell_lengths_and_angles())
+            print("Bottom surface: ",surf0_out.get_cell_lengths_and_angles())
+            exit()
+
+    bulk_out = read(str(bulk_file + "OUTCAR"))
 
     e_bulk = bulk_out.get_total_energy()			# in eV
     e_surf0 = surf0_out.get_total_energy()                      # in eV
@@ -371,8 +389,7 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
 
 ##############################################################################################
 
-area_constrained, area, e_surf_constrained, e_surf, coordination_list, element = Surface_Energy(bulk_file,
-                                                                                                surf_constrained_file,
+area_constrained, area, e_surf_constrained, e_surf, coordination_list, element = Surface_Energy(surf_constrained_file,
                                                                                                 surf_file)
 
 path = os.getcwd()
@@ -389,6 +406,7 @@ ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(a
                                                                              e_surf, coord_average))
 ifile.close()
 ifile = open("Trend_SEnergy.dat", 'w+')
+ifile.write("# Area (Angs^2)	    γ (J.m^-2)		Coordinations from 3 to 11	Element + path\n")
 ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area*1E20, e_surf))
 for i in range(3, 12):
     if str(i) in coordination_list:
@@ -398,7 +416,7 @@ for i in range(3, 12):
     ifile.write(" {:>3d}" .format(coord))
 essential_surf = ["111/5x5", "111/5x5_v1", "111/5x5_v2", "111/5x5_ad1", "111/5x5_ad2", "111/5x5_ad3",
                   "001/5x5", "001/5x5_v1", "001/5x5_v2"]
-if name in essential_surf:
+if name[:7] in essential_surf:
     ifile.write("\t# {} {}\n" .format(element, name))
 else:
     ifile.write("\t# {} VAL{}\n" .format(element, name))

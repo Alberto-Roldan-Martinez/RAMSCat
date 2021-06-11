@@ -257,7 +257,7 @@ for i, ele in enumerate(set(elements)):
 	trend_label, area_popt[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 	areas_excel = [1.016E-19, 9.990E-20, 9.618E-20, 9.340E-20, 9.252E-20, 8.702E-20, 7.54E-20, 6.238E-20, 5.847E-20]
 	plt.plot(x_axis, [float(i)*1E20 for i in areas_excel], "ko", ms=2)
-Display("Coordination", "Area ($\\AA ^{2}$)", [0, 12.15],
+Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
 x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.85
@@ -266,7 +266,8 @@ plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
 for i, ele in enumerate(set(elements)):
 	Areas_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele], coord_matrix_validation[ele],
 					 area_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
-Display("Area ($\\AA ^{2}$)", "Predicted Area ($\\AA ^{2}$)", [x_min, x_max], [x_min, x_max], set(elements))
+Display("Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", "Predicted Area ($\\AA ^{2} \cdot atom^{\minus 1}$)",
+		[x_min, x_max], [x_min, x_max], set(elements))
 
 # ------------------------ SURFACE ENERGY in J . m^-1 ---------------------
 for i, ele in enumerate(set(elements)):
@@ -298,7 +299,7 @@ for i, ele in enumerate(set(elements)):
 	x_axis = np.arange(3, 12, 1)
 	y = coord_surf_e[ele] * toeV * coord_areas[ele]        				# energies in eV . atom^-1
 	trend_label, surf_e_eV_popt[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-Display("Coordination", "$\\gamma$ ($eV$)", [0, 12.15],	[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [0, 12.15],	[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
 x_min = min([min([i for i in surf_e_eV[ele] + surf_e_validation_eV[ele]]) for ele in set(elements)]) * 0.9
 x_max = max([max([i for i in surf_e_eV[ele] + surf_e_validation_eV[ele]]) for ele in set(elements)]) * 1.15
@@ -307,5 +308,6 @@ for i, ele in enumerate(set(elements)):
 	SEnergy_Validation(ele, surf_e_eV[ele], surf_e_validation_eV[ele], coord_matrix[ele],
 					   coord_matrix_validation[ele], surf_e_eV_popt[ele], inotes[ele],
 					   imarker[i], icolour[i], x_min, x_max)
-Display("$\\gamma$ ($eV$)", "Predicted $\\gamma$ ($eV$)", [x_min, x_max], [x_min, x_max], set(elements))
+Display("$\\gamma$ ($eV \cdot atom^{\minus 1}$)", "Predicted $\\gamma$ ($eV \cdot atom^{\minus 1}$)",
+		[x_min, x_max], [x_min, x_max], set(elements))
 
