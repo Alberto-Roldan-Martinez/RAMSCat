@@ -35,6 +35,7 @@ def Surface_Energy(surf_constrained_file, surf_file):
     if output.get_chemical_symbols()[0] == surf0_out.get_chemical_symbols()[0]:
         try:
             bulk_file = str("/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Metals/" + output.get_chemical_symbols()[0] + "/Bulk/fcc/")
+            print("Bulk file:", bulk_file)
         except:    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             print("Inexistent ", output.get_chemical_symbols()[0], "bulk files\n")
             exit()
@@ -207,7 +208,7 @@ def SurfaceArea(slab_file, surf_atoms):
                         if b[j] in tile and k_neigh_index in tile and b[k] in tile:
                             done = 1
 # calculating the area and plotting the tile
-                    if done == 0:
+                    if done == 0 and n_l == 4:
                         vertex_done.append(sorted([i.index, k_neigh_index, b[k]]))
                         vertex_done.append(sorted([i.index, b[j], b[k]]))
 
