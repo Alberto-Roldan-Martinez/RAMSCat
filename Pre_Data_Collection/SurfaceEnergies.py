@@ -349,9 +349,9 @@ def Verts(atoms, vertex_done, z_min):
                 area.append((d[0] * (d[1] * np.sin(angle))) / 2)
                 verts.append(list(zip(x, y, z)))
                 if z_max > 0:
-                    color.append((sum(z)/len(z)-min(z))/z_max)
+                    color.append((max(z)-min(z))/2/z_max)
                 else:
-                    color.append(sum(z)/len(z)-min(z))
+                    color.append((max(z)-min(z))/2)
 
     return verts, area, color
 
