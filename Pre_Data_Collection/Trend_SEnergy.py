@@ -3,6 +3,17 @@
 USAGE: Trend_SEnergy.py input
    input: area(m^2) SurfE(J.m^-2) and matrix of number of atoms with coordination
 
+coordination		structure model
+3				p(5x5) (111) adatoms = 1
+4				p(5x5) (111) adatoms = 2
+5				p(5x5) (001) adatoms = 2
+6				p(5x5) (001) vacancies = 2 parallel, not crossed!
+7				p(5x5) (001) vacancies = 1
+8				(001)
+9				(111)
+10				p(5x5) (111) vacancies = 2
+11				p(5x5) (111) vacancies = 1
+
 '''
 
 import sys
