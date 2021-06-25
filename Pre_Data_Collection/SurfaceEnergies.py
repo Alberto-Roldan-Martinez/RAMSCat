@@ -37,7 +37,7 @@ def Surface_Energy(surf_constrained_file, surf_file):
             bulk_file = str("/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Metals/" + output.get_chemical_symbols()[0] + "/Bulk/fcc/")
             print("Bulk file:", bulk_file)
         except:    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            print("Inexistent ", output.get_chemical_symbols()[0], "bulk files\n")
+            print("Non-existent ", output.get_chemical_symbols()[0], "bulk files\n")
             exit()
     else:
         print("Top surface in not proportional to bottom surface in the slab\n")
@@ -46,30 +46,33 @@ def Surface_Energy(surf_constrained_file, surf_file):
         if sum([output.get_cell_lengths_and_angles()[i]/surf0_out.get_cell_lengths_and_angles()[i] for i in range(3, 6)]) != 3.0:
             print("Top surface in not proportional to bottom surface in the slab\n")
             print("Top surface:    ", output.get_cell_lengths_and_angles())
-            print("Bottom surface: ",surf0_out.get_cell_lengths_and_angles())
+            print("Bottom surface: ", surf0_out.get_cell_lengths_and_angles())
             exit()
 
     bulk_out = read(str(bulk_file + "OUTCAR"))
 
     e_bulk = bulk_out.get_total_energy()			# in eV
-    e_surf0 = surf0_out.get_total_energy()                      # in eV
+    e_surf0 = surf0_out.get_total_energy()          # in eV
     e = output.get_total_energy()
 
-    total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_constrained_file)
-    area_constrained = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
-    e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area_constrained)
+# The formulae current employed does not requires to calculate the surface energy of the bottom (constrained) side
+#    e_surf0 = surf0_out.get_total_energy()          # in eV
+#    total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_constrained_file)
+#    area_constrained = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
+#    e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area_constrained)
 
     total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_file)
     area = SurfaceArea(surf_file, top_surf_atoms)				# in m^2
-# area constrained and unconstrained are completely different, e.g. pristine vs. vacancy
-    e_surf = (e - (len(output)/len(bulk_out)) * e_bulk - e_surf_constrained * area_constrained) / area
+
+# area constrained and unconstrained are completely different in energy and area, e.g. pristine vs. vacancy
+#    e_surf = (e - (len(output)/len(bulk_out)) * e_bulk - e_surf_constrained * area_constrained) / area
+    e_surf = (e - (len(output)/len(bulk_out)) * e_bulk - (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / 2) / area
 
     element = output.get_chemical_symbols()[0]          # assuming that all the elements in the slab are the same
-#    print(E_bulk,E_Surf0,E)
-#    if len(surf0_out) != len(output):
-#        print("   Asymmetric slab: n_bulk=", len(bulk_out), "   n_S0=", len(surf0_out), "   n_S=", len(output))
 
-    return area_constrained, area, e_surf_constrained * to_J, e_surf * to_J, coordination_list, element
+# The formulae current employed does not requires to calculate the surface energy of the bottom (constrained) side
+#    return area_constrained, area, e_surf_constrained * to_J, e_surf * to_J, coordination_list, element
+    return area, e_surf * to_J, coordination_list, element
 
 
 def Surface_Atoms(surf_file):
@@ -386,12 +389,10 @@ def Add_quiver_and_tiles(figure, atoms, x_max, y_max, z_min, a, D, color, verts)
     ax.set_zlim3d([0, (x_max+y_max)/2])
     plt.show()
 
-
-
 ##############################################################################################
-
-area_constrained, area, e_surf_constrained, e_surf, coordination_list, element = Surface_Energy(surf_constrained_file,
-                                                                                                surf_file)
+# The formulae current employed does not requires to calculate the surface energy of the bottom (constrained) side
+#area_constrained, area, e_surf_constrained, e_surf, coordination_list, element = Surface_Energy(surf_constrained_file, surf_file)
+area, e_surf, coordination_list, element = Surface_Energy(surf_constrained_file, surf_file)
 
 path = os.getcwd()
 name = path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
@@ -401,11 +402,12 @@ for i in coordination_list:
     coord_sum.append(int(i)*coordination_list[i])
 coord_average = sum(coord_sum)/sum([coordination_list[i] for i in coordination_list])
 
-ifile = open("E_surf.dat", 'w+')
-ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) average_top_surface_coordination\n")
-ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(area_constrained, area, e_surf_constrained,
-                                                                             e_surf, coord_average))
-ifile.close()
+# The formulae current employed does not requires to calculate the surface energy of the bottom (constrained) side
+#ifile = open("E_surf.dat", 'w+')
+#ifile.write("# Bottom_Area(m^2)  Top_area(m^2) γ_0(J/m^2) γ_r(J/m^2) average_top_surface_coordination\n")
+#ifile.write("   {:>3.9G}  {:>3.9G} {:>10.4f} {:>10.4f}   {:>3.9G}\t\t" .format(area_constrained, area, e_surf_constrained, e_surf, coord_average))
+#ifile.close()
+
 ifile = open("Trend_SEnergy.dat", 'w+')
 ifile.write("# Area (Angs^2)	    γ (J.m^-2)		Coordinations from 3 to 11	Element + path\n")
 ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area*1E20, e_surf))
