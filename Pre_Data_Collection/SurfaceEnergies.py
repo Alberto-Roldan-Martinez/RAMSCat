@@ -56,7 +56,6 @@ def Surface_Energy(surf_constrained_file, surf_file):
     e = output.get_total_energy()
 
 # The formulae current employed does not requires to calculate the surface energy of the bottom (constrained) side
-#    e_surf0 = surf0_out.get_total_energy()          # in eV
 #    total_n_atoms, top_surf_atoms, coordination_list = Surface_Atoms(surf_constrained_file)
 #    area_constrained = SurfaceArea(surf_constrained_file, top_surf_atoms)            # in m^2
 #    e_surf_constrained = (e_surf0 - (len(surf0_out)/len(bulk_out)) * e_bulk) / (2*area_constrained)
@@ -344,17 +343,23 @@ def Verts(atoms, vertex_done, z_min):
             x.append(x[0]+v[nv-1][0])
             y.append(y[0]+v[nv-1][1])
             z.append(z[0]+v[nv-1][2])
+#        v2 = atoms.get_distance(tile[1], tile[2], mic=True, vector=True)
+#        d2 = atoms.get_distance(tile[1], tile[2], mic=True)
         if round(np.dot(v[0] / d[0], v[1] / d[1]), 5) > 1:
             print(" interatomic angle must be between pi and -pi")
         elif d[0] <= cutOff and d[1] <= cutOff:
-            angle = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
-            if round(angle, 5) <= 2.1 and angle > 0.2:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
-                area.append((d[0] * (d[1] * np.sin(angle))) / 2)
+            angle1 = np.arccos(round(np.dot(v[0] / d[0], v[1] / d[1]), 5))
+#            angle2 = np.arccos(round(np.dot(v[0] / d[0], v2 / d2), 5))
+#            angle3 = np.arccos(round(np.dot(v[1] / d[1], v2 / d2), 5))
+#            if 0.2 < angle1 <= 2.1 and 0.2 < angle2 <= 2.1 and 0.2 < angle3 <= 2.1:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
+#            if 0.2 < angle1 <= 2.1 and 0.2 < angle2 <= 2.1:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
+            if 0.2 < angle1 <= 2.1:     # in radiants --> 0.2 ~ 11.5 degrees; 2.1 ~ 120
+                area.append((d[0] * (d[1] * np.sin(angle1))) / 2)
                 verts.append(list(zip(x, y, z)))
                 if z_max > 0:
-                    color.append((max(z)-min(z))/2/z_max)
+                    color.append((round(max(z), 4)-round(min(z), 4))/2/z_max)
                 else:
-                    color.append((max(z)-min(z))/2)
+                    color.append((round(max(z), 4)-round(min(z), 4))/2)
 
     return verts, area, color
 
