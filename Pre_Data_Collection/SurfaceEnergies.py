@@ -128,7 +128,7 @@ def SurfaceArea(slab_file, surf_atoms):
     x_max = max([output[i].position[0] for i in range(len(output)) if output[i].index in surf_atoms])
     y_max = max([output[i].position[1] for i in range(len(output)) if output[i].index in surf_atoms])
 
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.25)
     a, b, d, D = neighborlist.neighbor_list('ijdD', atoms, cutOff)
 
     vertex_done = []
@@ -217,18 +217,18 @@ def SurfaceArea(slab_file, surf_atoms):
                         if b[j] in tile and k_neigh_index in tile and b[k] in tile:
                             done = 1
 
-                        if sorted([i.index, k_neigh_index, b[k]]) == sorted(tile):
-                            done = 1
-                        if sorted([i.index, k_neigh_index, b[j]]) == sorted(tile):
-                            done = 1
-                        if sorted([i.index, b[j], b[k]]) == sorted(tile):
-                            done = 1
-                        if sorted([k_neigh_index, b[j], b[k]]) == sorted(tile):
-                            done = 1
+#                        if sorted([i.index, k_neigh_index, b[k]]) == sorted(tile):
+#                            done = 1
+#                        if sorted([i.index, k_neigh_index, b[j]]) == sorted(tile):
+#                            done = 1
+#                        if sorted([i.index, b[j], b[k]]) == sorted(tile):
+#                            done = 1
+#                        if sorted([k_neigh_index, b[j], b[k]]) == sorted(tile):
+#                            done = 1
 # calculating the area and plotting the tile
                     if done == 0 and n_l == 4:
                         vertex_done.append(sorted([i.index, k_neigh_index, b[k]]))
-                        vertex_done.append(sorted([i.index, k_neigh_index, b[j]]))
+                        vertex_done.append(sorted([i.index, b[j], b[k]]))
 
     verts, area, color = Verts(atoms, vertex_done, min(z_position))
     n_verts = len(verts)
@@ -340,22 +340,22 @@ def SurfaceArea(slab_file, surf_atoms):
     return area_total
 
 def Verts(atoms, vertex_done, z_min):
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.25)
     cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.75
     z_max = max([atoms[i].position[2]-z_min for i in range(len(atoms))])
-    new_vertex = []
+#    new_vertex = []
     verts = []
     area = []
     color = []
-    for i in range(len(vertex_done)-1):
-        new = True
-        for j in range(i+1, len(vertex_done)):
-            if sorted(vertex_done[i]) == sorted(vertex_done[j]):
-                new = False
-        if new is True:
-            new_vertex.append(sorted(vertex_done[i]))
+#    for i in range(len(vertex_done)-1):
+#        new = True
+#        for j in range(i+1, len(vertex_done)):
+#            if sorted(vertex_done[i]) == sorted(vertex_done[j]):
+#                new = False
+#        if new is True:
+#            new_vertex.append(sorted(vertex_done[i]))
 
-    for tile in new_vertex:
+    for tile in vertex_done:
         x = [atoms[tile[0]].position[0]]
         y = [atoms[tile[0]].position[1]]
         z = [atoms[tile[0]].position[2]-z_min]
