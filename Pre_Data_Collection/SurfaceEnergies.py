@@ -199,6 +199,13 @@ def SurfaceArea(slab_file, surf_atoms):
                 if n_l == 4:
                     k_neigh = [l for l in range(len(a)) if a[l] == b[k] and b[l] in i_neigh_index and b[l] != b[j]]
                     k_neigh_index = int([b[l] for l in k_neigh][0])
+# are i, j and k neighbours of a peak atom
+                    for peak in atoms_peaks:
+                        peaks_neigh_index = [b[n] for n in range(len(a)) if a[n] == peak]
+                        if i.index in peaks_neigh_index and k_neigh_index in peaks_neigh_index and b[k] in peaks_neigh_index:
+                            done = 1
+                        if i.index in peaks_neigh_index and k_neigh_index in peaks_neigh_index and b[j] in peaks_neigh_index:
+                            done = 1
 # Bare in mind that b[k] is i.index's neighbour
                     for tile in vertex_done:
                         if i.index in tile and b[j] in tile and b[k] in tile:
@@ -209,10 +216,19 @@ def SurfaceArea(slab_file, surf_atoms):
                             done = 1
                         if b[j] in tile and k_neigh_index in tile and b[k] in tile:
                             done = 1
+
+                        if sorted([i.index, k_neigh_index, b[k]]) == sorted(tile):
+                            done = 1
+                        if sorted([i.index, k_neigh_index, b[j]]) == sorted(tile):
+                            done = 1
+                        if sorted([i.index, b[j], b[k]]) == sorted(tile):
+                            done = 1
+                        if sorted([k_neigh_index, b[j], b[k]]) == sorted(tile):
+                            done = 1
 # calculating the area and plotting the tile
                     if done == 0 and n_l == 4:
                         vertex_done.append(sorted([i.index, k_neigh_index, b[k]]))
-                        vertex_done.append(sorted([i.index, b[j], b[k]]))
+                        vertex_done.append(sorted([i.index, k_neigh_index, b[j]]))
 
     verts, area, color = Verts(atoms, vertex_done, min(z_position))
     n_verts = len(verts)
@@ -327,11 +343,19 @@ def Verts(atoms, vertex_done, z_min):
     cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)
     cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.75
     z_max = max([atoms[i].position[2]-z_min for i in range(len(atoms))])
+    new_vertex = []
     verts = []
     area = []
     color = []
-    for tile in vertex_done:
-        tile = sorted(tile)
+    for i in range(len(vertex_done)-1):
+        new = True
+        for j in range(i+1, len(vertex_done)):
+            if sorted(vertex_done[i]) == sorted(vertex_done[j]):
+                new = False
+        if new is True:
+            new_vertex.append(sorted(vertex_done[i]))
+
+    for tile in new_vertex:
         x = [atoms[tile[0]].position[0]]
         y = [atoms[tile[0]].position[1]]
         z = [atoms[tile[0]].position[2]-z_min]
