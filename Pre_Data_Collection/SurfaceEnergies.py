@@ -340,7 +340,7 @@ def SurfaceArea(slab_file, surf_atoms):
     return area_total
 
 def Verts(atoms, vertex_done, z_min):
-    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.25)
+    cutOff = neighborlist.natural_cutoffs(atoms, mult=1.35)     # it has to be considerably larger for big deformations
     cutOff = sum(cutOff)/len(cutOff)*math.sqrt(2)*1.75
     z_max = max([atoms[i].position[2]-z_min for i in range(len(atoms))])
 #    new_vertex = []
