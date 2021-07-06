@@ -157,7 +157,7 @@ def trend_lorentzian(x, y, element, colour, marker, line):
 	plt.plot(np.linspace(0, 12, 150), trendline_1(np.linspace(0, 12, 150), *popt1), color=colour, linestyle=line,
 			 label=str(element) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
-	return trend_label, popt1, round(r2, 2)
+	return trend_label, popt1, r2
 
 
 def trend_lineal(x, y, element, colour, marker, line):
@@ -170,7 +170,7 @@ def trend_lineal(x, y, element, colour, marker, line):
 	plt.plot(np.linspace(0, 12, 150), trendline_2(np.linspace(0, 12, 150), *popt2), color=colour, linestyle=line,
 			 label=str(element) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
-	return trend_label, popt2, round(r2, 2)
+	return trend_label, popt2, r2
 
 
 def Lineal_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_validation, popt,
@@ -274,7 +274,7 @@ Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15],
 x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.85
 x_max = max([max([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
 plt.plot([x_min, x_max], [x_min, x_max], "k-", lw=1.5)
-trend_file = open("Interpolation_Trends.txt", 'w+')
+trend_file = open("Interpolation_SE_Trends.txt", 'w+')
 for i, ele in enumerate(set(elements)):
 	if len(area_popt[ele]) == 4:
 		max_deviation = Lorenz_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele],
