@@ -438,7 +438,7 @@ coord_average = sum(coord_sum)/sum([coordination_list[i] for i in coordination_l
 #ifile.close()
 
 ifile = open("Trend_SEnergy.dat", 'w+')
-ifile.write("# Area (Angs^2)	    γ (J.m^-2)		Coordinations from 3 to 11	Element + path\n")
+ifile.write("# Area (Angs\u00B2)	    γ (J.m\N{SUPERSCRIPT minus}\u00B2)		Coordinations from 3 to 11	Element + path\n")
 ifile.write("{:>3.9G} \t{:>10.4f} \t" .format(area*1E20, e_surf))
 for i in range(3, 12):
     if str(i) in coordination_list:
