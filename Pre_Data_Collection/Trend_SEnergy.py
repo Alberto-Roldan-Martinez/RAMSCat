@@ -254,7 +254,7 @@ inotes = {}
 area_popt = {}
 surf_e_popt = {}
 surf_e_eV_popt = {}
-
+r2 = {}
 # ------------------------ SURFACE AREA in Angstroms^2 ---------------------
 for i, ele in enumerate(set(elements)):
 	returned_data = get_data(lines, ele)
@@ -266,8 +266,8 @@ for i, ele in enumerate(set(elements)):
 # Area trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_areas[ele]										# in Angstroms^2
-#	trend_label, area_popt[ele], r2 = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-	trend_label, area_popt[ele], r2 = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+#	trend_label, area_popt[ele], r2[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+	trend_label, area_popt[ele], r2[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
@@ -281,13 +281,13 @@ for i, ele in enumerate(set(elements)):
 						coord_matrix_validation[ele], area_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# AREA (\u212B\u00B2)\tLorentzian interpolation: a - (b + x**c)/d\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\td={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(
-			area_popt[ele][0], area_popt[ele][1], area_popt[ele][2], area_popt[ele][3], r2, np.abs(round(max_deviation, 1))))
+			area_popt[ele][0], area_popt[ele][1], area_popt[ele][2], area_popt[ele][3], r2[ele], np.abs(round(max_deviation, 1))))
 	elif len(area_popt[ele]) == 2:
 		max_deviation = Lineal_Validation(ele, areas[ele], areas_validation[ele], coord_matrix[ele],
 						coord_matrix_validation[ele], area_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# AREA (\u212B\u00B2)\tLineal interpolation: a*x + b\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(area_popt[ele][0],
-						area_popt[ele][1], r2, np.abs(round(max_deviation, 1))))
+						area_popt[ele][1], r2[ele], np.abs(round(max_deviation, 1))))
 Display("Area ($\\AA ^{2}$)", "Predicted Area ($\\AA ^{2}$)", [x_min, x_max], [x_min, x_max], set(elements))
 
 # ------------------------ SURFACE ENERGY in J . m^-1 ---------------------
@@ -295,8 +295,8 @@ for i, ele in enumerate(set(elements)):
 # Surface energy trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_surf_e[ele]										# in J . m^-2
-	trend_label, surf_e_popt[ele], r2 = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-#	trend_label, surf_e_popt[ele], r2 = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+	trend_label, surf_e_popt[ele], r2[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+#	trend_label, surf_e_popt[ele], r2[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 Display("Coordination", "$\\gamma$ ($J \cdot m^{\minus 2}$)", [0, 12.15],
 		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
@@ -310,14 +310,14 @@ for i, ele in enumerate(set(elements)):
 					   imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# SURFACE ENERGY (J.m\u00B2)\tLorentzian interpolation: a - (b + x**c)/d\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\td={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(
-			surf_e_popt[ele][0], surf_e_popt[ele][1], surf_e_popt[ele][2], surf_e_popt[ele][3], r2, np.abs(round(max_deviation, 1))))
+			surf_e_popt[ele][0], surf_e_popt[ele][1], surf_e_popt[ele][2], surf_e_popt[ele][3], r2[ele], np.abs(round(max_deviation, 1))))
 	elif len(surf_e_popt[ele]) == 2:
 		max_deviation = Lineal_Validation(ele, surf_e[ele], surf_e_validation[ele], coord_matrix_norm[ele],
 					   coord_matrix_validation_norm[ele], surf_e_popt[ele], inotes[ele],
 					   imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# SURFACE ENERGY (J.m\u00B2)\tLineal interpolation: a*x + b\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(surf_e_popt[ele][0],
-						surf_e_popt[ele][1], r2, np.abs(round(max_deviation, 1))))
+						surf_e_popt[ele][1], r2[ele], np.abs(round(max_deviation, 1))))
 Display("$\\gamma$ ($J \cdot m^{\minus 2}$)", "Predicted $\\gamma$ ($J\cdot m^{\minus 2}$)",
 		[x_min, x_max], [x_min, x_max], set(elements))
 
@@ -330,8 +330,8 @@ for i, ele in enumerate(set(elements)):
 	surf_e_validation_eV[ele] = [float(surf_e_validation[ele][j]*areas_validation[ele][j]*toeV) for j in range(len(surf_e_validation[ele]))]
 	x_axis = np.arange(3, 12, 1)
 	y = coord_surf_e[ele] * toeV * coord_areas[ele]        				# energies in eV . atom^-1
-#	trend_label, surf_e_eV_popt[ele], r2 = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
-	trend_label, surf_e_eV_popt[ele], r2 = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+#	trend_label, surf_e_eV_popt[ele], r2[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
+	trend_label, surf_e_eV_popt[ele], r2[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 Display("Coordination", "$\\gamma$ ($eV \cdot atom^{\minus 1}$)", [0, 12.15],	[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
 
 x_min = min([min([i for i in surf_e_eV[ele] + surf_e_validation_eV[ele]]) for ele in set(elements)]) * 0.9
@@ -343,12 +343,12 @@ for i, ele in enumerate(set(elements)):
 					  surf_e_eV_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# SURFACE ENERGY (eV)\tLorentzian interpolation: a - (b + x**c)/d\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\td={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(
-			surf_e_eV_popt[ele][0], surf_e_eV_popt[ele][1], surf_e_eV_popt[ele][2], surf_e_eV_popt[ele][3], r2, np.abs(round(max_deviation, 1))))
+			surf_e_eV_popt[ele][0], surf_e_eV_popt[ele][1], surf_e_eV_popt[ele][2], surf_e_eV_popt[ele][3], r2[ele], np.abs(round(max_deviation, 1))))
 	elif len(surf_e_eV_popt[ele]) == 2:
 		max_deviation = Lineal_Validation(ele, surf_e_eV[ele], surf_e_validation_eV[ele], coord_matrix[ele], coord_matrix_validation[ele],
 					  surf_e_eV_popt[ele], inotes[ele], imarker[i], icolour[i], x_min, x_max)
 		trend_file.write("# SURFACE ENERGY (eV)\tLineal interpolation: a*x + b\n")
 		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(surf_e_eV_popt[ele][0],
-						surf_e_eV_popt[ele][1], r2, np.abs(round(max_deviation, 1))))
+						surf_e_eV_popt[ele][1], r2[ele], np.abs(round(max_deviation, 1))))
 Display("$\\gamma$ ($eV$)", "Predicted $\\gamma$ ($eV$)", [x_min, x_max], [x_min, x_max], set(elements))
 trend_file.close()
