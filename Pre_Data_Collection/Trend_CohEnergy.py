@@ -37,7 +37,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	plt.ylim(ylim)
 	if trend_label != "":
 		plt.title(trend_label)
-		plt.legend(loc='best')
+	plt.legend(loc='best')
 	plt.tight_layout()
 	plt.ion()
 	plt.show()
@@ -53,26 +53,24 @@ def SaveFig():
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
-def logarithm(x, a, b, c):
-	return np.log(a)/np.log(a/(a+b)) - (c/np.log(a/(a+b)))*np.log(a+x)
+def logarithm(x, a, b, c, d):
+	return d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
 
 
 def trend_logarithm(x, y, bulk_coord, symbol, colour, marker, line):
 	plt.plot(x, y, marker=marker, color=colour, linestyle="None")
 	plt.plot([0, bulk_coord], [0, 1], marker=marker, color=colour, fillstyle="none", linestyle="None")
 	weights = list(np.ones(len(x)))
-
 	x.append(0.)
-	x.append(bulk_coord)
-	weights.append(0.5)
 	y.append(0.)
+	weights.append(0.1)
+	x.append(bulk_coord)
 	y.append(1)
 	weights.append(0.5)
-
 	popt, pcov = curve_fit(logarithm, x, y, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - logarithm(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
-	a, b, c = popt
-	trend_label = "Logarithm: a, b, c =" + str(round(a, 5)) + ", " + str(round(b, 5)) + ", " + str(round(c, 5))
+	a, b, c, d = popt
+	trend_label = "Logarithm: a, b, c, d = {:.2f}, {:.2f}, {:.2f}, {:.2f},".format(a, b, c, d)
 	plt.plot(np.linspace(0, 12, 150), logarithm(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line,
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
@@ -81,9 +79,8 @@ def trend_logarithm(x, y, bulk_coord, symbol, colour, marker, line):
 
 def Validation(ele, coord, coh_e, popt, imarker, icolour):
 	x = coh_e
-	y = [trend_logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
+	y = [logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
-
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
 
@@ -99,29 +96,25 @@ for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol = data[0][-2].split("/")[0]					# contains the list of systems' name
-
 	coord, coh_e, coh_e_bulk, bulk_coord = get_data(data)
 	if y_min > min(coh_e):
 		y_min = min(coh_e)
 	if y_max < max(coh_e):
 		y_max = max(coh_e)
-
 	trend_label, trend[symbol], r[symbol] = trend_logarithm(coord, coh_e, bulk_coord, symbol[:2], icolour[n-1], imarker[n-1], iliner[n])
 Display("Average Coordination", "$\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", [-0.15, 12.15], [-0.02, 1.02], trend_label)
 
 trend_file = open("Interpolation_ECoh_Trends.txt", 'w+')
+y_min = y_min*0.8
+y_max = y_max*1.05
 plt.plot([y_min, y_max], [y_min, y_max], "k-", lw=1.5)
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol = data[0][-2].split("/")[0]					# contains the list of systems' name
-
-np.log(a)/np.log(a/(a+b)) - (c/np.log(a/(a+b)))*np.log(a+x)
-
 	coord, coh_e, coh_e_bulk, bulk_coord = get_data(data)
-	max_deviation = Validation(symbol[:2], coord, coh_e, trend[symbol], imarker[n], icolour[n], y_min, y_max)
-		trend_file.write("# E_Coh/E_Coh^Bulk\tLogarithm interpolation: 1/E_Coh^Bulk * a - (b + x**c)/d\n")
-		trend_file.write("\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\td={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n" .format(
-			area_popt[ele][0], area_popt[ele][1], area_popt[ele][2], area_popt[ele][3], r2, np.abs(round(max_deviation, 1))))
-
-Display("Area ($\\AA ^{2}$)", "Predicted Area ($\\AA ^{2}$)", [x_min, x_max], [x_min, x_max], set(elements))
+	max_deviation = Validation(symbol[:2], coord, coh_e, trend[symbol], imarker[n-1], icolour[n-1])
+	trend_file.write("# E_Coh/E_Coh^Bulk\tLogarithm interpolation: 1/E_Coh^Bulk * 1/log(a/(a+b)) * (log(a) - c* log(a+cc))\n")
+	trend_file.write("{}\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
+					 .format(symbol, trend[symbol][0], trend[symbol][1], trend[symbol][2], r[symbol], np.abs(round(max_deviation, 1))))
+Display("$\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", "Predicted $\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", [y_min, y_max], [y_min, y_max], "")
