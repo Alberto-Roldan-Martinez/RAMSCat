@@ -62,7 +62,6 @@ def cubic(x, a, b, c, d):
 
 
 def trend_logarithm(x, y, bulk_coord, symbol, colour, marker, line):
-	plt.plot(x, y, marker=marker, color=colour, linestyle="None")
 	plt.plot([0, bulk_coord], [0, 1], marker=marker, color=colour, fillstyle="none", linestyle="None")
 	weights = list(np.ones(len(x)))
 	x.append(0.)
@@ -71,23 +70,18 @@ def trend_logarithm(x, y, bulk_coord, symbol, colour, marker, line):
 	x.append(bulk_coord)
 	y.append(1)
 	weights.append(0.1)
-#	popt, pcov = curve_fit(logarithm, x, y, sigma=weights)
-#	r2 = 1-np.sqrt(sum([(y[i] - logarithm(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	popt, pcov = curve_fit(cubic, x, y, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - cubic(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c, d = popt
-	trend_label = "Logarithm: a, b, c, d = {:.2f}, {:.2f}, {:.2f}, {:.2f},".format(a, b, c, d)
-#	plt.plot(np.linspace(0, 12, 150), logarithm(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line,
-#			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-	plt.plot(np.linspace(0, 12, 150), cubic(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line,
-			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	trend_label = "Cubic: ax^3 + bx^2 +  cx + d = {:.2f}, {:.2f}, {:.2f}, {:.2f},".format(a, b, c, d)
+	plt.plot(np.linspace(0, 12, 150), cubic(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
+	plt.plot(x, y, marker=marker, color=colour, linestyle="None", label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
 	return trend_label, popt, r2
 
 
 def Validation(ele, coord, coh_e, popt, imarker, icolour):
 	x = coh_e
-#	y = [logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
 	y = [cubic(i, *popt) for i in coord]          		# in eV.atom^-1
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
