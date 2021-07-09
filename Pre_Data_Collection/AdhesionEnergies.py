@@ -1,7 +1,9 @@
 '''
-	Finds the cohesion energy of metallic systems
+	Finds the Adhesion energy of metallic systems on supports
 
-	USAGE: ~.py path_for_the_DFT_output_files_contains_the_energy_and_geometry
+	USAGE: ~.py path_for_the_DFT_output_files
+		FILE_1: contains energy
+		FILE_2: contains geometry
 
 '''
 
@@ -11,7 +13,7 @@ from ase import neighborlist
 from Library import isolated_atoms, ecoh_bulk
 
 
-inputfiles = ["OUTCAR"]
+inputfiles = ["OUTCAR", "CONTCAR"]
 path = os.getcwd()
 path_name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
