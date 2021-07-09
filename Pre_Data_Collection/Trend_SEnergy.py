@@ -32,6 +32,10 @@ lines = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#")
 for line in lines:
 	elements.append(str(line[-2]))
 
+
+
+
+
 def get_data(lines, element):
 	areas_validation = []						# contains the surface areas in A^2 that will be used for validation
 	surf_e_validation = []						# contains the surface energies in J.m^2 that will be used for validation
@@ -240,6 +244,21 @@ icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] 
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
 iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1, 1, 1)),  (0, (3, 1, 1, 1, 1, 1))]
 
+# Library build from Webelements containing the bulk coordination and area (area=4 * pi * r^2) where r is the
+# 	radius of the most external d-orbital in Angstroms.
+bulk = {	'Fe': [8, 4 * np.pi * 0.382**2], 	# bcc		#3rd row
+            'Co': [12, 4 * np.pi * 0.358**2],    # hcp
+            'Ni': [12, 4 * np.pi * 0.338**2],
+            'Cu': [12, 4 * np.pi * 0.325**2],                # 3rd row
+            'Ru': [12, 4 * np.pi * 0.639**2],    # hcp       # 4rd row
+            'Rh': [12, 4 * np.pi * 0.604**2],
+            'Pd': [12, 4 * np.pi * 0.580**2],
+            'Ag': [12, 4 * np.pi * 0.547**2],                # 4rd row
+            'Ir': [12, 4 * np.pi * 0.678**2],                # 5rd row
+            'Pt': [12, 4 * np.pi * 0.659**2],
+            'Au': [12, 4 * np.pi * 0.635**2],                # 5th row
+           }
+
 coord_areas = {}
 areas = {}
 areas_validation = {}
@@ -266,10 +285,11 @@ for i, ele in enumerate(set(elements)):
 # Area trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_areas[ele]										# in Angstroms^2
+	plt.plot(bulk[ele][0], bulk[ele][1], marker=imarker[i], color=icolour[i], fillstyle="none", linestyle="None")
 #	trend_label, area_popt[ele], r2[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 	trend_label, area_popt[ele], r2[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15],
-		[min(y)-np.abs(min(y)*0.15), max(y)*1.15], trend_label)
+		[bulk[ele][1]-bulk[ele][1]*0.15, max(y)*1.15], trend_label)
 
 x_min = min([min([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 0.85
 x_max = max([max([i for i in areas[ele] + areas_validation[ele]]) for ele in set(elements)]) * 1.15
