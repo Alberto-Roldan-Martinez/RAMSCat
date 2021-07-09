@@ -63,7 +63,7 @@ n_interface_cluster_atoms = len(cluster_interface)			# number of cluster atoms a
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/n_interface_cluster_atoms
 
 
-CORRECT
+# CORRET
 
 
 # Cluster_interface distance to the surface
