@@ -9,7 +9,7 @@ import os
 import sys
 from ase.io import read
 from ase import neighborlist
-from Library import isolated_atoms, ecoh_bulk
+from Library import sites
 
 
 input_file = ["OUTCAR", "CONTCAR"]
@@ -37,11 +37,11 @@ except:
 	print(" Supported Cluster Input does not exist in the current directory!")
 
 
-def atom_neighbours(atom_index, supported_cluster, cluster_indexes):
-	cutoff = neighborlist.natural_cutoffs(supported_cluster, mult=1.25)
+def atom_neighbours(atom_index, supported_cluster, cluster_indexes, support_indexes):
+	cutoff = neighborlist.natural_cutoffs(supported_cluster, mult=1.15)
 	a, b = neighborlist.neighbor_list('ij', supported_cluster, cutoff)
 	atom_cluster_neighbours = [b[n] for n in range(len(a)) if a[n] == atom_index and b[n] in cluster_indexes]
-	atom_surface_neighbours = [b[n] for n in range(len(a)) if a[n] == atom_index and b[n] not in cluster_indexes]
+	atom_surface_neighbours = [b[n] for n in range(len(a)) if a[n] == atom_index and b[n] in support_indexes]
 	return atom_cluster_neighbours, atom_surface_neighbours
 
 # Interface atoms and their coordination within the supported cluster
@@ -55,7 +55,7 @@ for i in range(len(supported_cluster)):
 	else:
 		support_indexes.append(supported_cluster[i].index)
 for i in cluster_indexes:
-	atom_cluster_neighbours, atom_surface_neighbours = atom_neighbours(i, supported_cluster, cluster_indexes)
+	atom_cluster_neighbours, atom_surface_neighbours = atom_neighbours(i, supported_cluster, cluster_indexes, support_indexes)
 	if len(atom_surface_neighbours) > 0:
 		cluster_interface_cluster_neighbours += len(atom_cluster_neighbours)
 		cluster_interface[str(i)] = atom_surface_neighbours
@@ -117,7 +117,10 @@ ifile = open("Trend_AdhEnergy.dat", 'w+')
 ifile.write("#\n# ic = n_interface_cluster_atoms\n# icc = average_cluster_coordination_interface_cluster_atoms\n")
 ifile.write("# id = average distance from the cluster interface atoms to the surface neighbouring atoms\n")
 ifile.write("# idr = the shortest distance from the reference (FIRST interfacial atom in the cluster) to the a surface neighbour\n")
-ifile.write("#\n# ic\ticc\tid\tidr\t\tE_Adh (eV)\tElements\tPath\n")
-ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}" .format(n_interface_cluster_atoms, average_cluster_coordination_interface_cluster_atoms, average_interface_distance, site_reference_atom_distance, adhesion_e))
-ifile.write("\t\t# {}\t\t{}\n" .format(list(set(gas_cluster.get_chemical_symbols()))[0], path_name))
+ifile.write("#\n# ic\ticc\tid\tidr\t\tE_Adh (eV)\tSite\tElements\tPath\n")
+ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}" .format(n_interface_cluster_atoms,
+																average_cluster_coordination_interface_cluster_atoms,
+																		 average_interface_distance,
+																		 site_reference_atom_distance, adhesion_e))
+ifile.write("\t\t# {}\t{}\t\t{}\n" .format(distances[0][0], list(set(gas_cluster.get_chemical_symbols()))[0], path_name))
 ifile.close()

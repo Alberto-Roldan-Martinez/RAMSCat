@@ -42,9 +42,9 @@ def opt_atom_distance(support, site, element):          # Defines the optimised 
     return optimum_distance
 
 
-def sites(support):         # defines the common adsorption sites on a support
+def sites(support):         # defines the common adsorption sites on a support sorted by adh, i.e., stronger to weaker.
     sites = {
-        "MgO": ["Mg", "O"]
+        "MgO": ["O", "Mg"]
     }
     return sites[str(support)]
 
