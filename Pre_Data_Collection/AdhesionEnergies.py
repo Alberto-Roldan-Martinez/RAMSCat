@@ -68,31 +68,25 @@ else:
 	average_cluster_coordination_interface_cluster_atoms = 0
 
 
-# The shortest distances from atoms in the cluster to the support
-atom_c_support_shortest_distance = {}
-distances = []
+# Average of the shortest distances from atoms in the cluster to sites[0] in the support ==> along Z AXIS
+average_shortest_cluster_site_distance = 0
 z_c_interface = []
-z_surface_neighbours = []
-for i in cluster_interface:
-	z_c_interface.append(supported_cluster.get_positions()[int(i)][2])
-	for j in cluster_interface[str(i)]:
-		z_surface_neighbours.append(supported_cluster.get_positions()[j][2])
-		distances.append([supported_cluster[j].symbol, supported_cluster.get_distance(int(i), j, mic=True, vector=False)])
-	distances.sort(key=lambda x: x[1])
-	atom_c_support_shortest_distance[str(i)] = distances[0]		# includes the surface species and the distance
+z_min_c_interface = min([supported_cluster.get_positions()[i][2] for i in cluster_indexes])
+z_c_interface_indexes = [i for i in cluster_indexes if supported_cluster.get_positions()[i][2] < z_min_c_interface + 1]
+z_max_surface = max([supported_cluster.get_positions()[i][2] for i in support_indexes if supported_cluster[i].symbol ==
+					 sites(support_name)[0]])
+z_s_neighbours_indexes = [i for i in support_indexes if supported_cluster.get_positions()[i][2] > z_max_surface - 1
+							  and supported_cluster[i].symbol == sites(support_name)[0]]
+z_surface_neighbours = [supported_cluster.get_positions()[i][2] for i in z_s_neighbours_indexes]
 
-# Distance from the FIRST interfacial atom in the cluster to the nearest surface neighbour
-if len(cluster_interface) > 0:
-	site_reference_atom_distance = atom_c_support_shortest_distance[list(cluster_interface)[0]][1]
-else:
-	z_min_c_interface = min([supported_cluster.get_positions()[i][2] for i in cluster_indexes])
-	closes_atom_interface = [i for i in cluster_indexes if supported_cluster.get_positions()[i][2] == z_min_c_interface][0]
-	z_c_interface = [supported_cluster.get_positions()[i][2] for i in cluster_indexes if supported_cluster.get_positions()[i][2] < z_min_c_interface*1.1]
-	z_max_surface = max([supported_cluster.get_positions()[i][2] for i in support_indexes])
-	z_surface_neighbours = [supported_cluster.get_positions()[i][2] for i in support_indexes if supported_cluster.get_positions()[i][2] > z_max_surface*0.9]
-	distances = [[supported_cluster[j].symbol, supported_cluster.get_distance(closes_atom_interface, j, mic=True, vector=False)] for j in support_indexes]
+for i in z_c_interface_indexes:
+	z_c_interface.append(supported_cluster.get_positions()[i][2])
+	distances = []
+	for j in z_s_neighbours_indexes:
+		distances.append([supported_cluster[j].symbol, supported_cluster.get_distance(i, j, mic=True, vector=False)])
 	distances.sort(key=lambda x: x[1])
-	site_reference_atom_distance = distances[0][1]				# includes the surface species and the distance
+	average_shortest_cluster_site_distance += distances[0][1]
+average_shortest_cluster_site_distance = average_shortest_cluster_site_distance / len(z_c_interface_indexes)
 
 # Average distance between the support and the cluster interface atoms
 average_z_interface = sum(z_c_interface) / len(z_c_interface)
@@ -116,11 +110,12 @@ adhesion_e = (e_supported - (e_gas_cluster + e_surface))
 ifile = open("Trend_AdhEnergy.dat", 'w+')
 ifile.write("#\n# ic = n_interface_cluster_atoms\n# icc = average_cluster_coordination_interface_cluster_atoms\n")
 ifile.write("# id = average distance from the cluster interface atoms to the surface neighbouring atoms\n")
-ifile.write("# idr = the shortest distance from the reference (FIRST interfacial atom in the cluster) to the a surface neighbour\n")
-ifile.write("#\n# ic\ticc\tid\tidr\t\tE_Adh (eV)\tSite\tElements\tPath\n")
+ifile.write("# isd = average of the shortest distance from the interfacial atoms in the cluster to the surface most favourable site (in Library)\n")
+ifile.write("#\n# ic\ticc\tid\tisd\t\tE_Adh (eV)\tElements\tPath\n")
 ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}" .format(n_interface_cluster_atoms,
 																average_cluster_coordination_interface_cluster_atoms,
 																		 average_interface_distance,
-																		 site_reference_atom_distance, adhesion_e))
-ifile.write("\t\t# {}\t{}\t\t{}\n" .format(distances[0][0], list(set(gas_cluster.get_chemical_symbols()))[0], path_name))
+																		 average_shortest_cluster_site_distance,
+																		 adhesion_e))
+ifile.write("\t\t# {}\t\t{}\n" .format(list(set(gas_cluster.get_chemical_symbols()))[0], path_name))
 ifile.close()
