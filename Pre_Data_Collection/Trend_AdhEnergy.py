@@ -24,20 +24,22 @@ def get_data(data):
 	ic = []									# contains the number of interface_cluster_atoms
 	icc = []								# contains the average coordination of the cluster atoms at the interface
 	id = []									# contains the average distance from the cluster interface atoms to the surface neighbouring atoms
-	isd = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site
+	isd_a = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[0]
+	isd_b = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[1]
 	adh_e = []								# contains the DFT calculated adhesion energies
 	scaled_adh_e = []
 	for i in range(len(data)):
-		if float(data[i][0])*float(data[i][1]) > 0:
-			if float(data[i][4]) < 0:
+		if float(data[i][0]) > 0:
+			if float(data[i][5]) < 0:
 				ic.append(float(data[i][0]))
 				icc.append(float(data[i][1]))
 				id.append(float(data[i][2]))
-				isd.append(float(data[i][3]))
-				adh_e.append(float(data[i][4]))
-				scaled_adh_e.append(float(data[i][4])/float(data[i][0])) # * float(data[i][1])))
+				isd_a.append(float(data[i][3]))
+				isd_b.append(float(data[i][4]))
+				adh_e.append(float(data[i][5]))
+				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))
 
-	return ic, icc, id, isd, adh_e, scaled_adh_e
+	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -133,8 +135,8 @@ def trend_morse_3D(x, y, z):
 
 def Validation_3D(ele, x0, y0, z0, x_popt, y_popt, imarker, icolour):
 	x = z0
-#	y = (morse(x0, *x_popt) + morse(y0, *y_popt) / 2)          		# in eV.atom^-1
-	y = morse(x0, *x_popt)
+	y = (morse(x0, *x_popt) + morse(y0, *y_popt) / 2)          		# in eV.atom^-1
+#	y = morse(x0, *x_popt)
 #	y = morse(y0, *y_popt)
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
@@ -148,58 +150,68 @@ symbol = []
 ic = {}
 icc = {}
 id = {}
-isd = {}
+isd_a = {}
+isd_b = {}
 adh_e = {}
 scaled_adh_e = {}
-id_trend = {}
-isd_trend = {}
-id_r = {}
-isd_r = {}
+a_trend = {}
+b_trend = {}
+a_r = {}
+b_r = {}
 trend_3D = {}
 r_3D = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
-	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
-x_min = min([min(id[sym]) for sym in symbol])*0.9
-x_max = max([max(id[sym]) for sym in symbol])*1.3
-y_min = min([min(isd[sym]) for sym in symbol])*0.9
-y_max = max([max(isd[sym]) for sym in symbol])*1.3
+	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
+x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
+x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
+y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
+y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
 z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
 #------------------------------------- Interfacial Distance ------------------------
-for n, sym in enumerate(symbol):
-	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [x_min, x_max], icolour[n], imarker[n], iliner[n+1])
-x_min = min([id_trend[sym][2] for sym in symbol])*0.85
-z_min = -1*min([id_trend[sym][1] for sym in symbol]) - np.abs(min([id_trend[sym][1] for sym in symbol]))*0.1
+#for n, sym in enumerate(symbol):
+#	trend_label, a_trend[sym], a_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [x_min, x_max], icolour[n], imarker[n], iliner[n+1])
+#x_min = min([a_trend[sym][2] for sym in symbol])*0.85
+#z_min = -1*min([a_trend[sym][1] for sym in symbol]) - np.abs(min([a_trend[sym][1] for sym in symbol]))*0.1
 
-Display("Interface Average Distance ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [z_min, 0], trend_label)
+#Display("isd_a ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [z_min, 0], trend_label)
 
 #------------------------------------- Sorthest Distances ------------------------
-for n, sym in enumerate(symbol):
-	trend_label, isd_trend[sym], isd_r[sym] = trend_morse(isd[sym], scaled_adh_e[sym], sym, [y_min, y_max], icolour[n], imarker[n], iliner[n+1])
-y_min = min([isd_trend[sym][2] for sym in symbol])*0.9
-z_min = -1*min([isd_trend[sym][1] for sym in symbol]) - np.abs(min([isd_trend[sym][1] for sym in symbol]))*0.1
-Display("isd $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [y_min, y_max], [z_min, 0], trend_label)
+#for n, sym in enumerate(symbol):
+#	trend_label, b_trend[sym], b_r[sym] = trend_morse(isd_b[sym], scaled_adh_e[sym], sym, [y_min, y_max], icolour[n], imarker[n], iliner[n+1])
+#y_min = min([b_trend[sym][2] for sym in symbol])*0.9
+#z_min = -1*min([b_trend[sym][1] for sym in symbol]) - np.abs(min([b_trend[sym][1] for sym in symbol]))*0.1
+#Display("isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [y_min, y_max], [z_min, 0], trend_label)
 
 #------------------------------------------- 3D Display ------------------------
+ab_trend = np.array([[1.52682, 1.95537, 2.22028], [1.21682, 0.73938, 2.71455]])
+print(ab_trend)
+x_min = ab_trend[0][2]*0.8
+y_min = ab_trend[1][2]*0.8
+z_min = -1*max(ab_trend[:][1])
 for n, sym in enumerate(symbol):
 #	trend_3D[sym], r_3D[sym] = trend_morse_3D(id[sym], isd[sym], scaled_adh_e[sym])
-	Display3D(id[sym], isd[sym], scaled_adh_e[sym], [id_trend[sym], isd_trend[sym]], "Interface Average Distance ($\\AA$)",
-			  "isd $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], sym)
+	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], ab_trend, "isd_a ($\\AA$)",
+			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], sym)
 
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation = Validation_3D(sym, id[sym], isd[sym], adh_e[sym], id_trend[sym], isd_trend[sym], imarker[n], icolour[n])
-	a, id_d_eq, id_r_eq = id_trend[sym]
-	b, isd_d_eq, isd_r_eq = isd_trend[sym]
+	max_deviation = Validation_3D(sym, isd_a[sym], isd_b[sym], scaled_adh_e[sym], ab_trend[0], ab_trend[1], imarker[n], icolour[n])
+	a, a_d_eq, a_r_eq = ab_trend[0]
+	b, b_d_eq, b_r_eq = ab_trend[1]
 	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#\tMorse interpolation:"
 					 " 1/2 ( id_d_eq * (exp(-2 * a * (id - id_r_eq)) - 2 * exp(-a * (id - id_r_eq))) + "
 					 "isd_d_eq * (exp(-2 * b * (isd - isd_r_eq)) - 2 * exp(-b * (isd - isd_r_eq))) )\n")
-	trend_file.write("{}\ta={:<5.5f}\tid_d_eq={:<5.5f} \tid_r_eq={:<5.5f} \tR\u00B2={:<1.2f}\n"
-					 "\tb={:<5.5f}\tisd_d_eq={:<5.5f}\tisd_r_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
-					 .format(sym, a, id_d_eq, id_r_eq, id_r[sym], b, isd_d_eq, isd_r_eq, isd_r[sym], max_deviation))
+	trend_file.write("{}\ta={:<5.5f}\tid_d_eq={:<5.5f} \tid_r_eq={:<5.5f}\n"
+					 "\tb={:<5.5f}\tisd_d_eq={:<5.5f}\tisd_r_eq={:<5.5f}\t\u03C4\u2264{:<1.1f}%\n"
+					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, np.abs(max_deviation)))
+#	trend_file.write("{}\ta={:<5.5f}\tid_d_eq={:<5.5f} \tid_r_eq={:<5.5f} \tR\u00B2={:<1.2f}\n"
+#					 "\tb={:<5.5f}\tisd_d_eq={:<5.5f}\tisd_r_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
+#					 .format(sym, a, a_d_eq, a_r_eq, a_r[sym], b, b_d_eq, b_r_eq, b_r[sym], np.abs(max_deviation)))
+
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
