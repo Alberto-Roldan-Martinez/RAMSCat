@@ -119,6 +119,14 @@ def morse(x, a, d_eq, r_eq):
 def morse_3D(x, a, x_d_eq, x_r_eq, b, y_d_eq, y_r_eq):
 	return x_d_eq * (np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq))) + \
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) + y_d_eq			# MORSE potential
+#	return (x_d_eq + y_d_eq)/2 * (np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq))) + \
+#		   (x_d_eq + y_d_eq)/2 * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) + (x_d_eq + y_d_eq)/2		# MORSE potential
+#	return ((np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq)))) * np.exp(x_r_eq - 2.22028) + \
+#		   ((np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq)))) * np.exp(y_r_eq - 2.71455)			# MORSE potential
+#	return x_d_eq * (np.exp(-2*a*(x[0] - 2.22028)) - 2 * np.exp(-a*(x[0] - 2.22028))) + \
+#		   y_d_eq * (np.exp(-2*b*(x[1] - 2.71455)) - 2 * np.exp(-b*(x[1] - 2.71455))) + y_d_eq			# MORSE potential
+
+
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.5], [50, 50, 5]))
@@ -133,9 +141,6 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 def trend_morse_3D(x, y, z, a_d_eq, b_d_eq):
 	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0, 0.1, 0.5, 0, 0.1, 0.5], [50, 50, 5, 50, 50, 5]))
-
-#	popt = [popt[0], a_d_eq/(a_d_eq + b_d_eq) * popt[1], popt[2], popt[3], b_d_eq/(a_d_eq + b_d_eq) * popt[4], popt[5]]
-
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 
 	return popt, r2
@@ -143,8 +148,12 @@ def trend_morse_3D(x, y, z, a_d_eq, b_d_eq):
 
 def Validation_3D(ele, x0, y0, z0, popt, imarker, icolour):
 	x = z0
-	y = morse_3D([x0, y0], *popt) 				        		# in eV.atom^-1
+#	y = morse_3D([x0, y0], *popt) 				        		# in eV.atom^-1
+	y = morse(x0, *popt[:3])
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
+
+	for i in range(len(x)):
+		plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
 

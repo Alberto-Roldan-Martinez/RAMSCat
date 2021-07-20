@@ -105,8 +105,10 @@ isd_a = {}
 isd_b = {}
 adh_e = {}
 scaled_adh_e = {}
+id_trend = {}
 a_trend = {}
 b_trend = {}
+id_r = {}
 a_r = {}
 b_r = {}
 for n in range(1, len(sys.argv)):
@@ -120,6 +122,24 @@ y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
 z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
+#-------------------------------------  Interface Distance  ------------------------
+for n, sym in enumerate(symbol):
+	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [x_min, x_max], icolour[n], imarker[n], iliner[n+1])
+Display("id ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [z_min, 0], trend_label)
+#--------------------------------------- Validation ---------------------------------------
+trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
+for n, sym in enumerate(symbol):
+	max_deviation = Validation(sym, id[sym], scaled_adh_e[sym], id_trend[sym], imarker[n], icolour[n])
+	a, d_eq, r_eq = id_trend[sym]
+	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  Interface Distance\tMorse interpolation:"
+					 " d_eq * (exp(-2 * a * (D - r_eq)) - 2 * exp(-a * (D - r_eq)))\n")
+	trend_file.write("{}\ta={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
+					 .format(sym, a, d_eq, r_eq, id_r[sym], np.abs(max_deviation)))
+plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
+Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+trend_file.write("\n")
+trend_file.close()
+
 #-------------------------------------  Distance A ------------------------
 for n, sym in enumerate(symbol):
 	trend_label, a_trend[sym], a_r[sym] = trend_morse(isd_a[sym], scaled_adh_e[sym], sym, [x_min, x_max], icolour[n], imarker[n], iliner[n+1])
@@ -128,7 +148,7 @@ for n, sym in enumerate(symbol):
 
 Display("isd_a ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [z_min, 0], trend_label)
 #--------------------------------------- Validation ---------------------------------------
-trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
+trend_file = open("Interpolation_EAdh_Trends.txt", 'a+')
 for n, sym in enumerate(symbol):
 	max_deviation = Validation(sym, isd_a[sym], scaled_adh_e[sym], a_trend[sym], imarker[n], icolour[n])
 	a, d_eq, r_eq = a_trend[sym]
