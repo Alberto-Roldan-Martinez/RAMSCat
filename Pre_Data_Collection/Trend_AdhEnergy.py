@@ -138,10 +138,17 @@ def trend_morse_3D(x, y, z):
 	return popt, r2
 
 
-def Validation_3D(ele, x0, y0, z0, popt, imarker, icolour):
+def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 	x = z0
-#	y = morse_3D([x0, y0], *popt) 				        		# in eV.atom^-1
-	y = morse(x0, *popt[:3]) + morse(y0, *popt[-3:]) + popt[4]
+#	y = a * morse_3D([x0, y0], *popt) 				        		# in eV.atom^-1
+#	y = a * (morse(x0, *popt[:3]) + morse(y0, *popt[-3:]) + popt[4])
+	y = []
+	for i in range(len(y0)):
+		if x0[i] <= y0[i]:
+			y.append(a[i] * morse(x0[i], *popt[:3]))
+		else:
+			y.append(a[i] * morse(y0[i], *popt[-3:]))
+
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
 
 	for i in range(len(x)):
@@ -168,11 +175,11 @@ for n in range(1, len(sys.argv)):
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
-x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
+#x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
-y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
+#y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
-z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
+#z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
 
 #------------------------------------------- 3D Display ------------------------
@@ -180,10 +187,10 @@ x_min = a_trend[2]*0.8
 y_min = b_trend[2]*0.8
 z_min = -1*max([a_trend[1], b_trend[1]])*1.5
 for n, sym in enumerate(symbol):
-#	r2 = 1-np.sqrt(sum([(scaled_adh_e[sym][i] - morse(isd_a[sym][i], *a_trend))**2 for i in range(len(isd_a[sym]))]
-#							)/sum(i*i for i in scaled_adh_e[sym]))
-	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
-	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
+	r2 = 1-np.sqrt(sum([(scaled_adh_e[sym][i] - morse(isd_a[sym][i], *a_trend))**2 for i in range(len(isd_a[sym]))]
+							)/sum(i*i for i in scaled_adh_e[sym]))
+#	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
+#	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r2, 2))
 #	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
 #			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
@@ -193,15 +200,16 @@ for n, sym in enumerate(symbol):
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_3DTrends.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation = Validation_3D(sym, isd_a[sym], isd_b[sym], scaled_adh_e[sym], np.array(a_trend + b_trend), imarker[n], icolour[n])
-#	max_deviation = Validation_3D(sym, isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
+	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], np.array(a_trend + b_trend), imarker[n], icolour[n])
+#	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
 	a, a_d_eq, a_r_eq = a_trend
 	b, b_d_eq, b_r_eq = b_trend
-	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#\tMorse interpolation: A + B\n"
+	trend_file.write("# E_Adh (eV)\n#\tMorse interpolation: ic * (A + B)\n"
 					 "  A::\td_eq * (exp(-2 * a * (A - r_eq)) - 2 * exp(-a * (A - r_eq)))\n"
 					 "  B::\td_eq * (exp(-2 * b * (B - r_eq)) - 2 * exp(-b * (B - r_eq))) + d_eq\n")
 	trend_file.write("{}\tA\ta={:<5.5f}\td_eq={:<5.5f} \tr_eq={:<5.5f}\n"
 					 "\tB\tb={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\t\u03C4\u2264{:<1.1f}%\n"
 					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, np.abs(max_deviation)))
+z_max = max([max(adh_e[sym]) for sym in symbol])*1.5
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
