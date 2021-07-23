@@ -180,7 +180,6 @@ x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
 #y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
 #z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
-z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
 
 #------------------------------------------- 3D Display ------------------------
 x_min = a_trend[2]*0.8
@@ -210,6 +209,5 @@ for n, sym in enumerate(symbol):
 	trend_file.write("{}\tA\ta={:<5.5f}\td_eq={:<5.5f} \tr_eq={:<5.5f}\n"
 					 "\tB\tb={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\t\u03C4\u2264{:<1.1f}%\n"
 					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, np.abs(max_deviation)))
-z_max = max([max(adh_e[sym]) for sym in symbol])*1.5
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
