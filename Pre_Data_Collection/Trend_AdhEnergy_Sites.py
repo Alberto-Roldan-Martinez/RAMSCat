@@ -28,7 +28,7 @@ def get_data(data):
 	adh_e = []								# contains the DFT calculated adhesion energies
 	scaled_adh_e = []
 	for i in range(len(data)):
-		if float(data[i][0]) > 0:
+		if float(data[i][0]) * float(data[i][1]) > 0:
 			if float(data[i][5]) < 0:
 				ic.append(float(data[i][0]))
 				icc.append(float(data[i][1]))
@@ -36,7 +36,7 @@ def get_data(data):
 				isd_a.append(float(data[i][3]))
 				isd_b.append(float(data[i][4]))
 				adh_e.append(float(data[i][5]))
-				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))
+				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # (float(data[i][0]) * float(data[i][1])))
 
 	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e
 
@@ -76,7 +76,7 @@ def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
-	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.5], [50, 50, 5]))
+	popt, pcov = curve_fit(morse, x, y, bounds=([0., 0.001, 0.1], [10, 10, 10]))
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(id - {:.2f})) - 2 * exp(-{:.2f}*(id - {:.2f})))".format(b, a, c, a, c)
@@ -116,6 +116,8 @@ for n in range(1, len(sys.argv)):
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
+dx_min = min([min(id[sym]) for sym in symbol])*0.9
+dx_max = max([max(id[sym]) for sym in symbol])*1.3
 x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
 y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
@@ -124,8 +126,8 @@ z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled
 z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
 #-------------------------------------  Interface Distance  ------------------------
 for n, sym in enumerate(symbol):
-	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [x_min, x_max], icolour[n], imarker[n], iliner[n+1])
-Display("id ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [z_min, 0], trend_label)
+	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [dx_min, dx_max], icolour[n], imarker[n], iliner[n+1])
+Display("id ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [dx_min, dx_max], [z_min, 0], trend_label)
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
 for n, sym in enumerate(symbol):

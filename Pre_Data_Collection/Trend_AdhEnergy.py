@@ -13,9 +13,9 @@ matplotlib.use('TkAgg')
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-
-a_trend = [1.52682, 1.95537, 2.17318]
-b_trend = [1.21665, 0.73938, 2.74060]
+#a_trend = [1.52682, 1.95537, 2.22028]	# id
+a_trend = [1.52682, 1.95537, 2.17318]  # O_support
+b_trend = [1.21665, 0.73938, 2.74060]	# Mg_support
 
 
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
@@ -62,22 +62,31 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	plt.clf()
 
 
-def Display3D(x, y, z, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
+def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(12, 16), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x, y, z, s=7, c='k', marker='o', label=trend_label)
+	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', label=trend_label)
+
 	grid = 10
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
-	z = morse_3D([x, y], *popt)
-	z = morse(x, *popt[:3]) + morse(y, *popt[-3:]) + popt[4]
+#	z = morse_3D([x, y], *popt)
+#	z = (morse(x, *popt[:3]) + morse(y, *popt[-3:])) + popt[4]
+	z = []
+	for i in range(len(x)):
+		for j in range(len(x[i])):
+			if x[i][j] <= y[i][j]:
+				z.append(morse(x[i][j], *popt[:3]))			# >> independent Morse
+			else:
+				z.append(morse(y[i][j], *popt[-3:]))
+	z = np.reshape(z, (len(x), len(x[0])))
 
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
-	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
-	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
-	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
+#	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
+#	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
+#	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
 
 	ax.set_xlabel(xlabel, fontsize=14)
 	ax.set_ylabel(ylabel, fontsize=14)
@@ -138,16 +147,11 @@ def trend_morse_3D(x, y, z):
 	return popt, r2
 
 
-def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
+def Validation_3D(ele, a, x0, y0, z0, x_popt, y_popt, imarker, icolour):
 	x = z0
 #	y = a * morse_3D([x0, y0], *popt) 				        		# in eV.atom^-1
 #	y = a * (morse(x0, *popt[:3]) + morse(y0, *popt[-3:]) + popt[4])
-	y = []
-	for i in range(len(y0)):
-		if x0[i] <= y0[i]:
-			y.append(a[i] * morse(x0[i], *popt[:3]))
-		else:
-			y.append(a[i] * morse(y0[i], *popt[-3:]))
+	y = [a[i] * Preferent_Morse(x0[i], y0[i], x_popt, y_popt) for i in range(len(z0))] # >> independent Morse
 
 	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
 
@@ -158,6 +162,14 @@ def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 
 	return max_deviation
 
+
+def Preferent_Morse(x, y, x_popt, y_popt):
+	if x <= y:
+		morse_value = morse(x, *x_popt)
+	else:
+		morse_value = morse(y, *y_popt)
+
+	return morse_value
 
 ########################################################################################################################
 symbol = []
@@ -186,8 +198,8 @@ x_min = a_trend[2]*0.8
 y_min = b_trend[2]*0.8
 z_min = -1*max([a_trend[1], b_trend[1]])*1.5
 for n, sym in enumerate(symbol):
-	r2 = 1-np.sqrt(sum([(scaled_adh_e[sym][i] - morse(isd_a[sym][i], *a_trend))**2 for i in range(len(isd_a[sym]))]
-							)/sum(i*i for i in scaled_adh_e[sym]))
+	r2 = 1-np.sqrt(sum([(scaled_adh_e[sym][i] - Preferent_Morse(isd_a[sym][i], isd_b[sym][i], a_trend, b_trend))**2
+						for i in range(len(isd_a[sym]))])/sum(i*i for i in scaled_adh_e[sym]))
 #	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 #	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r2, 2))
@@ -199,7 +211,7 @@ for n, sym in enumerate(symbol):
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_3DTrends.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], np.array(a_trend + b_trend), imarker[n], icolour[n])
+	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], a_trend, b_trend, imarker[n], icolour[n])
 #	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
 	a, a_d_eq, a_r_eq = a_trend
 	b, b_d_eq, b_r_eq = b_trend
