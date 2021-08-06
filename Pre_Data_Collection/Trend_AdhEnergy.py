@@ -72,7 +72,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
 	z = morse_3D([x, y], *popt)
-#	z = -np.sin(morse(x, *popt[:3]) * morse(y, *popt[-3:])) * 2
+#	z = -np.sin(morse(x, *popt[:3]) * morse(y, *popt[-3:])) * 2   # NO!
 #	z = []
 #	for i in range(len(x)):
 #		for j in range(len(x[i])):
@@ -114,7 +114,6 @@ def SaveFig():
 		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
-
 def logarithm(x, a, b, c, d):
 	return d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
 
@@ -128,8 +127,10 @@ def morse_3D(x, a, x_d_eq, x_r_eq, b, y_d_eq, y_r_eq):
 	return x_d_eq * (np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq)))	- y_d_eq		# MORSE potential
 
+
+
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
-	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.5], [50, 50, 5]))
+	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.75], [50, 10, 5]))
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(id - {:.2f})) - 2 * exp(-{:.2f}*(id - {:.2f})))".format(b, a, c, a, c)
@@ -140,9 +141,9 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.01, 0.5, 0., 0.01, 0.5], [50, 10, 5, 50, 10, 5]))
-
-	popt = np.array([2.08820, 1.28402, 2.14531, 1.26339, 0.33542, 3.07966])
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.1, 0.75, 0., 0.1, 0.75], [10, 10, 5, 10, 10, 5]))
+#	popt = np.array([2.08820, 1.28402, 2.14531, 1.26339, 0.33542, 3.07966]) # 2
+#	popt = np.array([1.15923, 2.36530, 2.17729, 1.18843, 1.21524, 2.62611]) # 4 from single site   --> Doesn't work
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 
@@ -158,12 +159,12 @@ def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 #	y = a * (morse(x0, *popt[:3]) + morse(y0, *popt[-3:]) + popt[4])
 #	y = [a[i] * Preferent_Morse(x0[i], y0[i], x_popt, y_popt) for i in range(len(z0))] # >> independent Morse
 
-	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
+	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
 
 	for i in range(len(x)):
 		plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
-			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
+			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))))
 
 	return max_deviation
 

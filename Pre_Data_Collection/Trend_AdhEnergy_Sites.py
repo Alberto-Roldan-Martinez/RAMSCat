@@ -76,7 +76,7 @@ def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
-	popt, pcov = curve_fit(morse, x, y, bounds=([0., 0.001, 0.1], [10, 10, 10]))
+	popt, pcov = curve_fit(morse, x, y, bounds=([0., 0.1, 0.75], [50, 10, 5]))
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(id - {:.2f})) - 2 * exp(-{:.2f}*(id - {:.2f})))".format(b, a, c, a, c)
@@ -114,7 +114,7 @@ b_r = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
-	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
+	symbol.append(data[0][-1].split("/")[1]) # [0])					# contains the list of systems' name
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
 dx_min = min([min(id[sym]) for sym in symbol])*0.9
 dx_max = max([max(id[sym]) for sym in symbol])*1.3
@@ -125,22 +125,22 @@ y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
 z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_max = max([max(scaled_adh_e[sym]) for sym in symbol])*1.3
 #-------------------------------------  Interface Distance  ------------------------
-for n, sym in enumerate(symbol):
-	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [dx_min, dx_max], icolour[n], imarker[n], iliner[n+1])
-Display("id ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [dx_min, dx_max], [z_min, 0], trend_label)
-#--------------------------------------- Validation ---------------------------------------
-trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
-for n, sym in enumerate(symbol):
-	max_deviation = Validation(sym, id[sym], scaled_adh_e[sym], id_trend[sym], imarker[n], icolour[n])
-	a, d_eq, r_eq = id_trend[sym]
-	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  Interface Distance\tMorse interpolation:"
-					 " d_eq * (exp(-2 * a * (D - r_eq)) - 2 * exp(-a * (D - r_eq)))\n")
-	trend_file.write("{}\ta={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
-					 .format(sym, a, d_eq, r_eq, id_r[sym], np.abs(max_deviation)))
-plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
-trend_file.write("\n")
-trend_file.close()
+#for n, sym in enumerate(symbol):
+#	trend_label, id_trend[sym], id_r[sym] = trend_morse(id[sym], scaled_adh_e[sym], sym, [dx_min, dx_max], icolour[n], imarker[n], iliner[n+1])
+#Display("id ($\\AA$)", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [dx_min, dx_max], [z_min, 0], trend_label)
+##--------------------------------------- Validation ---------------------------------------
+#trend_file = open("Interpolation_EAdh_Trends.txt", 'w+')
+#for n, sym in enumerate(symbol):
+#	max_deviation = Validation(sym, id[sym], scaled_adh_e[sym], id_trend[sym], imarker[n], icolour[n])
+#	a, d_eq, r_eq = id_trend[sym]
+#	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  Interface Distance\tMorse interpolation:"
+#					 " d_eq * (exp(-2 * a * (D - r_eq)) - 2 * exp(-a * (D - r_eq)))\n")
+#	trend_file.write("{}\ta={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
+#					 .format(sym, a, d_eq, r_eq, id_r[sym], np.abs(max_deviation)))
+#plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
+#Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+#trend_file.write("\n")
+#trend_file.close()
 
 #-------------------------------------  Distance A ------------------------
 for n, sym in enumerate(symbol):
@@ -154,12 +154,12 @@ trend_file = open("Interpolation_EAdh_Trends.txt", 'a+')
 for n, sym in enumerate(symbol):
 	max_deviation = Validation(sym, isd_a[sym], scaled_adh_e[sym], a_trend[sym], imarker[n], icolour[n])
 	a, d_eq, r_eq = a_trend[sym]
-	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  A\tMorse interpolation:"
-					 " d_eq * (exp(-2 * a * (A - r_eq)) - 2 * exp(-a * (A - r_eq)))\n")
+	trend_file.write("# {}\n#Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  A\tMorse interpolation:"
+					 " d_eq * (exp(-2 * a * (A - r_eq)) - 2 * exp(-a * (A - r_eq)))\n" .format(sys.argv[n+1]))
 	trend_file.write("{}\ta={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
 					 .format(sym, a, d_eq, r_eq, a_r[sym], np.abs(max_deviation)))
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+#####Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
 trend_file.write("\n")
 trend_file.close()
 #-------------------------------------  Distances B ------------------------
@@ -173,11 +173,11 @@ trend_file = open("Interpolation_EAdh_Trends.txt", 'a+')
 for n, sym in enumerate(symbol):
 	max_deviation = Validation(sym, isd_b[sym], scaled_adh_e[sym], b_trend[sym], imarker[n], icolour[n])
 	b, d_eq, r_eq = b_trend[sym]
-	trend_file.write("# Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  B\tMorse interpolation:"
-					 " d_eq * (exp(-2 * b * (B - r_eq)) - 2 * exp(-b * (B - r_eq)))\n")
+	trend_file.write("# {}\n## Scaled_E_Adh (eV . n_interface_cluster_atoms^-1)\n#  B\tMorse interpolation:"
+					 " d_eq * (exp(-2 * b * (B - r_eq)) - 2 * exp(-b * (B - r_eq)))\n" .format(sys.argv[n+1]))
 	trend_file.write("{}\tb={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
 					 .format(sym, b, d_eq, r_eq, b_r[sym], np.abs(max_deviation)))
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+####Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
 trend_file.write("\n")
 trend_file.close()
