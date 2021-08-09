@@ -141,9 +141,10 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.1, 0.75, 0., 0.1, 0.75], [10, 10, 5, 10, 10, 5]))
-#	popt = np.array([2.08820, 1.28402, 2.14531, 1.26339, 0.33542, 3.07966]) # 2
-#	popt = np.array([1.15923, 2.36530, 2.17729, 1.18843, 1.21524, 2.62611]) # 4 from single site   --> Doesn't work
+#	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.1, 0.75, 0., 0.1, 0.75], [10, 10, 5, 10, 10, 5]))    # >> already predicted by _Sites.py
+#	popt = np.array([2.08820, 1.28402, 2.14531, 1.26339, 0.33542, 3.07966])		# 2
+#	popt = np.array([1.76146, 1.22805, 2.13049, 1.40225, 0.36316, 2.91604])		# 3
+	popt = np.array([1.75537, 1.34486, 2.08543, 1.10007, 0.48614, 2.95995]) 	# 4
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 
@@ -161,8 +162,10 @@ def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 
 	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
 
+# Add label to each point
 	for i in range(len(x)):
 		plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
+
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))))
 
