@@ -131,7 +131,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.1, 0.75, 0., 0.1, 0.75], [5, 10, 5, 5, 10, 5]))
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([1., 0.1, 0.75, 1., 0.1, 0.75], [5, 10, 5, 5, 10, 5]))
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 
 	return popt, r2
