@@ -13,11 +13,6 @@ matplotlib.use('TkAgg')
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-#a_trend = [1.52682, 1.95537, 2.22028]	# id
-a_trend = [1.52682, 1.95537, 2.17318]  # O_support
-b_trend = [1.21665, 0.73938, 2.74060]	# Mg_support
-
-
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
 iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1, 1, 1)),  (0, (3, 1, 1, 1, 1, 1))]

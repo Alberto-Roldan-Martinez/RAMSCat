@@ -13,10 +13,6 @@ matplotlib.use('TkAgg')
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-#a_trend = [1.52682, 1.95537, 2.22028]	# id
-a_trend = [1.52682, 1.95537, 2.17318]  # O_support
-b_trend = [1.21665, 0.73938, 2.74060]	# Mg_support
-
 
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
@@ -72,15 +68,6 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
 	z = morse_3D([x, y], *popt)
-#	z = -np.sin(morse(x, *popt[:3]) * morse(y, *popt[-3:])) * 2   # NO!
-#	z = []
-#	for i in range(len(x)):
-#		for j in range(len(x[i])):
-#			if x[i][j] <= y[i][j]:
-#				z.append(morse(x[i][j], *popt[:3]))			# >> independent Morse
-#			else:
-#				z.append(morse(y[i][j], *popt[-3:]))
-#	z = np.reshape(z, (len(x), len(x[0])))
 
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
@@ -114,19 +101,22 @@ def SaveFig():
 		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
+
 def logarithm(x, a, b, c, d):
 	return d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
+
 
 def cubic(x, a, b, c, d):
 	return a*x**3 + b*x**2 + c*x + d
 
+
 def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
+
 
 def morse_3D(x, a, x_d_eq, x_r_eq, b, y_d_eq, y_r_eq):
 	return x_d_eq * (np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq)))	- y_d_eq		# MORSE potential
-
 
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
@@ -142,42 +132,18 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 def trend_morse_3D(x, y, z):
 	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0., 0.1, 0.75, 0., 0.1, 0.75], [10, 10, 5, 10, 10, 5]))
-#	popt = np.array([2.08820, 1.28402, 2.14531, 1.26339, 0.33542, 3.07966]) # 2
-#	popt = np.array([1.15923, 2.36530, 2.17729, 1.18843, 1.21524, 2.62611]) # 4 from single site   --> Doesn't work
-
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 
 	return popt, r2
 
 
-#def Validation_3D(ele, a, x0, y0, z0, x_popt, y_popt, imarker, icolour):
 def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 	x = z0
-#	popt = np.array(x_popt + y_popt)
-#	print(popt)
 	y = a * morse_3D([x0, y0], *popt) 				        		# in eV
-#	y = a * (morse(x0, *popt[:3]) + morse(y0, *popt[-3:]) + popt[4])
-#	y = [a[i] * Preferent_Morse(x0[i], y0[i], x_popt, y_popt) for i in range(len(z0))] # >> independent Morse
-
 	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
-
-# Add label to each poin
-#	for i in range(len(x)):
-#		plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
-
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
-			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))))
-
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
+																		   str(np.abs(round(max_deviation, 1))))
 	return max_deviation
-
-
-def Preferent_Morse(x, y, x_popt, y_popt):
-	if x <= y:
-		morse_value = morse(x, *x_popt)
-	else:
-		morse_value = morse(y, *y_popt)
-
-	return morse_value
 
 ########################################################################################################################
 symbol = []
@@ -194,37 +160,27 @@ for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
-	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]], scaled_adh_e[symbol[-1]] = get_data(data)
-#x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
+	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]],\
+	scaled_adh_e[symbol[-1]] = get_data(data)
+x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
-#y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
+y_min = min([min(isd_b[sym]) for sym in symbol])*0.95
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
-#z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
+z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 
-#------------------------------------------- 3D Display ------------------------
-x_min = a_trend[2]*0.8
-y_min = b_trend[2]*0.8
-z_min = -1*max([a_trend[1], b_trend[1]])*1.5
+# ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
-#	r2 = 1-np.sqrt(sum([(scaled_adh_e[sym][i] - Preferent_Morse(isd_a[sym][i], isd_b[sym][i], a_trend, b_trend))**2
-#						for i in range(len(isd_a[sym]))])/sum(i*i for i in scaled_adh_e[sym]))
 	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 #	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r2, 2))
 	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
 			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], np.array(a_trend + b_trend), "isd_a ($\\AA$)",
-#			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
-#--------------------------------------- Validation ---------------------------------------
+# --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_3DTrends.txt", 'w+')
 for n, sym in enumerate(symbol):
-#	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], a_trend, b_trend, imarker[n], icolour[n])
 	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
 	a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq = trend_3D[sym]
-#	a, a_d_eq, a_r_eq = a_trend
-#	b, b_d_eq, b_r_eq = b_trend
-
 	trend_file.write("# E_Adh (eV)\n#\tMorse interpolation: ic * (A + B)\n"
 					 "  A::\td_eq * (exp(-2 * a * (A - r_eq)) - 2 * exp(-a * (A - r_eq)))\n"
 					 "  B::\td_eq * (exp(-2 * b * (B - r_eq)) - 2 * exp(-b * (B - r_eq))) + d_eq\n")
