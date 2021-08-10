@@ -63,7 +63,7 @@ for i in cluster_indexes:
 
 if len(cluster_interface) > 0:
 	n_interface_cluster_atoms = len(cluster_interface)			# number of cluster atoms at the interface
-	print(cluster_interface, supported_cluster[i].symbol)
+#	print(cluster_interface, supported_cluster[i].symbol)
 # list of unique coordinating atoms
 #	unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 	average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/n_interface_cluster_atoms
