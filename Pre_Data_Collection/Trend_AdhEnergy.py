@@ -175,7 +175,7 @@ for n, sym in enumerate(symbol):
 	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
 	a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq = trend_3D[sym]
 	trend_file.write("# E_Adh (eV)\n#\tMorse interpolation: ic * (A + B)\n")
-	trend_file.write("{:<5.5f}\t{:<5.5f}{:<5.5f}\t{:<5.5f}\t{:<5.5f}\t{:<5.5f}\t\u03C4\u2264{:<1.1f}%\n"
+	trend_file.write("{:<5.5f}\t{:<5.5f}{:<5.5f}\t{:<5.5f}\t{:<5.5f}\t{:<5.5f}\t\u03C4\u2264{:<1.1f}\n"
 					 .format(a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, np.abs(max_deviation)))
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
