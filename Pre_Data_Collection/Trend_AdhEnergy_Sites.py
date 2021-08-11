@@ -72,8 +72,8 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
 	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
-	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
-	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
+#	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
+#	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
 
 	ax.set_xlabel(xlabel, fontsize=14)
 	ax.set_ylabel(ylabel, fontsize=14)
