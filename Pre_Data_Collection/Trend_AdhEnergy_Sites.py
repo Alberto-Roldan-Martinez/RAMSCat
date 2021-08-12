@@ -114,9 +114,15 @@ def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 
-def morse_3D(x, a, x_d_eq, x_r_eq, b, y_d_eq, y_r_eq):
-	return x_d_eq * (np.exp(-2*a*(x[0] - x_r_eq)) - 2 * np.exp(-a*(x[0] - x_r_eq))) +\
-		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq)))	- y_d_eq		# MORSE potential
+def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
+	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
+		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
+#def morse_3D(x, a, d_eq, r_eq):
+#	r = np.sqrt(x[0]**2 + x[1]**2)
+#	alfa = np.arctan(x[1]/x[0])
+#	return np.tan(alfa) * d_eq * (np.exp(-2*a*(r - r_eq)) - 2 * np.exp(-a*(r - r_eq)))# +\
+#			(y_d_eq * (np.exp(-2*b*(r - y_r_eq)) - 2 * np.exp(-b*(r - y_r_eq)))) - y_d_eq
+
 
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
@@ -131,8 +137,10 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([1., 0.1, 0.75, 1., 0.1, 0.75], [5, 10, 5, 5, 10, 5]))
+#	popt, pcov = curve_fit(morse_3D, [x, y], z)#, bounds=([1., 0.1, 0.5], [50, 10, 15]))
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([1., 0.1, 0.75, 0., 0.1, 0.75], [5, 10, 5, 5, 10, 5]))
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
+#	print(popt)
 
 	return popt, r2
 
@@ -164,11 +172,12 @@ for n in range(1, len(sys.argv)):
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]],\
 	scaled_adh_e[symbol[-1]] = get_data(data)
 x_min = min([min(isd_a[sym]) for sym in symbol])
-x_max = max([max(isd_a[sym]) for sym in symbol])*1.3
+x_max = max([max(isd_a[sym]) for sym in symbol])*1.1
 y_min = min([min(isd_b[sym]) for sym in symbol])
-y_max = max([max(isd_b[sym]) for sym in symbol])*1.3
+y_max = max([max(isd_b[sym]) for sym in symbol])*1.1
 #z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_min = min([min(adh_e[sym]) for sym in symbol]) - np.abs(min([min(adh_e[sym]) for sym in symbol]))*0.1
+z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 
 # ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
@@ -180,7 +189,7 @@ for n, sym in enumerate(symbol):
 #	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
 #			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 	Display3D(isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-			  "isd_b $(\\AA)$", "$E_{Adh}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+			  "isd_b $(\\AA)$", "$E_{Adh}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, z_max], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
@@ -193,5 +202,5 @@ for n, sym in enumerate(symbol):
 	trend_file.write("{}\tA\ta={:<5.5f}\td_eq={:<5.5f} \tr_eq={:<5.5f}\n"
 					 "\tB\tb={:<5.5f}\td_eq={:<5.5f}\tr_eq={:<5.5f}\tR\u00b2={:<1.2f}\t\u03C4\u2264{:<1.1f}\n"
 					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, round(r_3D[sym], 2), np.abs(max_deviation)))
-plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+plt.plot([z_min, z_max], [z_min, z_max], "k-", lw=1.5)
+Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, z_max], [z_min, z_max], "")
