@@ -114,14 +114,12 @@ def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 
-def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
+def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq, rot, y_rot):
+#def morse_3D(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
-#def morse_3D(x, a, d_eq, r_eq):
-#	r = np.sqrt(x[0]**2 + x[1]**2)
-#	alfa = np.arctan(x[1]/x[0])
-#	return np.tan(alfa) * d_eq * (np.exp(-2*a*(r - r_eq)) - 2 * np.exp(-a*(r - r_eq)))# +\
-#			(y_d_eq * (np.exp(-2*b*(r - y_r_eq)) - 2 * np.exp(-b*(r - y_r_eq)))) - y_d_eq
+#	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
+#		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))		# MORSE potential
 
 
 
@@ -138,9 +136,9 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 def trend_morse_3D(x, y, z):
 #	popt, pcov = curve_fit(morse_3D, [x, y], z)#, bounds=([1., 0.1, 0.5], [50, 10, 15]))
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([1., 0.1, 0.75, 0., 0.1, 0.75], [5, 10, 5, 5, 10, 5]))
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0.1, 0.1, 0.75, 0.1, 0.1, 0.75, -np.pi, -np.pi], [5, 10, 5, 5, 10, 5, np.pi, np.pi]))
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
-#	print(popt)
+	print(popt)
 
 	return popt, r2
 
@@ -148,7 +146,7 @@ def trend_morse_3D(x, y, z):
 def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 	x = z0
 #	y = a * morse_3D([x0, y0], *popt) 				        		# in eV
-	y = morse_3D([x0, y0], *popt)
+	y = morse_3D(np.array([x0, y0]), *popt)
 	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
 																		   str(np.abs(round(max_deviation, 1))))
@@ -195,7 +193,7 @@ for n, sym in enumerate(symbol):
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
 for n, sym in enumerate(symbol):
 	max_deviation = Validation_3D(sym, ic[sym], isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
-	a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq = trend_3D[sym]
+	a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, rot, y_rot = trend_3D[sym]
 	trend_file.write("# E_Adh (eV)\n#\t3D Morse interpolation: A + B\n"
 					 "  A::\td_eq * (exp(-2 * a * (A - r_eq)) - 2 * exp(-a * (A - r_eq)))\n"
 					 "  B::\td_eq * (exp(-2 * b * (B - r_eq)) - 2 * exp(-b * (B - r_eq))) + d_eq\n")
