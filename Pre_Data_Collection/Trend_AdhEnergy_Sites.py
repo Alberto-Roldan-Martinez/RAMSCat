@@ -36,7 +36,7 @@ def get_data(data):
 			isd_a.append(float(data[i][3]))
 			isd_b.append(float(data[i][4]))
 			adh_e.append(float(data[i][5]))
-#				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))
+#				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))		#  >> corrected by the number of cluster interface atoms
 
 	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e
 
@@ -116,11 +116,10 @@ def morse(x, a, d_eq, r_eq):
 
 def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq, rot, y_rot):
 #def morse_3D(x, a, d_eq, r_eq):
-	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
-		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
-#	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
-#		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))		# MORSE potential
-
+#	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
+#		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
+	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
+		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq )))		# MORSE potential
 
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
@@ -135,10 +134,12 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-#	popt, pcov = curve_fit(morse_3D, [x, y], z)#, bounds=([1., 0.1, 0.5], [50, 10, 15]))
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0.1, 0.1, 0.75, 0.1, 0.1, 0.75, -np.pi, -np.pi], [5, 10, 5, 5, 10, 5, np.pi, np.pi]))
+#	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([1., 0., 0.5], [50, 10, 15]))
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=([0.1, 0., 0.75, 0.1, 0., 0.75, -np.pi, -np.pi], [5, 10, 5, 5, 10, 5, np.pi, np.pi]))
+	print("popt is:", list(popt))
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
-	print(popt)
+	standard_deviation = np.sqrt(np.diag(pcov))/np.sqrt(len(np.diag(pcov)))
+	print(standard_deviation)
 
 	return popt, r2
 
@@ -146,7 +147,7 @@ def trend_morse_3D(x, y, z):
 def Validation_3D(ele, a, x0, y0, z0, popt, imarker, icolour):
 	x = z0
 #	y = a * morse_3D([x0, y0], *popt) 				        		# in eV
-	y = morse_3D(np.array([x0, y0]), *popt)
+	y = morse_3D(np.array([x0, y0]), *popt) - np.abs(max(z0))
 	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
 																		   str(np.abs(round(max_deviation, 1))))
@@ -179,15 +180,17 @@ z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 
 # ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
+
+	scaled_adh_e[sym] = adh_e[sym] + np.abs(max(adh_e[sym]))
 #	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
-	trend_3D[sym], r_3D[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], adh_e[sym])
+	trend_3D[sym], r_3D[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 #	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r_3D[sym], 2))
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-#			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
-	Display3D(isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-			  "isd_b $(\\AA)$", "$E_{Adh}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, z_max], trend_label_3D)
+	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
+			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+#	Display3D(isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
+#			  "isd_b $(\\AA)$", "$E_{Adh}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
