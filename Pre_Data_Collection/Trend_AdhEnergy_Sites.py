@@ -38,9 +38,10 @@ def get_data(data):
 			isd_b.append(float(data[i][4]))
 			adh_e.append(float(data[i][5]))
 #				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))		#  >> corrected by the number of cluster interface atoms
+	reference_e = [adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a)][0]
+	scaled_adh_e = list(np.array(adh_e) + reference_e)
 
-
-	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e
+	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e, reference_e
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -156,9 +157,9 @@ def trend_morse_3D(x, y, z):
 	return popt, r2, standard_deviation
 
 
-def Validation_3D(ele, x0, y0, z0, popt, imarker, icolour):
+def Validation_3D(ele, x0, y0, z0, popt, reference_e, imarker, icolour):
 	x = z0
-	y = morse_3D(np.array([x0, y0]), *popt) - np.abs(max(z0))
+	y = morse_3D(np.array([x0, y0]), *popt) - reference_e
 	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
 																		   str(np.abs(round(max_deviation, 1))))
@@ -173,6 +174,7 @@ isd_a = {}
 isd_b = {}
 adh_e = {}
 scaled_adh_e = {}
+reference_adh_e = {}
 trend_3D = {}
 r_3D = {}
 stand_dev = {}
@@ -181,7 +183,10 @@ for n in range(1, len(sys.argv)):
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]],\
-	scaled_adh_e[symbol[-1]] = get_data(data)
+	scaled_adh_e[symbol[-1]], reference_adh_e[symbol[-1]] = get_data(data)
+
+#	print(scaled_adh_e[symbol[-1]])
+
 x_min = min([min(isd_a[sym]) for sym in symbol])
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.1
 y_min = min([min(isd_b[sym]) for sym in symbol])
@@ -192,7 +197,7 @@ z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 
 # ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
-	scaled_adh_e[sym] = list(adh_e[sym] + np.abs(max(adh_e[sym])))
+#	scaled_adh_e[sym] = list(adh_e[sym] + np.abs(max(adh_e[sym])))
 #	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 	trend_3D[sym], r_3D[sym], stand_dev[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 #	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
@@ -206,7 +211,8 @@ for n, sym in enumerate(symbol):
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation = Validation_3D(sym, isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], adh_e[sym], trend_3D[sym], imarker[n], icolour[n])
+	max_deviation = Validation_3D(sym, isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], adh_e[sym],
+								  trend_3D[sym], reference_adh_e[sym], imarker[n], icolour[n])
 	a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq = trend_3D[sym]
 	trend_file.write("# E_Adh (eV)\t\u03c3: Average Standard Deviation\t\u03C4:Maximum Absolute Error\n#"
 					 "\t3D Morse interpolation: A + B\n"

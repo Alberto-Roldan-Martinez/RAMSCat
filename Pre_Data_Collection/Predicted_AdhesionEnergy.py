@@ -77,63 +77,51 @@ for i in range(len(supported_cluster)):
 		cluster_indexes.append(supported_cluster[i].index)
 	else:
 		support_indexes.append(supported_cluster[i].index)
-atom_cluster_neighbours = {}
-for i in cluster_indexes:
-	atom_cluster_neighbours[str(i)], atom_surface_neighbours = atom_neighbours(i, supported_cluster, cluster_indexes, support_indexes)
-	if len(atom_surface_neighbours) > 0:
-		cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
-		cluster_interface[str(i)] = atom_surface_neighbours
 
-if len(cluster_interface) > 0:
-	n_interface_cluster_atoms = len(cluster_interface)			# number of cluster atoms at the interface
-#	print(cluster_interface, supported_cluster[i].symbol)
-# list of unique coordinating atoms
-#	unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
-	average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/n_interface_cluster_atoms
-else:
-	n_interface_cluster_atoms = 0
-	average_cluster_coordination_interface_cluster_atoms = 0
-
-
-# Average of the shortest distances from atoms in the cluster to sites[0] in the support ==> along Z AXIS
-average_shortest_cluster_site_distance = {}
-z_c_interface = []
+# Atoms at the cluster (c) and support (s) inferfaces along Z AXIS
 z_min_c_interface = min([supported_cluster.get_positions()[i][2] for i in cluster_indexes])
 z_c_interface_indexes = [i for i in cluster_indexes if supported_cluster.get_positions()[i][2] < z_min_c_interface + 1]
 z_max_surface = max([supported_cluster.get_positions()[i][2] for i in support_indexes])
 z_s_neighbours_indexes = [i for i in support_indexes if supported_cluster.get_positions()[i][2] > z_max_surface - 1]
 z_surface_neighbours = [supported_cluster.get_positions()[i][2] for i in z_s_neighbours_indexes]
 
-for site in sites(support_name):
-	for i in z_c_interface_indexes:
-		z_c_interface.append(supported_cluster.get_positions()[i][2])
-		distances = []
-		shortest_cluster_site_distance = 0
-		for j in z_s_neighbours_indexes:
-			if supported_cluster[j].symbol == site:
-				distances.append(supported_cluster.get_distance(i, j, mic=True, vector=False))
-		shortest_cluster_site_distance += sorted(distances)[0]
-	average_shortest_cluster_site_distance[str(site)] = shortest_cluster_site_distance / len(z_c_interface_indexes)
-
 # Average distance between the support and the cluster interface atoms
+z_c_interface = []
+for i in z_c_interface_indexes:
+	z_c_interface.append(supported_cluster.get_positions()[i][2])
 average_z_interface = sum(z_c_interface) / len(z_c_interface)
 average_z_surface = sum(z_surface_neighbours) / len(z_surface_neighbours)
 average_interface_distance = average_z_interface - average_z_surface
 
-
-# Predicted Adhesion energy
+# Interface coordination and Predicted Adhesion Energy
+atom_cluster_neighbours = {}
+average_shortest_cluster_site_distance = {}
+average_shortest_cluster_site_distance[sites(support_name)[0]] = 0
+average_shortest_cluster_site_distance[sites(support_name)[1]] = 0
 supported_cluster.set_constraint()
 predicted_adhesion_e = 0
-for i in cluster_interface:
-	isd_a = []
-	isd_b = []
+n_interface_cluster_atoms = 0
+for i in z_c_interface_indexes:
+	atom_cluster_neighbours[str(i)], atom_surface_neighbours = atom_neighbours(i, supported_cluster, cluster_indexes,
+																			   support_indexes)
+	distance_a = []
+	distance_b = []
+	shortest_cluster_site_distance = 0
 	for j in z_s_neighbours_indexes:
 		if supported_cluster[j].symbol == sites(support_name)[0]:
-			isd_a.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
+			distance_a.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
 		elif supported_cluster[j].symbol == sites(support_name)[1]:
-			isd_b.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
-	print(support_name, supported_cluster[int(i)].symbol, len(atom_cluster_neighbours[i]), sorted(isd_a), sorted(isd_b))
-	predicted_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol, len(atom_cluster_neighbours[i]), sorted(isd_a)[0], sorted(isd_b)[0])
+			distance_b.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
+	average_shortest_cluster_site_distance[sites(support_name)[0]] += sorted(distance_a)[0]/len(z_c_interface_indexes)
+	average_shortest_cluster_site_distance[sites(support_name)[1]] += sorted(distance_b)[0]/len(z_c_interface_indexes)
+	predicted_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
+											  len(atom_cluster_neighbours[str(i)]), sorted(distance_a)[0], sorted(distance_b)[0])
+	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
+	if len(atom_surface_neighbours) > 0:
+		n_interface_cluster_atoms += 1
+n_interface_cluster_atoms = len(cluster_interface)			# number of cluster atoms at the interface
+average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(z_c_interface_indexes)
+#unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 
 # Calculated Adhesion energy
 clean_surf_file = str("~/RESEARCH/OTHER/DATASET/RPBE/Supports/"+support_name+"/"+support_name+"/Surface/"+input_file[0])
@@ -154,7 +142,7 @@ ifile.write("#\t{}\n".format(support_name))
 ifile.write("#\n# ic = n_interface_cluster_atoms\n# icc = average_cluster_coordination_interface_cluster_atoms\n")
 ifile.write("# id = average distance from the cluster interface atoms to the surface neighbouring atoms\n")
 ifile.write("# isd = average of the shortest distance from the interfacial atoms in the cluster to the surface site\n")
-ifile.write("#\n# ic\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\tPredicted_E_Adh(eV)\tElements\tPath\n"
+ifile.write("#\n# ic\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\t\tElements\tPath\n"
 			.format(sites(support_name)[0], sites(support_name)[1]))
 ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}\t{:>5.4f}" .format(n_interface_cluster_atoms,
 																average_cluster_coordination_interface_cluster_atoms,
