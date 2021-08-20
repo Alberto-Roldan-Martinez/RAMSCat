@@ -27,7 +27,7 @@ def get_data(data):
 	isd_a = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[0]
 	isd_b = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[1]
 	adh_e = []								# contains the DFT calculated adhesion energies
-	scaled_adh_e = []
+#	scaled_adh_e = []
 	for i in range(len(data)):
 #		if float(data[i][0]) > 0:		# Only necessary for Scaling Eads
 		if float(data[i][5]) < 0:
@@ -38,7 +38,7 @@ def get_data(data):
 			isd_b.append(float(data[i][4]))
 			adh_e.append(float(data[i][5]))
 #				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))		#  >> corrected by the number of cluster interface atoms
-	reference_e = [adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a)][0]
+	reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a) and max(isd_a) >= 3][0])
 	scaled_adh_e = list(np.array(adh_e) + reference_e)
 
 	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e, reference_e
