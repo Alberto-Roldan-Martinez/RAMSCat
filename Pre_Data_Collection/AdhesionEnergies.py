@@ -117,7 +117,7 @@ ifile.write("# id = average distance from the cluster interface atoms to the sur
 ifile.write("# isd = average of the shortest distance from the interfacial atoms in the cluster to the surface site\n")
 ifile.write("#\n# ic\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\tElements\tPath\n".format(sites(support_name)[0],
 																					  sites(support_name)[1]))
-ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}" .format(len(cluster_interface_indexes),
+ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}" .format(len(cluster_interface_indexes),
 																average_cluster_coordination_interface_cluster_atoms,
 																		 average_interface_distance,
 																		 average_shortest_cluster_site_distance[sites(support_name)[0]],
