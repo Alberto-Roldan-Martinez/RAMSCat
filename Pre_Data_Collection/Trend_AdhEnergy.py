@@ -7,10 +7,8 @@
 
 import sys
 import numpy as np
-from scipy.optimize import curve_fit
 import matplotlib
 matplotlib.use('TkAgg')
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
@@ -25,18 +23,17 @@ def get_data(data):
 	isd_a = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[0]
 	isd_b = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[1]
 	adh_e = []								# contains the DFT calculated adhesion energies
-#	scaled_adh_e = []
 	for i in range(len(data)):
-#		if float(data[i][0]) > 0:
-		if float(data[i][5]) < 0:
-			ic.append(float(data[i][0]))
-			icc.append(float(data[i][1]))
-			id.append(float(data[i][2]))
-			isd_a.append(float(data[i][3]))
-			isd_b.append(float(data[i][4]))
-			adh_e.append(float(data[i][5]))
-#				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))
-	reference_e = [adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a) and max(isd_a) >= 3][0]
+		ic.append(float(data[i][0]))
+		icc.append(float(data[i][1]))
+		id.append(float(data[i][2]))
+		isd_a.append(float(data[i][3]))
+		isd_b.append(float(data[i][4]))
+		adh_e.append(float(data[i][5]))
+	if max(isd_a) >= 3:
+		reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a)][0])
+	else:
+		reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_b[i] == max(isd_b)][0])
 	scaled_adh_e = list(np.array(adh_e) + reference_e)
 
 	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e, reference_e
@@ -69,19 +66,10 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
 	z = morse_3D([x, y], *popt)
-#	z = -np.sin(morse(x, *popt[:3]) * morse(y, *popt[-3:])) * 2   # NO!
-#	z = []
-#	for i in range(len(x)):
-#		for j in range(len(x[i])):
-#			if x[i][j] <= y[i][j]:
-#				z.append(morse(x[i][j], *popt[:3]))			# >> independent Morse
-#			else:
-#				z.append(morse(y[i][j], *popt[-3:]))
-#	z = np.reshape(z, (len(x), len(x[0])))
 
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
-#	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
+	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
 #	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
 #	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
 
@@ -93,7 +81,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	ax.set_zlim(zlim[0], zlim[1])
 	ax.tick_params(axis='both', labelsize=12)
 #	plt.subplots_adjust(left=0.15, right=0.9, top=0.8, bottom=0.1)
-	#legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
+#	legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
 	legend = ax.legend(loc="best")
 #	figure.tight_layout()
 	plt.grid(True)
@@ -113,8 +101,6 @@ def SaveFig():
 
 
 def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
-#	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
-#		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
 	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))		# MORSE potentia
 
@@ -177,7 +163,6 @@ z_min = min([min(adh_e[sym]) for sym in symbol]) - np.abs(min([min(adh_e[sym]) f
 for n, sym in enumerate(symbol):
 	scaled_adh_e[sym] = adh_e[sym] + np.abs(max(adh_e[sym]))
 	trend_3D[sym], r_3D[sym], stand_dev[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
-#	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r_3D[sym], 2))
 	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
 			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
@@ -195,5 +180,6 @@ for n, sym in enumerate(symbol):
 					 "\tR\u00b2={:<1.2f}  \u03c3={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
 					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, round(r_3D[sym], 2), round(stand_dev[sym], 2),
 							 np.abs(max_deviation)))
+trend_file.close()
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")

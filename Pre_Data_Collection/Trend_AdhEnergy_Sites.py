@@ -27,18 +27,17 @@ def get_data(data):
 	isd_a = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[0]
 	isd_b = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[1]
 	adh_e = []								# contains the DFT calculated adhesion energies
-#	scaled_adh_e = []
 	for i in range(len(data)):
-#		if float(data[i][0]) > 0:		# Only necessary for Scaling Eads
-		if float(data[i][5]) < 0:
-			ic.append(float(data[i][0]))
-			icc.append(float(data[i][1]))
-			id.append(float(data[i][2]))
-			isd_a.append(float(data[i][3]))
-			isd_b.append(float(data[i][4]))
-			adh_e.append(float(data[i][5]))
-#				scaled_adh_e.append(float(data[i][5])/float(data[i][0])) # * float(data[i][1])))		#  >> corrected by the number of cluster interface atoms
-	reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a) and max(isd_a) >= 3][0])
+		ic.append(float(data[i][0]))
+		icc.append(float(data[i][1]))
+		id.append(float(data[i][2]))
+		isd_a.append(float(data[i][3]))
+		isd_b.append(float(data[i][4]))
+		adh_e.append(float(data[i][5]))
+	if max(isd_a) >= 3:
+		reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_a[i] == max(isd_a)][0])
+	else:
+		reference_e = np.abs([adh_e[i] for i in range(len(adh_e)) if isd_b[i] == max(isd_b)][0])
 	scaled_adh_e = list(np.array(adh_e) + reference_e)
 
 	return ic, icc, id, isd_a, isd_b, adh_e, scaled_adh_e, reference_e
@@ -118,9 +117,6 @@ def morse(x, a, d_eq, r_eq):
 
 
 def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
-#def morse_3D(x, a, d_eq, r_eq):
-#	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq))) +\
-#		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq))) - y_d_eq		# MORSE potential
 	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potential
 
@@ -140,16 +136,18 @@ def trend_morse_3D(x, y, z):
 	data_length = len(z)
 	weights = [1 for i in range(len(z)-3)]
 	[weights.append(0.5) for i in range(3)]
-	popt, pcov = curve_fit(morse_3D, [x, y], z, sigma=weights, bounds=([0.1, 0., 0.75, 0.1, 0., 0.75], [5, 10, 5, 5, 10, 5]))
+	limits = ([0.1, 0., 0.75, 0.1, 0., 0.75], [5, 10, 5, 5, 10, 5])
+#	initial_guess = [2., 0.8, 2., 1.5, 3., 1.8]
+	popt, pcov = curve_fit(morse_3D, [x, y], z, sigma=weights, bounds=limits)
 
-	r = np.linspace(popt[4]*1.75, popt[2]*1.75, 20)
+	r = np.linspace(2.5*1.75, 2.5*1.75, 20)
 	for i, angle in enumerate(np.arange(0, np.pi/2, np.pi/2/20)):
 		x.append(min(x)*1.5 + r[i]*np.cos(angle))
 		y.append(min(y)*1.5 + r[i]*np.sin(angle))
 		z.append(0)
 		weights.append(0.5)
 
-	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt, sigma=weights)
+#	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt, sigma=weights)#, bounds=limits)
 	print("   popt is:", list(popt))
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(data_length)])/sum(i*i for i in z))
 	standard_deviation = sum(np.sqrt(np.diag(pcov)/len(np.diag(pcov))))/len(np.diag(pcov))
@@ -185,28 +183,22 @@ for n in range(1, len(sys.argv)):
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]],\
 	scaled_adh_e[symbol[-1]], reference_adh_e[symbol[-1]] = get_data(data)
 
-#	print(scaled_adh_e[symbol[-1]])
-
 x_min = min([min(isd_a[sym]) for sym in symbol])
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.1
 y_min = min([min(isd_b[sym]) for sym in symbol])
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.1
-#z_min = min([min(scaled_adh_e[sym]) for sym in symbol]) - np.abs(min([min(scaled_adh_e[sym]) for sym in symbol]))*0.1
 z_min = min([min(adh_e[sym]) for sym in symbol]) - np.abs(min([min(adh_e[sym]) for sym in symbol]))*0.1
 z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 
 # ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
-#	scaled_adh_e[sym] = list(adh_e[sym] + np.abs(max(adh_e[sym])))
-#	trend_3D[sym], r2 = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 	trend_3D[sym], r_3D[sym], stand_dev[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
-#	print("a={:<5.5f}, a_d_eq={:<5.5f}, a_r_eq={:<5.5f}\nb={:<5.5f}, b_d_eq={:<5.5f}, b_r_eq={:<5.5f}".format(*trend_3D[sym]))
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r_3D[sym]) #str(round(r_3D[sym], 2))
-	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym], "isd_a ($\\AA$)",
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
-#	Display3D(isd_a[sym], isd_b[sym], adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-#			  "isd_b $(\\AA)$", "$E_{Adh}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+	print("   Reference_e is:", reference_adh_e[sym])
+
+#	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym], "isd_a ($\\AA$)",
+##	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
+#			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
@@ -222,5 +214,6 @@ for n, sym in enumerate(symbol):
 					 "\tR\u00b2={:<1.2f}  \u03c3={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
 					 .format(sym, a, a_d_eq, a_r_eq, b, b_d_eq, b_r_eq, round(r_3D[sym], 2), round(stand_dev[sym], 2),
 							 np.abs(max_deviation)))
+trend_file.close()
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+#Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
