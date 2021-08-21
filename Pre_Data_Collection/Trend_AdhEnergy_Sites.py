@@ -136,11 +136,11 @@ def trend_morse_3D(x, y, z):
 	data_length = len(z)
 	weights = [1 for i in range(len(z)-3)]
 	[weights.append(0.5) for i in range(3)]
-	limits = ([0.1, 0., 0.75, 0.1, 0., 0.75], [5, 10, 5, 5, 10, 5])
+	limits = ([0.1, 0., 0.75, 0.1, 0., 0.75], [10, 10, 5, 10, 10, 5])
 #	initial_guess = [2., 0.8, 2., 1.5, 3., 1.8]
 	popt, pcov = curve_fit(morse_3D, [x, y], z, sigma=weights, bounds=limits)
 
-	r = np.linspace(2.5*1.75, 2.5*1.75, 20)
+	r = np.linspace(popt[4]*1.75, popt[2]*1.75, 20)
 	for i, angle in enumerate(np.arange(0, np.pi/2, np.pi/2/20)):
 		x.append(min(x)*1.5 + r[i]*np.cos(angle))
 		y.append(min(y)*1.5 + r[i]*np.sin(angle))
@@ -196,9 +196,9 @@ for n, sym in enumerate(symbol):
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r_3D[sym]) #str(round(r_3D[sym], 2))
 	print("   Reference_e is:", reference_adh_e[sym])
 
-#	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym], "isd_a ($\\AA$)",
-##	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-#			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym], "isd_a ($\\AA$)",
+#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
+			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
@@ -216,4 +216,4 @@ for n, sym in enumerate(symbol):
 							 np.abs(max_deviation)))
 trend_file.close()
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-#Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
+Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
