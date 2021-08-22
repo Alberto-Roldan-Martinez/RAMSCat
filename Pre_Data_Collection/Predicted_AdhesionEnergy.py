@@ -48,7 +48,8 @@ def morse_3D_Energies(support, element, icc, x, y):
 				('MgO', 'Au',  6, 1.7849198981431542, 1.0428222980300355, 2.271886577745904, 1.403426393718411, 2.448184836472611, 1.899406972802368, 0.8052),		# 7 atoms
 				('MgO', 'Au',  7, 1.875042357550135, 1.004314385388471, 2.256700885018284, 1.407551007940099, 2.9138511768529005, 1.914316338871738, 0.8657),		# 8 atoms
 				('MgO', 'Au',  8, 1.8599184127128634, 0.8864672354627985, 2.3061355646581925, 1.6044967310553975, 2.639307941186561, 1.8590276020279555, 1.1498),	# 9 atoms
-				('MgO', 'Au',  9, 1.834262217337352, 1.742284321337311, 2.160124960457686, 1.1270893058451519, 4.710243723521435, 1.268619353701571, 1.0898)		# 10 atoms
+				('MgO', 'Au',  9, 1.834262217337352, 1.742284321337311, 2.160124960457686, 1.1270893058451519, 4.710243723521435, 1.268619353701571, 1.0898),		# 10 atoms
+				('MgO', 'Au',  10, )		# 11 atom
             }
 	for i, sys in enumerate(popts):
 		if sys[0] == support:
@@ -119,6 +120,9 @@ for i in cluster_interface_indexes:
 	predicted_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
 									len(atom_cluster_neighbours[str(i)]), sorted(distance_a)[0], sorted(distance_b)[0])
 	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
+predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes)
+
+
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(cluster_interface_indexes)
 #unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 
