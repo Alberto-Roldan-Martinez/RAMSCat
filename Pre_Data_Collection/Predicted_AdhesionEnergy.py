@@ -40,10 +40,10 @@ except:
 
 def morse_3D_Energies(support, element, icc, x, y):
 	popts = {# support, metal, n-1											# popt and reference_e using Trend_AdhEnergy_Sites
-                ('MgO', 'Au',  1, 1.8607086053315036, 1.208035121073158, 2.2261094470840157, 2.62965321327308, 1.576008693986123, 2.1578066234798876, 0.6396),	# 2 atoms ***
+                ('MgO', 'Au',  1, 1.8607086053315036, 1.208035121073158, 2.2261094470840157, 2.62965321327308, 1.576008693986123, 2.1578066234798876, 0.), #0.6396),	# 2 atoms ***
                 ('MgO', 'Au',  2, 1.4927350400550732, 1.0624970024824945, 2.38020355343081, 1.4514764879189075, 2.282964315471724, 2.0120269550336984, 0.3442),		# 3 atoms
                 ('MgO', 'Au',  3, 1.650710715231977, 1.2880965633594754, 2.2967050122715347, 1.4042094971557366, 2.214223474586348, 1.9386851604701019, 0.5365),	# 4 atoms
-                ('MgO', 'Au',  4, 1.7042395478927133, 1.326251962144709, 2.3276014108681005, 1.6252060548342648, 3.471425276860701, 1.8848359939323371, 0.5228),	# 5 atoms
+                ('MgO', 'Au',  4, 1.7042395478927133, 1.326251962144709, 2.3276014108681005, 1.6252060548342648, 3.471425276860701, 1.8848359939323371, 0.), #5228),	# 5 atoms
 				('MgO', 'Au',  5, 2.0908097228375704, 1.4293216181936355, 2.2029959348956236, 2.6778975589780503, 3.230791785165967, 1.9099852159904098, 0.2051),	# 6 atoms
 				('MgO', 'Au',  6, 1.7849198981431542, 1.0428222980300355, 2.271886577745904, 1.403426393718411, 2.448184836472611, 1.899406972802368, 0.8052),		# 7 atoms
 				('MgO', 'Au',  7, 1.875042357550135, 1.004314385388471, 2.256700885018284, 1.407551007940099, 2.9138511768529005, 1.914316338871738, 0.8657),		# 8 atoms
@@ -127,6 +127,11 @@ for i in cluster_interface_indexes:
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(cluster_interface_indexes)
 #unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 
+# Calculate the array of neighbours coordination
+neigh_coord = []
+for i in cluster_interface_indexes:
+	neigh_coord.append(len(atom_cluster_neighbours[str(i)]))
+
 # Calculated Adhesion energy
 clean_surf_file = str("~/RESEARCH/OTHER/DATASET/RPBE/Supports/"+support_name+"/"+support_name+"/Surface/"+input_file[0])
 gas_cluster_file = str(gas_cluster_path + "/" + input_file[0])
@@ -146,13 +151,15 @@ ifile.write("#\t{}\n".format(support_name))
 ifile.write("#\n# ic = n_interface_cluster_atoms\n# icc = average_cluster_coordination_interface_cluster_atoms\n")
 ifile.write("# id = average distance from the cluster interface atoms to the surface neighbouring atoms\n")
 ifile.write("# isd = average of the shortest distance from the interfacial atoms in the cluster to the surface site\n")
-ifile.write("#\n# ic\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\t\tElements\tPath\n"
+ifile.write("#\n# ic\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\t\tCoordination [1..11]\t\t\tElements\tPath\n"
 			.format(sites(support_name)[0], sites(support_name)[1]))
-ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}\t{:>5.4f}" .format(len(cluster_interface_indexes),
+ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}\t{:>5.4f}\t  " .format(len(cluster_interface_indexes),
 																average_cluster_coordination_interface_cluster_atoms,
 																		 average_interface_distance,
 																		 average_shortest_cluster_site_distance[sites(support_name)[0]],
 																		 average_shortest_cluster_site_distance[sites(support_name)[1]],
 																		 adhesion_e, predicted_adhesion_e))
+for i in range(1, 12):
+	ifile.write("{:>3d}".format(neigh_coord.count(i)))
 ifile.write("\t\t# {}\t\t{}\n" .format(list(set(gas_cluster.get_chemical_symbols()))[0], path_name))
 ifile.close()

@@ -62,31 +62,21 @@ def SaveFig():
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
-def lineal(x, a, b):
-	return a*x + b
-
-
 def trend_lineal(x, y, symbol, xlim, colour, marker, line):
-#	popt, pcov = curve_fit(lineal, x, y, bounds=([-1., -0.1], [1., 0.1]))
 	popt = np.polyfit(x, y, 1)
 	p = np.poly1d(popt)
-	print(popt)
-#	r2 = 1-np.sqrt(sum([(y[i] - lineal(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
-#	a, b = popt
-#	trend_label = "Lineal: {:.2f} * E_Adh + {:.2f}".format(a, b)
-#	print(trend_label)
-#	plt.plot(np.linspace(xlim[0], xlim[1], 150), lineal(np.linspace(xlim[0], xlim[1], 150), *popt), color=colour, linestyle=line)
-
+	r2 = 1-np.sqrt(sum([(y[i] - p(y[i]))**2 for i in range(len(y))])/sum(i*i for i in y))
+	a, b = popt
+	trend_label = "Predicted_EAdh= {:.5f} * E_Adh + {:.5f}".format(a, b)
 	plt.plot(np.linspace(xlim[0], xlim[1], 150), p(np.linspace(xlim[0], xlim[1], 150)), color=colour, linestyle=line)
+#	plt.plot(x, y, marker=marker, color=colour, linestyle="None", label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
-	plt.plot(x, y, marker=marker, color=colour, linestyle="None")#, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-
-#	return trend_label, popt, r2
+	return trend_label, r2
 
 
 def Validation_3D(ele, x, y, name, imarker, icolour):
 
-	trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
+	trend_label, r2 = trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
 
 	deviation = [(y[i] - x[i]) for i in range(len(x))]
 # Add label to each point
@@ -96,10 +86,10 @@ def Validation_3D(ele, x, y, name, imarker, icolour):
 		if x[i] <= 0 and np.abs(deviation[i]) > 0.2:
 			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 			trend_file.write("{}\n".format(name[i]))
-#	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
-#																			   str(np.abs(round(max(deviation), 1))))
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
+																			   str(np.abs(round(max(deviation), 1))))
 	trend_file.close()
-	return max(deviation)
+	return max(deviation), trend_label, r2
 
 ########################################################################################################################
 dataset_length = 0
@@ -128,9 +118,11 @@ print("   The TOTAL dataset size is: ", dataset_length)
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Predicted_EAdh.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation = Validation_3D(sym, e[sym], predicted_e[sym], name[sym], imarker[n], icolour[n])
+	max_deviation, trend_label, r2 = Validation_3D(sym, e[sym], predicted_e[sym], name[sym], imarker[n], icolour[n])
 	trend_file.write("# System = {}\n#\tE_Adh (eV)\t\tMaximum Absolute Error: \u03C4\u2264{:<1.2f} eV\n".format(sym,
 																								np.abs(max_deviation)))
+	trend_file.write("\t{}\t\tR\u00b2={:<1.2f}\n".format(trend_label, round(r2, 2)))
+
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
 trend_file.close()
