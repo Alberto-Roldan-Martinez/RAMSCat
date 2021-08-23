@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
@@ -61,7 +62,32 @@ def SaveFig():
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
+def lineal(x, a, b):
+	return a*x + b
+
+
+def trend_lineal(x, y, symbol, xlim, colour, marker, line):
+#	popt, pcov = curve_fit(lineal, x, y, bounds=([-1., -0.1], [1., 0.1]))
+	popt = np.polyfit(x, y, 1)
+	p = np.poly1d(popt)
+	print(popt)
+#	r2 = 1-np.sqrt(sum([(y[i] - lineal(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+#	a, b = popt
+#	trend_label = "Lineal: {:.2f} * E_Adh + {:.2f}".format(a, b)
+#	print(trend_label)
+#	plt.plot(np.linspace(xlim[0], xlim[1], 150), lineal(np.linspace(xlim[0], xlim[1], 150), *popt), color=colour, linestyle=line)
+
+	plt.plot(np.linspace(xlim[0], xlim[1], 150), p(np.linspace(xlim[0], xlim[1], 150)), color=colour, linestyle=line)
+
+	plt.plot(x, y, marker=marker, color=colour, linestyle="None")#, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+
+#	return trend_label, popt, r2
+
+
 def Validation_3D(ele, x, y, name, imarker, icolour):
+
+	trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
+
 	deviation = [(y[i] - x[i]) for i in range(len(x))]
 # Add label to each point
 	trend_file = open("Deviated_Addresses_EAdh.txt", 'w+')
@@ -70,12 +96,13 @@ def Validation_3D(ele, x, y, name, imarker, icolour):
 		if x[i] <= 0 and np.abs(deviation[i]) > 0.2:
 			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 			trend_file.write("{}\n".format(name[i]))
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
-																			   str(np.abs(round(max(deviation), 1))))
+#	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
+#																			   str(np.abs(round(max(deviation), 1))))
 	trend_file.close()
 	return max(deviation)
 
 ########################################################################################################################
+dataset_length = 0
 symbol = []
 name = {}
 ic = {}
@@ -89,11 +116,14 @@ reference_e = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
+	dataset_length += len(data)
+	print("   The dataset size is: ", len(data))
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
 	name[symbol[-1]] = [data[i][-1] for i in range(len(data))]
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], e[symbol[-1]],\
 	predicted_e[symbol[-1]] = get_data(data)
 z_min = min([min(e[sym]) for sym in symbol]) - np.abs(min([min(e[sym]) for sym in symbol]))*0.1
+print("   The TOTAL dataset size is: ", dataset_length)
 
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Predicted_EAdh.txt", 'w+')

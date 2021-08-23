@@ -196,9 +196,10 @@ for n, sym in enumerate(symbol):
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r_3D[sym]) #str(round(r_3D[sym], 2))
 	print("   Reference_e is:", reference_adh_e[sym])
 
-	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym], "isd_a ($\\AA$)",
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
+#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
+			  "$d_{a}^{min}$ ($\\AA$)", "$d_{b}^{min}$ $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$",
+			  [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')

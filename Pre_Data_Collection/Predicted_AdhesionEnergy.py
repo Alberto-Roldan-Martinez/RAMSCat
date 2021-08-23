@@ -120,7 +120,8 @@ for i in cluster_interface_indexes:
 	predicted_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
 									len(atom_cluster_neighbours[str(i)]), sorted(distance_a)[0], sorted(distance_b)[0])
 	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
-predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes)
+
+#predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes)
 
 
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(cluster_interface_indexes)

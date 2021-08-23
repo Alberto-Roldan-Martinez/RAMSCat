@@ -164,8 +164,8 @@ for n, sym in enumerate(symbol):
 	scaled_adh_e[sym] = adh_e[sym] + np.abs(max(adh_e[sym]))
 	trend_3D[sym], r_3D[sym], stand_dev[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+str(round(r_3D[sym], 2))
-	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "isd_a ($\\AA$)",
-			  "isd_b $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym], "$d_{a}^{min}$ ($\\AA$)", "$d_{b}^{min}$ $(\\AA)$",
+			  "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$", [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
 
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh.txt", 'w+')
