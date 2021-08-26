@@ -147,8 +147,8 @@ def trend_morse_3D(x, y, z):
 		z.append(0)
 		weights.append(0.5)
 
-#	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt, sigma=weights)#, bounds=limits)
-	print("   popt is:", list(popt))
+	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt)#, sigma=weights)#, bounds=limits)
+	print("   popt is:", [round(i, 5) for i in popt])
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(data_length)])/sum(i*i for i in z))
 	standard_deviation = sum(np.sqrt(np.diag(pcov)/len(np.diag(pcov))))/len(np.diag(pcov))
 

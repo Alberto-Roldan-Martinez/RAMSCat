@@ -26,13 +26,14 @@ def get_data(data):
 	e = []								# contains the DFT calculated adhesion energies
 	predicted_e = []
 	for i in range(len(data)):
-		ic.append(float(data[i][0]))
-		icc.append(float(data[i][1]))
-		id.append(float(data[i][2]))
-		isd_a.append(float(data[i][3]))
-		isd_b.append(float(data[i][4]))
-		e.append(float(data[i][5]))
-		predicted_e.append(float(data[i][6]))
+		if float(data[i][5]) <= 0.25:
+			ic.append(float(data[i][0]))
+			icc.append(float(data[i][1]))
+			id.append(float(data[i][2]))
+			isd_a.append(float(data[i][3]))
+			isd_b.append(float(data[i][4]))
+			e.append(float(data[i][5]))
+			predicted_e.append(float(data[i][6]))
 
 	return ic, icc, id, isd_a, isd_b, e, predicted_e
 
