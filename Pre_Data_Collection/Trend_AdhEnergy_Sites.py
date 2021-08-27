@@ -187,7 +187,7 @@ x_min = min([min(isd_a[sym]) for sym in symbol])
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.1
 y_min = min([min(isd_b[sym]) for sym in symbol])
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.1
-z_min = min([min(adh_e[sym]) for sym in symbol]) - np.abs(min([min(adh_e[sym]) for sym in symbol]))*0.1
+z_min = min([min(adh_e[sym]) for sym in symbol])*1.1
 z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 
 # ------------------------------------------- 3D Display ------------------------
@@ -199,7 +199,7 @@ for n, sym in enumerate(symbol):
 	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
 #	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
 			  "$d_{a}^{min}$ ($\\AA$)", "$d_{b}^{min}$ $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$",
-			  [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+			  [x_min, x_max], [y_min, y_max], [z_min*0.8, 0], trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')

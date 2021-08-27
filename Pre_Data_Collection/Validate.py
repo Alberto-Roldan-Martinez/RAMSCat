@@ -86,7 +86,7 @@ def Validation_3D(ele, x, y, name, imarker, icolour):
 	for i in range(len(x)):
 		if x[i] <= 0 and np.abs(deviation[i]) > 0.2:
 			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
-			trend_file.write("{}\n".format(name[i]))
+			trend_file.write("{} --- {}\n".format(i+1, name[i]))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
 																			   str(np.abs(round(max(deviation), 1))))
 	trend_file.close()
