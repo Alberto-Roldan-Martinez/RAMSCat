@@ -57,8 +57,8 @@ def morse_3D_Energies(support, element, icc, x, y):
 				if sys[2] == icc:
 					support, element, icc, a, d_eq, r_eq, b, y_d_eq, y_r_eq, reference_e = sys
 					i_adh_e = d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq*np.sin(y/x)))) +\
-							  y_d_eq * (np.exp(-2*b*(y - y_r_eq)) - 2 * np.exp(-b*(y - y_r_eq*np.sin(y/x)))) #- reference_e		# MORSE potentia
-	return i_adh_e, reference_e
+							  y_d_eq * (np.exp(-2*b*(y - y_r_eq)) - 2 * np.exp(-b*(y - y_r_eq*np.sin(y/x)))) - reference_e		# MORSE potentia
+	return i_adh_e
 
 
 def atom_neighbours(atom_index, supported_cluster, cluster_indexes, support_indexes):
@@ -94,6 +94,9 @@ for i in cluster_interface_indexes:
 average_z_interface = sum(cluster_interface) / len(cluster_interface)
 average_z_support = sum(support_neighbours) / len(support_neighbours)
 average_interface_distance = average_z_interface - average_z_support
+for i in cluster_interface_indexes:
+	if supported_cluster.get_positions()[i][2] == min(cluster_interface)
+		cluster_atom_lowest_z = i
 
 # Interface coordination
 atom_cluster_neighbours = {}
@@ -102,7 +105,7 @@ average_shortest_cluster_site_distance[sites(support_name)[0]] = 0
 average_shortest_cluster_site_distance[sites(support_name)[1]] = 0
 supported_cluster.set_constraint()
 cluster_interface_cluster_neighbours = 0
-predicted_adhesion_e = 0
+predicted_adhesions = []
 reference = []
 for i in cluster_interface_indexes:
 	atom_cluster_neighbours[str(i)], atom_surface_neighbours = atom_neighbours(i, supported_cluster, cluster_indexes,
@@ -112,17 +115,32 @@ for i in cluster_interface_indexes:
 	shortest_cluster_site_distance = 0
 	for j in support_neighbours_indexes:
 		if supported_cluster[j].symbol == sites(support_name)[0]:
-			distance_a.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
+			distance_a.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
 		elif supported_cluster[j].symbol == sites(support_name)[1]:
-			distance_b.append(supported_cluster.get_distance(int(i), int(j), mic=True, vector=False))
-	average_shortest_cluster_site_distance[sites(support_name)[0]] += sorted(distance_a)[0]/len(cluster_interface_indexes)
-	average_shortest_cluster_site_distance[sites(support_name)[1]] += sorted(distance_b)[0]/len(cluster_interface_indexes)
-
-	e, e_reference = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
-									len(atom_cluster_neighbours[str(i)]), sorted(distance_a)[0], sorted(distance_b)[0])
-	predicted_adhesion_e += e
-	reference.append(e_reference)
+			distance_b.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
+	distance_a.sort(key=lambda x: x[1])
+	distance_b.sort(key=lambda x: x[1])
+	average_shortest_cluster_site_distance[sites(support_name)[0]] += distance_a[0][1]/len(cluster_interface_indexes)
+	average_shortest_cluster_site_distance[sites(support_name)[1]] += distance_b[0][1]/len(cluster_interface_indexes)
+	if distance_a[0][0] in atom_surface_neighbours or distance_b[0][0] in atom_surface_neighbours:
+		predicted_adhesions.append(morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
+									   len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1]))
 	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
+if len(predicted_adhesions) != 0:
+	predicted_adhesion_e = sum(predicted_adhesions)
+else:
+	distance_a = []
+	distance_b = []
+	for j in support_neighbours_indexes:
+		if supported_cluster[j].symbol == sites(support_name)[0]:
+			distance_a.append([j, supported_cluster.get_distance(int(cluster_atom_lowest_z), int(j), mic=True, vector=False)])
+		elif supported_cluster[j].symbol == sites(support_name)[1]:
+			distance_b.append([j, supported_cluster.get_distance(int(cluster_atom_lowest_z), int(j), mic=True, vector=False)])
+	distance_a.sort(key=lambda x: x[1])
+	distance_b.sort(key=lambda x: x[1])
+	predicted_adhesion_e = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
+									   len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1])
+
 #predicted_adhesion_e = predicted_adhesion_e - sum(reference)/len(reference)
 #predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes)
 
