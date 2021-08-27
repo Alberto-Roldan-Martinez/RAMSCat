@@ -25,6 +25,7 @@ def get_data(data):
 	isd_b = []								# contains the average of the shortest distances from the  interfacial atoms in the cluster to the preferable surface site[1]
 	e = []								# contains the DFT calculated adhesion energies
 	predicted_e = []
+	name = []
 	for i in range(len(data)):
 		if float(data[i][5]) <= 0.25:
 			ic.append(float(data[i][0]))
@@ -34,8 +35,9 @@ def get_data(data):
 			isd_b.append(float(data[i][4]))
 			e.append(float(data[i][5]))
 			predicted_e.append(float(data[i][6]))
+			name.append(data[i][-1].split("/")[-1])
 
-	return ic, icc, id, isd_a, isd_b, e, predicted_e
+	return ic, icc, id, isd_a, isd_b, e, predicted_e, name
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -110,9 +112,8 @@ for n in range(1, len(sys.argv)):
 	dataset_length += len(data)
 	print("   The dataset size is: ", len(data))
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
-	name[symbol[-1]] = [data[i][-1] for i in range(len(data))]
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], e[symbol[-1]],\
-	predicted_e[symbol[-1]] = get_data(data)
+	predicted_e[symbol[-1]], name[symbol[-1]] = get_data(data)
 z_min = min([min(e[sym]) for sym in symbol]) - np.abs(min([min(e[sym]) for sym in symbol]))*0.1
 print("   The TOTAL dataset size is: ", dataset_length)
 
