@@ -27,14 +27,14 @@ def get_data(data):
 	predicted_e = []
 	name = []
 	for i in range(len(data)):
-		if float(data[i][5]) <= 0.25:
-			ic.append(float(data[i][0]))
-			icc.append(float(data[i][1]))
-			id.append(float(data[i][2]))
-			isd_a.append(float(data[i][3]))
-			isd_b.append(float(data[i][4]))
-			e.append(float(data[i][5]))
-			predicted_e.append(float(data[i][6]))
+		if float(data[i][6]) <= 0.25:
+			ic.append(float(data[i][0])+float(data[i][1]))
+			icc.append(float(data[i][2]))
+			id.append(float(data[i][3]))
+			isd_a.append(float(data[i][4]))
+			isd_b.append(float(data[i][5]))
+			e.append(float(data[i][6]))
+			predicted_e.append(float(data[i][7]))
 			name.append(data[i][-1].split("/")[-1])
 
 	return ic, icc, id, isd_a, isd_b, e, predicted_e, name
