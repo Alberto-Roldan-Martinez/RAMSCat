@@ -99,29 +99,18 @@ else:
 average_z_support = sum(support_neighbours) / len(support_neighbours)
 average_interface_distance = average_z_interface - average_z_support
 
-# find the cluster atoms closest to the support (primary sites) skipping nearest neighbours (secondary sites)
-primary_cluster_interface = []
-secondary_cluster_interface = []
+# Interface coordination
+cluster_interface_adh_e = []
 atom_cluster_neighbours = {}
 atom_surface_neighbours = {}
-for n in range(len(cluster_interface)):
-	i = cluster_interface[n][0]
-	i_interface_z = cluster_interface[n][1]
-	atom_cluster_neighbours[str(i)], atom_surface_neighbours[str(i)] = atom_neighbours(i, supported_cluster,
-																					   cluster_indexes, support_indexes)
-	if i not in secondary_cluster_interface:
-		primary_cluster_interface.append(i)
-		for j in atom_cluster_neighbours[str(i)]:
-			if j in cluster_interface_indexes:
-				secondary_cluster_interface.append(j)
-
-# Interface coordination
 average_shortest_cluster_site_distance = {}
 average_shortest_cluster_site_distance[sites(support_name)[0]] = 0
 average_shortest_cluster_site_distance[sites(support_name)[1]] = 0
 supported_cluster.set_constraint()
 cluster_interface_cluster_neighbours = 0
 for i in cluster_interface_indexes:
+	atom_cluster_neighbours[str(i)], atom_surface_neighbours[str(i)] = atom_neighbours(i, supported_cluster,
+																					   cluster_indexes, support_indexes)
 	distance_a = []
 	distance_b = []
 	shortest_cluster_site_distance = 0
@@ -132,49 +121,45 @@ for i in cluster_interface_indexes:
 			distance_b.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
 	distance_a.sort(key=lambda x: x[1])
 	distance_b.sort(key=lambda x: x[1])
+	adh_e = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
+											len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1])
+	cluster_interface_adh_e.append([i, adh_e])
 	average_shortest_cluster_site_distance[sites(support_name)[0]] += distance_a[0][1]/len(cluster_interface_indexes)
 	average_shortest_cluster_site_distance[sites(support_name)[1]] += distance_b[0][1]/len(cluster_interface_indexes)
 	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(cluster_interface_indexes)
 #unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 
+# Predicted Adhesion energy
+cluster_interface_adh_e.sort(key=lambda x: x[1])
+primary_cluster_sites = []
+secondary_cluster_sites = []
+primary_adhesion_e = []
+secondary_adhesion_e = []
+for n in range(len(cluster_interface_adh_e)):
+	i = cluster_interface_adh_e[n][0]
+	if i not in secondary_cluster_sites:
+		primary_adhesion_e.append(cluster_interface_adh_e[n][1])
+		primary_cluster_sites.append(i)
+		for j in atom_cluster_neighbours[str(i)]:
+			secondary_cluster_sites.append(j)
+#			for k in atom_cluster_neighbours[str(j)]:
+#				if k not in primary_cluster_sites:
+#					secondary_cluster_sites.append(k)
+	else:
+		secondary_adhesion_e.append(cluster_interface_adh_e[n][1])
+print(cluster_interface_adh_e, "--", primary_cluster_sites, secondary_cluster_sites)
+#print("secondary", i, secondary_adhesion_e[-1])
+
+#predicted_adhesion_e = min(primary_adhesion_e) + min(secondary_adhesion_e)
+predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites)) #cluster_interface_indexes)
+#predicted_adhesion_e = predicted_adhesion_e - sum(reference)/len(reference)
+#predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes
+
 # Calculate the array of neighbours coordination
 neigh_coord = []
 for i in cluster_interface_indexes:
 	neigh_coord.append(len(atom_cluster_neighbours[str(i)]))
-
-# Predicted Adhesion energy
-primary_adhesion_e = 0
-for i in primary_cluster_interface:
-	distance_a = []
-	distance_b = []
-	for j in support_neighbours_indexes:
-		if supported_cluster[j].symbol == sites(support_name)[0]:
-			distance_a.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
-		elif supported_cluster[j].symbol == sites(support_name)[1]:
-			distance_b.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
-	distance_a.sort(key=lambda x: x[1])
-	distance_b.sort(key=lambda x: x[1])
-	primary_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
-											len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1])
-secondary_adhesion_e = 0
-for i in secondary_cluster_interface:
-	distance_a = []
-	distance_b = []
-	for j in support_neighbours_indexes:
-		if supported_cluster[j].symbol == sites(support_name)[0]:
-			distance_a.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
-		elif supported_cluster[j].symbol == sites(support_name)[1]:
-			distance_b.append([j, supported_cluster.get_distance(int(i), int(j), mic=True, vector=False)])
-	distance_a.sort(key=lambda x: x[1])
-	distance_b.sort(key=lambda x: x[1])
-	secondary_adhesion_e += morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
-											  len(atom_cluster_neighbours[str(i)]), distance_a[0][1],
-											  distance_b[0][1]) / (len(atom_cluster_neighbours[str(i)]) + 1)
-
-predicted_adhesion_e = primary_adhesion_e + secondary_adhesion_e
-#predicted_adhesion_e = predicted_adhesion_e - sum(reference)/len(reference)
-#predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes)
 
 # Calculated Adhesion energy
 clean_surf_file = str("~/RESEARCH/OTHER/DATASET/RPBE/Supports/"+support_name+"/"+support_name+"/Surface/"+input_file[0])
@@ -199,7 +184,7 @@ ifile.write("# isd = average of the shortest distance from the interfacial atoms
 ifile.write("#\n# ic1\t1c2\ticc\tid\tisd_{}\tisd_{}\t\tE_Adh (eV)\t\tCoordination [1..11]\t\t\tElements\tPath\n"
 			.format(sites(support_name)[0], sites(support_name)[1]))
 ifile.write("{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t{:>5.4f}\t\t{:>5.4f}\t{:>5.4f}\t  "
-			.format(len(primary_cluster_interface),	len(secondary_cluster_interface),
+			.format(len(set(primary_cluster_sites)),	len(set(secondary_cluster_sites)),
 					average_cluster_coordination_interface_cluster_atoms, average_interface_distance,
 					average_shortest_cluster_site_distance[sites(support_name)[0]],
 					average_shortest_cluster_site_distance[sites(support_name)[1]],	adhesion_e, predicted_adhesion_e))
