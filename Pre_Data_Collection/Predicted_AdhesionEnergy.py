@@ -103,6 +103,7 @@ average_interface_distance = average_z_interface - average_z_support
 cluster_interface_adh_e = []
 atom_cluster_neighbours = {}
 atom_surface_neighbours = {}
+a_sites = []
 average_shortest_cluster_site_distance = {}
 average_shortest_cluster_site_distance[sites(support_name)[0]] = 0
 average_shortest_cluster_site_distance[sites(support_name)[1]] = 0
@@ -123,7 +124,9 @@ for i in cluster_interface_indexes:
 	distance_b.sort(key=lambda x: x[1])
 	adh_e = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
 											len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1])
-	cluster_interface_adh_e.append([i, adh_e])
+	cluster_interface_adh_e.append([i, adh_e, distance_a[0], distance_b[0]])
+#	if distance_a[0][0] in atom_surface_neighbours[str(i)]:
+	a_sites.append(distance_a[0][0])
 	average_shortest_cluster_site_distance[sites(support_name)[0]] += distance_a[0][1]/len(cluster_interface_indexes)
 	average_shortest_cluster_site_distance[sites(support_name)[1]] += distance_b[0][1]/len(cluster_interface_indexes)
 	cluster_interface_cluster_neighbours += len(atom_cluster_neighbours[str(i)])
@@ -136,19 +139,20 @@ primary_cluster_sites = []
 secondary_cluster_sites = []
 primary_adhesion_e = []
 secondary_adhesion_e = []
+primary_a_sites = []
 for n in range(len(cluster_interface_adh_e)):
 	i = cluster_interface_adh_e[n][0]
+#	primary_a_sites.append(cluster_interface_adh_e[n][2][0])
 	if i not in secondary_cluster_sites:
+		primary_a_sites.append(cluster_interface_adh_e[n][2][0])
+
 		primary_adhesion_e.append(cluster_interface_adh_e[n][1])
 		primary_cluster_sites.append(i)
 		for j in atom_cluster_neighbours[str(i)]:
 			secondary_cluster_sites.append(j)
-#			for k in atom_cluster_neighbours[str(j)]:
-#				if k not in primary_cluster_sites:
-#					secondary_cluster_sites.append(k)
 	else:
 		secondary_adhesion_e.append(cluster_interface_adh_e[n][1])
-print(cluster_interface_adh_e, "--", primary_cluster_sites, secondary_cluster_sites)
+print(cluster_interface_adh_e, "--", primary_cluster_sites, secondary_cluster_sites,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
 #print("secondary", i, secondary_adhesion_e[-1])
 
 #predicted_adhesion_e = min(primary_adhesion_e) + min(secondary_adhesion_e)
