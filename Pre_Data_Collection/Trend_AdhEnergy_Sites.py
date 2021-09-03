@@ -120,6 +120,7 @@ def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
 	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potential
 
+
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.75], [50, 10, 5]))
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
