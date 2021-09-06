@@ -58,7 +58,6 @@ def morse_3D_Energies(support, element, icc, x, y, dz):
 					support, element, icc, a, d_eq, r_eq, b, y_d_eq, y_r_eq, reference_e = sys
 					i_adh_e = (d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq*np.sin(y/x)))) +\
 							  y_d_eq * (np.exp(-2*b*(y - y_r_eq)) - 2 * np.exp(-b*(y - y_r_eq*np.sin(y/x))))) - reference_e		# MORSE potentia
-	print(dz, dz-y_r_eq, 2 - np.exp((dz-r_eq)**2))
 
 	return i_adh_e
 
@@ -137,7 +136,7 @@ for i in cluster_interface_indexes:
 average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster_neighbours/len(cluster_interface_indexes)
 #unique_cluster_interface_indexes = [i for i in list(set(map(tuple, [cluster_interface[j] for j in cluster_interface])))[0]]
 
-# Predicted Adhesion energy
+# Predict Adhesion energy
 cluster_interface_adh_e.sort(key=lambda x: x[1])
 primary_cluster_sites = []
 secondary_cluster_sites = []
@@ -159,7 +158,7 @@ for n in range(len(cluster_interface_adh_e)):
 		secondary_adhesion_e.append(cluster_interface_adh_e[n][1])
 #	print(i, a_sites, len(a_sites), cluster_interface_adh_e[n][1])
 
-print(cluster_interface_adh_e)#, "--", len(cluster_interface_adh_e), len(cluster_interface_indexes))# primary_cluster_sites, secondary_cluster_sites)#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
+print(cluster_interface_adh_e, primary_cluster_sites, secondary_cluster_sites)#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
 #print("secondary", i, secondary_adhesion_e[-1])
 
 #predicted_adhesion_e = sum(primary_adhesion_e) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites))

@@ -109,10 +109,10 @@ reference_e = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
-	print("   The dataset size is: ", len(data))
 	symbol.append(data[0][-1].split("/")[2]) # [0])					# contains the list of systems' name
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], e[symbol[-1]],\
 	predicted_e[symbol[-1]], name[symbol[-1]] = get_data(data)
+	print("   The dataset size is: ", len([i for i in e[symbol[-1]] if i < 0]))
 	dataset_length += len([i for i in e[symbol[-1]] if i < 0])
 z_min = min([min(e[sym]) for sym in symbol]) - np.abs(min([min(e[sym]) for sym in symbol]))*0.1
 print("   The TOTAL dataset size is: ", dataset_length)
