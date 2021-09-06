@@ -8,8 +8,8 @@
 import sys
 import numpy as np
 from scipy.optimize import curve_fit
-import matplotlib
-matplotlib.use('TkAgg')
+import matplotlib as mpl
+mpl.use('TkAgg')
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
@@ -71,18 +71,19 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	x, y = np.meshgrid(surf_x, surf_y)
 	z = morse_3D([x, y], *popt)
 
-	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4)
+	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
+
 	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
-#	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis')
-#	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis')
+	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
+	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
 
 	ax.set_xlabel(xlabel, fontsize=14)
 	ax.set_ylabel(ylabel, fontsize=14)
 	ax.set_zlabel(zlabel, fontsize=14, labelpad=10)
 	ax.set_xlim3d(xlim[0], xlim[1])
 	ax.set_ylim3d(ylim[0], ylim[1])
-	ax.set_zlim3d(zlim[0], zlim[1])
+	ax.set_zlim3d(zlim[0], 0)
 	ax.tick_params(axis='both', labelsize=12)
 #	plt.subplots_adjust(left=0.15, right=0.9, top=0.8, bottom=0.1)
 	#legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
@@ -119,7 +120,6 @@ def morse(x, a, d_eq, r_eq):
 def morse_3D(x, a, d_eq, r_eq, b, y_d_eq, y_r_eq):
 	return d_eq * (np.exp(-2*a*(x[0] - r_eq)) - 2 * np.exp(-a*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 		   y_d_eq * (np.exp(-2*b*(x[1] - y_r_eq)) - 2 * np.exp(-b*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potential
-
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.75], [50, 10, 5]))
@@ -196,8 +196,8 @@ for n, sym in enumerate(symbol):
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r_3D[sym]) #str(round(r_3D[sym], 2))
 	print("   Reference_e is:", reference_adh_e[sym])
 
-	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
+#	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
+	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
 			  "$d_{a}^{min}$ ($\\AA$)", "$d_{b}^{min}$ $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$",
 			  [x_min, x_max], [y_min, y_max], [z_min*0.8, 0], trend_label_3D)
 
