@@ -38,28 +38,28 @@ except:
 	print(" Supported Cluster Input does not exist in the current directory!")
 
 
-def morse_3D_Energies(support, element, icc, x, y, dz):
+def morse_3D_Energies(support, element, icc, x, y):
 	popts = {# support, metal, n-1											# popt and reference_e using Trend_AdhEnergy_Sites
-                ('MgO', 'Au',  1,  2.23497, 0.97830, 2.20702, 2.07422, 1.64891, 2.204950000000, 0.6396),	# 2 atoms ***
-                ('MgO', 'Au',  2,  1.96843, 1.04848, 2.31231, 1.45124, 2.53651, 2.00033, 0.3442),		# 3 atoms
-                ('MgO', 'Au',  3,  1.86603, 1.21056, 2.27733, 1.32430, 2.24714, 1.96176, 0.5365),		# 4 atoms
-                ('MgO', 'Au',  4,  1.84947, 1.26524, 2.30629, 1.51260, 3.26829, 1.88726, 0.0622),		# 5 atoms
-				('MgO', 'Au',  5,  2.23457, 1.34367, 2.20114, 2.29525, 2.65723, 1.94252, 0.2051),		# 6 atoms
-				('MgO', 'Au',  6,  1.96956, 1.01784, 2.25783, 1.38094, 2.50796, 1.90753, 0.8052),		# 7 atoms
-				('MgO', 'Au',  7,  2.11187, 1.02364, 2.23451, 1.37608, 2.92485, 1.90936, 0.8657),		# 8 atoms
-				('MgO', 'Au',  8,  2.01312, 0.86367, 2.29019, 1.56047, 2.60989, 1.86745, 1.1498),		# 9 atoms
-				('MgO', 'Au',  9,  2.01604, 1.61862, 2.15563, 1.13270, 4.58532, 1.41540, 1.0898),		# 10 atoms
-				('MgO', 'Au',  10, 2.18794, 1.45325, 2.20061, 1.30884, 5.06047, 1.60125, 1.2182)		# 11 atom
+                ('MgO', 'Au',  1,  , 0.6396),	# 2 atoms ***
+                ('MgO', 'Au',  2,  2.26154, 2.18845, 1.17971, 2.23416, 2.51966, 1.14146, 2.15504, -0.3442),		# 3 atoms
+                ('MgO', 'Au',  3,  2.21109, 2.17574, 1.27992, 2.22204, 2.57363, 1.15331, 2.15739, -0.5365),		# 4 atoms
+                ('MgO', 'Au',  4,  2.06541, 2.07913, 1.45289, 2.24816, 3.04444, 1.21373, 2.05572, -0.0622),		# 5 atoms
+				('MgO', 'Au',  5,  2.31709, 2.25232, 1.40701, 2.19195, 2.58796, 1.24949, 2.06829, +0.2051),		# 6 atoms
+				('MgO', 'Au',  6,  2.39838, 2.30782, 1.18374, 2.18707, 3.09856, 1.13855, 2.11222, -0.8052),		# 7 atoms
+				('MgO', 'Au',  7,  , 0.8657),		# 8 atoms
+				('MgO', 'Au',  8,  2.57440, 2.34767, 0.97767, 2.18691, 3.76737, 1.17901, 2.11643, -1.1498),		# 9 atoms
+				('MgO', 'Au',  9,  2.12587, 2.22374, 1.62455, 2.15865, 14.29714, 0.88256, 2.09984, -1.0898),		# 10 atoms
+				('MgO', 'Au',  10, 2.46634, 2.24153, 1.64708, 2.12593, 7.53929, 0.92406, 2.00228, -1.2182)		# 11 atom
             }
 	for i, sys in enumerate(popts):
 		if sys[0] == support:
 			if sys[1] == element:
 				if sys[2] == icc:
-					support, element, icc, a, d_eq, r_eq, b, y_d_eq, y_r_eq, reference_e = sys
+					support, element, icc, a, d_eq, r_eq, b, y_d_eq, y_r_eq, e_min, reference_e = sys
 					i_adh_e = (d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq*np.sin(y/x)))) +\
-							  y_d_eq * (np.exp(-2*b*(y - y_r_eq)) - 2 * np.exp(-b*(y - y_r_eq*np.sin(y/x))))) - reference_e		# MORSE potentia
+							  y_d_eq * (np.exp(-2*b*(y - y_r_eq)) - 2 * np.exp(-b*(y - y_r_eq*np.sin(y/x))))) + reference_e		# MORSE potentia
 
-	return i_adh_e
+	return i_adh_e, e_min
 
 
 def atom_neighbours(atom_index, supported_cluster, cluster_indexes, support_indexes):
@@ -123,9 +123,11 @@ for i in cluster_interface_indexes:
 	distance_a.sort(key=lambda x: x[1])
 	distance_b.sort(key=lambda x: x[1])
 	i_atom_dz = supported_cluster.get_positions()[i][2] - average_z_support
-	adh_e = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
-											len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1], i_atom_dz)
-	cluster_interface_adh_e.append([i, adh_e, distance_a[0][1], distance_b[0][1]])
+	adh_e, e_min = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol,
+											len(atom_cluster_neighbours[str(i)]), distance_a[0][1], distance_b[0][1])
+
+	cluster_interface_adh_e.append([i, adh_e, e_min, distance_a[0][1], distance_b[0][1]])
+
 	if distance_a[0][0] not in atom_surface_neighbours[str(i)]:
 		atom_surface_neighbours[str(i)].append(distance_a[0][0])
 	if distance_b[0][0] not in atom_surface_neighbours[str(i)]:
@@ -143,27 +145,38 @@ secondary_cluster_sites = []
 primary_adhesion_e = []
 secondary_adhesion_e = []
 a_sites = []
-predicted_adhesion_e = 0# cluster_interface_adh_e[0][1]# / len(cluster_interface_indexes)
 for n in range(len(cluster_interface_adh_e)):
+#	print(atom_surface_neighbours[str(i)])
 	i = cluster_interface_adh_e[n][0]
-#	predicted_adhesion_e += cluster_interface_adh_e[n][1]# / (len(cluster_interface_indexes))
-#	a_sites = [j for j in atom_surface_neighbours[str(i)] ]# if supported_cluster[int(j)].symbol == sites(support_name)[0]]
+#	if cluster_interface_adh_e[n][1] < -1:
+#	if cluster_interface_adh_e[n][3] < cluster_interface_adh_e[n][4]:
 	if i not in secondary_cluster_sites:
-##		primary_a_sites.append(cluster_interface_adh_e[n][2][0])
-		primary_adhesion_e.append(cluster_interface_adh_e[n][1])
+		primary_adhesion_e.append(cluster_interface_adh_e[n][1])#/len(atom_surface_neighbours[str(i)]))
 		primary_cluster_sites.append(i)
+#		primary_cluster_sites.append(cluster_interface_adh_e[n][3])
+#		primary_cluster_sites.append(cluster_interface_adh_e[n][4])
 		for j in atom_cluster_neighbours[str(i)]:
 			secondary_cluster_sites.append(j)
 	else:
+#		secondary_cluster_sites.append(i)
 		secondary_adhesion_e.append(cluster_interface_adh_e[n][1])
 #	print(i, a_sites, len(a_sites), cluster_interface_adh_e[n][1])
 
-print(cluster_interface_adh_e, primary_cluster_sites, secondary_cluster_sites)#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
+print(cluster_interface_adh_e, len(primary_cluster_sites), set(secondary_cluster_sites))#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
 #print("secondary", i, secondary_adhesion_e[-1])
 
 #predicted_adhesion_e = sum(primary_adhesion_e) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites))
 #predicted_adhesion_e = min(primary_adhesion_e) + min(secondary_adhesion_e)
 predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites)) #cluster_interface_indexes)
+#if len(primary_cluster_sites) > 0:
+#	if len(secondary_cluster_sites) > 0:
+#		predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites)) #cluster_interface_indexes)
+#	else:
+#		predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites)
+#elif len(secondary_cluster_sites) > 0:
+##	predicted_adhesion_e = sum(secondary_adhesion_e)/len(set(secondary_cluster_sites))
+#else:
+#	predicted_adhesion_e = 0
 #predicted_adhesion_e = predicted_adhesion_e - sum(reference)/len(reference)
 #predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes
 
