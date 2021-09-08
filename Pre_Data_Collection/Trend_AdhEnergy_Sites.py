@@ -71,21 +71,20 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	x, y = np.meshgrid(surf_x, surf_y)
 	z = morse_3D([x, y], *popt)
 
+	e_min = min([min(z[i]) for i in range(len(z))])
+	for i in range(len(z)):
+		for j in range(len(z[i])):
+			if z[i, j] == e_min:
+				x_text = x[i, j]
+				y_text = y[i, j]
+	ax.text(x_text, y_text, e_min*1.02, str("({:.3f},{:2.3f})".format(x_text, y_text)))
+
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
 
-	zmin = min([min(z[i]) for i in range(len(z))])
-	for i in range(len(z)):
-		for j in range(len(z[i])):
-			if z[i, j] == zmin:
-				x_text = x[i, j]
-				y_text = y[i, j]
-	ax.text(x_text, y_text, zmin*1.02, str("({:.3f},{:2.3f})".format(x_text, y_text)))
-	print("   The minimum is:", round(zmin, 4), " eV")
-
+#	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
+#	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
 	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
-	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
-	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
 
 	ax.set_xlabel(xlabel, fontsize=14)
 	ax.set_ylabel(ylabel, fontsize=14)
@@ -105,6 +104,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	SaveFig()
 	plt.clf()
 
+	return e_min
 
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
@@ -126,9 +126,12 @@ def morse(x, a, d_eq, r_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 
-def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2,  y_r_eq):
-	return d_eq * ((np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
-		    (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
+#def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2,  y_r_eq):
+#	return d_eq * ((np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
+#		    (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
+def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2, y_d_eq, y_r_eq):
+	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
+		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potentia
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0.1, 0.75], [50, 10, 5]))
@@ -145,19 +148,20 @@ def trend_morse_3D(x, y, z):
 	data_length = len(z)
 	weights = [1 for i in range(len(z)-3)]
 	[weights.append(0.5) for i in range(3)]
-	limits = ([0.1, 0.1, 0., 0.75, 0.1, 0.1, 0.75], [10, 10, 10, 5, 10, 10, 5])
+#			a1, a2, d_eq, r_eq, b1, b2, y_d_eq,  y_r_eq
+	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 10, 5, 10, 10, 50, 5])
 #	initial_guess = [2., 0.8, 2., 1.5, 3., 1.8]
 	popt, pcov = curve_fit(morse_3D, [x, y], z, sigma=weights, bounds=limits)
 
-	r = np.linspace(popt[4]*1.75, popt[2]*1.75, 20)
-	for i, angle in enumerate(np.arange(0, np.pi/2, np.pi/2/20)):
-		x.append(min(x)*1.5 + r[i]*np.cos(angle))
-		y.append(min(y)*1.5 + r[i]*np.sin(angle))
-		z.append(0)
-		weights.append(0.5)
+# Activate the following lines to add a 1/4 of points a z=0 around the minima forcing the function to increase faster
+#	r = np.linspace(popt[4]*1.75, popt[2]*1.75, 20)
+#	for i, angle in enumerate(np.arange(0, np.pi/2, np.pi/2/20)):
+#		x.append(min(x)*1.5 + r[i]*np.cos(angle))
+#		y.append(min(y)*1.5 + r[i]*np.sin(angle))
+#		z.append(0)
+#		weights.append(0.5)
+#	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt)#, sigma=weights)#, bounds=limits)
 
-	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt)#, sigma=weights)#, bounds=limits)
-	print("   popt is:", [round(i, 5) for i in popt])
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(data_length)])/sum(i*i for i in z))
 	standard_deviation = sum(np.sqrt(np.diag(pcov)/len(np.diag(pcov))))/len(np.diag(pcov))
 
@@ -203,27 +207,30 @@ z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
 for n, sym in enumerate(symbol):
 	trend_3D[sym], r_3D[sym], stand_dev[sym] = trend_morse_3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym])
 	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r_3D[sym]) #str(round(r_3D[sym], 2))
-	print("   Reference_e is:", reference_adh_e[sym])
 
-	Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
-#	Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
+	e_min = Display3D(isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], scaled_adh_e[sym][:len(adh_e[sym])], trend_3D[sym],
+#	e_min = Display3D(isd_a[sym], isd_b[sym], scaled_adh_e[sym], trend_3D[sym],
 			  "$d_{a}^{min}$ ($\\AA$)", "$d_{b}^{min}$ $(\\AA)$", "$E_{Adh}^{Scaled}$ $(eV \cdot atom^{-1})$",
 			  [x_min, x_max], [y_min, y_max], [z_min, 0], trend_label_3D)
+	to_predict = [round(i, 5) for i in trend_3D[sym]] + [round(reference_adh_e[sym], 5)] + [round(e_min, 5)]
+	print("   To Predict:", to_predict)
+
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_EAdh_Sites.txt", 'w+')
 for n, sym in enumerate(symbol):
 	max_deviation = Validation_3D(sym, isd_a[sym][:len(adh_e[sym])], isd_b[sym][:len(adh_e[sym])], adh_e[sym],
 								  trend_3D[sym], reference_adh_e[sym], imarker[n], icolour[n])
-	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
+	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[sym]
+#	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
 	trend_file.write("# E_Adh (eV)\t\u03c3: Average Standard Deviation\t\u03C4:Maximum Absolute Error\n#"
 					 "\t3D Morse interpolation: A + B\n"
 					 "  A::\td_eq * ((exp(-2 * a1 * (A - r_eq)) - 2 * exp(-a2 * (A - r_eq * sin(isd_b/isd_a))))\n"
 					 "  B::\t\t(exp(-2 * b1 * (B - r_eq)) - 2 * exp(-b2 * (B - r_eq * sin(isd_b/isd_a)))))\n")
 	trend_file.write("{}\tA\td_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\n"
-					 "\tB\t\t\tb1={:<5.5f}\tb2={:<5.5f}\tr_eq={:<5.5f}"
+					   "\tB\td_eq={:<5.5f}\tb1={:<5.5f}\tb2={:<5.5f}\tr_eq={:<5.5f}"
 					 "\tR\u00b2={:<1.2f}  \u03c3={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
-					 .format(sym, d_eq, a1, a2, a_r_eq, b1, b2,  b_r_eq, round(r_3D[sym], 2),
+					 .format(sym, a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(r_3D[sym], 2),
 							 round(stand_dev[sym], 2), np.abs(max_deviation)))
 trend_file.close()
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
