@@ -126,7 +126,7 @@ for i in cluster_interface_indexes:
 	adh_e, reference_e, e_min = morse_3D_Energies(support_name, supported_cluster[int(i)].symbol, len(atom_cluster_neighbours[str(i)]),
 									 distance_a[0][1], distance_b[0][1])
 
-	cluster_interface_adh_e.append([i, adh_e, e_min, distance_a[0][1], distance_b[0][1]])
+	cluster_interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5), round(distance_a[0][1], 3), round(distance_b[0][1], 3)])
 
 	if distance_a[0][0] not in atom_surface_neighbours[str(i)]:
 		atom_surface_neighbours[str(i)].append(distance_a[0][0])
@@ -142,44 +142,34 @@ average_cluster_coordination_interface_cluster_atoms = cluster_interface_cluster
 cluster_interface_adh_e.sort(key=lambda x: x[1])
 primary_cluster_sites = []
 secondary_cluster_sites = []
-primary_adhesion_e = []
-secondary_adhesion_e = []
 predicted_adhesion_e = 0
 for n in range(len(cluster_interface_adh_e)):
-	if cluster_interface_adh_e[0][1] < cluster_interface_adh_e[0][2]*0.95:
+	i = cluster_interface_adh_e[n][0]
+	if i not in secondary_cluster_sites:
+		primary_cluster_sites.append(i)
+		for j in atom_cluster_neighbours[str(i)]:
+			if j in cluster_interface_indexes:
+				secondary_cluster_sites.append(j)
+
+for n in range(len(cluster_interface_adh_e)):
+# % margin of error in the minimum energy
+	if cluster_interface_adh_e[0][1] < cluster_interface_adh_e[0][2]*0.85 and len(primary_cluster_sites) > 1:
 		predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(cluster_interface_adh_e)
-	else:
-		i = cluster_interface_adh_e[n][0]
-		if i not in secondary_cluster_sites:
-#			primary_adhesion_e.append(cluster_interface_adh_e[n][1])#/len(atom_surface_neighbours[str(i)]))
-			primary_cluster_sites.append(i)
-			for j in atom_cluster_neighbours[str(i)]:
-				if j in cluster_interface_indexes:
-					secondary_cluster_sites.append(j)
-if predicted_adhesion_e == 0:
-	for n in range(len(cluster_interface_adh_e)):
-		if cluster_interface_adh_e[n][0] in primary_cluster_sites:
-			predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(primary_cluster_sites)
-		elif cluster_interface_adh_e[n][0] in secondary_cluster_sites:
+		caca = 1
+	elif cluster_interface_adh_e[0][1] < cluster_interface_adh_e[0][2]*0.75 and len(primary_cluster_sites) <= 1:
+		if len(set(secondary_cluster_sites)) > 0:
 			predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(set(secondary_cluster_sites))
+		else:
+			predicted_adhesion_e += cluster_interface_adh_e[n][1]
+		caca = 2
+	elif cluster_interface_adh_e[n][0] in primary_cluster_sites:
+		predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(primary_cluster_sites)
+		caca = 3
+	elif cluster_interface_adh_e[n][0] in secondary_cluster_sites:
+		predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(set(secondary_cluster_sites))
+		caca = 4
 
-print(cluster_interface_adh_e, primary_cluster_sites, set(secondary_cluster_sites))#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
-#print("secondary", i, secondary_adhesion_e[-1])
-
-#predicted_adhesion_e = sum(primary_adhesion_e) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites))
-#predicted_adhesion_e = min(primary_adhesion_e) + min(secondary_adhesion_e)
-#predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites)) #cluster_interface_indexes)
-#if len(primary_cluster_sites) > 0:
-#	if len(secondary_cluster_sites) > 0:
-#		predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites) + sum(secondary_adhesion_e)/len(set(secondary_cluster_sites)) #cluster_interface_indexes)
-#	else:
-#		predicted_adhesion_e = sum(primary_adhesion_e)/len(primary_cluster_sites)
-#elif len(secondary_cluster_sites) > 0:
-##	predicted_adhesion_e = sum(secondary_adhesion_e)/len(set(secondary_cluster_sites))
-#else:
-#	predicted_adhesion_e = 0
-#predicted_adhesion_e = predicted_adhesion_e - sum(reference)/len(reference)
-#predicted_adhesion_e = predicted_adhesion_e / len(cluster_interface_indexes
+print(caca, predicted_adhesion_e, cluster_interface_adh_e, len(primary_cluster_sites), set(secondary_cluster_sites))#,"\n", [atom_surface_neighbours[str(i)] for i in cluster_interface_indexes], a_sites, len(a_sites))
 
 # Calculate the array of neighbours coordination
 neigh_coord = []

@@ -90,7 +90,7 @@ def Validation_3D(ele, x, y, name, imarker, icolour):
 			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 			trend_file.write("{} --- {}\n".format(i+1, name[i]))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
-																			   str(np.abs(round(max(deviation), 1))))
+																		   str(np.abs(round(max(deviation), 1))) + " eV")
 	trend_file.close()
 	return max(deviation), trend_label, r2
 
