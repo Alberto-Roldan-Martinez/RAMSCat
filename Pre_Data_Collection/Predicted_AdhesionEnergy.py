@@ -169,14 +169,14 @@ for n in range(len(cluster_interface_adh_e)):
 		if n > 0 and cluster_interface_adh_e[n][1] < cluster_interface_adh_e[0][1]*0.85:
 			predicted_adhesion_e += cluster_interface_adh_e[n][1]/(len(primary_cluster_sites) + 1)
 			caca = "3a"
-		else:
+		else:		# This is the basic one for primaries
 			predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(primary_cluster_sites)
 			caca = "3b"
 	elif cluster_interface_adh_e[n][0] in secondary_cluster_sites:
 		if cluster_interface_adh_e[n][1] < cluster_interface_adh_e[0][1]*0.9 and len(primary_cluster_sites) <= 1:
 			predicted_adhesion_e += cluster_interface_adh_e[n][1]/(len(secondary_cluster_sites) * len(atom_surface_neighbours[str(cluster_interface_adh_e[n][0])]))
 			caca = "4a" + str([i for i in atom_surface_neighbours[str(cluster_interface_adh_e[n][0])]])
-		else:
+		else:		# this is the basic one for secondaries
 			predicted_adhesion_e += cluster_interface_adh_e[n][1]/len(secondary_cluster_sites)
 			caca = "4b"
 	print(caca)
