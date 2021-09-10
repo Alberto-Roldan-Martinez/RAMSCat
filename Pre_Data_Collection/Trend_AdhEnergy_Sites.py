@@ -7,6 +7,7 @@
 
 import sys
 import numpy as np
+import numpy.ma as ma
 from scipy.optimize import curve_fit
 import matplotlib as mpl
 mpl.use('TkAgg')
@@ -79,6 +80,10 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 				y_text = y[i, j]
 	ax.text(x_text, y_text, e_min*1.02, str("({:.3f},{:2.3f})".format(x_text, y_text)))
 
+# masking the data beyond zmax
+	z_mask = ma.masked_greater_equal(z, zlim[1], copy=True)
+	z = z_mask.filled(fill_value=0)
+
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
 
@@ -88,11 +93,14 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 
 	ax.set_xlabel(xlabel, fontsize=14)
 	ax.set_ylabel(ylabel, fontsize=14)
-	ax.set_zlabel(zlabel, fontsize=14, labelpad=10)
+	ax.set_zlabel(zlabel, fontsize=16, labelpad=10)
 	ax.set_xlim3d(xlim[0], xlim[1])
 	ax.set_ylim3d(ylim[0], ylim[1])
 	ax.set_zlim3d(zlim[0], 0)
 	ax.tick_params(axis='both', labelsize=12)
+#	ax.set_xticks([])
+#	ax.set_yticks([])
+#	ax.set_zticks(np.linspace(0, 1, 5))
 #	plt.subplots_adjust(left=0.15, right=0.9, top=0.8, bottom=0.1)
 	#legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
 	legend = ax.legend(loc="best")
@@ -196,9 +204,9 @@ for n in range(1, len(sys.argv)):
 	ic[symbol[-1]], icc[symbol[-1]], id[symbol[-1]], isd_a[symbol[-1]], isd_b[symbol[-1]], adh_e[symbol[-1]],\
 	scaled_adh_e[symbol[-1]], reference_adh_e[symbol[-1]] = get_data(data)
 
-x_min = min([min(isd_a[sym]) for sym in symbol])*0.99
+x_min = min([min(isd_a[sym]) for sym in symbol])*0.9
 x_max = max([max(isd_a[sym]) for sym in symbol])*1.1
-y_min = min([min(isd_b[sym]) for sym in symbol])*0.99
+y_min = min([min(isd_b[sym]) for sym in symbol])*0.9
 y_max = max([max(isd_b[sym]) for sym in symbol])*1.1
 z_min = min([min(adh_e[sym]) for sym in symbol])*1.1
 z_max = max([max(adh_e[sym]) for sym in symbol])*0.9
