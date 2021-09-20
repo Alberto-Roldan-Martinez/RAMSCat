@@ -179,9 +179,9 @@ def trend_morse_3D(x, y, z):
 def Validation_3D(ele, x0, y0, z0, popt, reference_e, imarker, icolour):
 	x = z0
 	y = morse_3D(np.array([x0, y0]), *popt) + reference_e
-	max_deviation = max([(y[i] - x[i]) for i in range(len(x))])
+	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
-																		   str(np.abs(round(max_deviation, 1))))
+																		   str(round(max_deviation, 1)))
 	return max_deviation
 
 ########################################################################################################################

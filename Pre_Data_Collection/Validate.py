@@ -81,16 +81,16 @@ def Validation_3D(ele, x, y, name, imarker, icolour):
 
 	trend_label, r2 = trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
 
-	deviation = [(y[i] - x[i]) for i in range(len(x))]
+	deviation = [np.abs(y[i] - x[i]) for i in range(len(x))]
 # Add label to each point
 	trend_file = open("Deviated_Addresses_EAdh.txt", 'w+')
-	trend_file.write("# Data that falls in a margin of error > 0.2\n")
+	trend_file.write("# Data that falls in a margin of error > 0.3\n")
 	for i in range(len(x)):
-		if x[i] <= 0 and np.abs(deviation[i]) > 0.2:
+		if x[i] <= 0 and np.abs(deviation[i]) > 0.5:
 			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 			trend_file.write("{} --- {}\n".format(i+1, name[i]))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
-																		   str(np.abs(round(max(deviation), 1))) + " eV")
+																		   str(round(max(deviation), 1)) + " eV")
 	trend_file.close()
 	return max(deviation), trend_label, r2
 
