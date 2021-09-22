@@ -12,9 +12,9 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
+icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] # n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
-iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1, 1, 1)),  (0, (3, 1, 1, 1, 1, 1))]
+iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1, 1, 1)),  (0, (3, 1, 1, 1, 1, 1))] # n=7
 
 
 def get_data(data):
@@ -61,7 +61,7 @@ def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
-		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
+		plt.savefig(figure_out_name + ".svg", figsize=(16, 16), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
@@ -77,22 +77,21 @@ def trend_lineal(x, y, symbol, xlim, colour, marker, line):
 	return trend_label, r2
 
 
-def Validation_3D(ele, x, y, name, imarker, icolour):
-
-	trend_label, r2 = trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
-
+def Validation(ele, x, y, name, imarker, icolour):
+#	trend_label, r2 = trend_lineal(x, y, ele, [min(x), max(x)], "g", "*", "-")
 	deviation = [np.abs(y[i] - x[i]) for i in range(len(x))]
 # Add label to each point
-	trend_file = open("Deviated_Addresses_EAdh.txt", 'w+')
-	trend_file.write("# Data that falls in a margin of error > 0.3\n")
-	for i in range(len(x)):
-		if x[i] <= 0 and np.abs(deviation[i]) > 0.5:
-			plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
-			trend_file.write("{} --- {}\n".format(i+1, name[i]))
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +\
+	if max(deviation) > 0.5:
+		trend_file = open("Deviated_Addresses_EAdh_" + str(ele) + ".txt", 'w+')
+		trend_file.write("# Data that falls in a margin of error > 0.5\n")
+		for i in range(len(x)):
+			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
+				trend_file.write("{} --- {}\n".format(i+1, name[i]))
+#				plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
+		trend_file.close()
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5, label=str(ele) + "$\cdot \\tau \leq$ " +\
 																		   str(round(max(deviation), 1)) + " eV")
-	trend_file.close()
-	return max(deviation), trend_label, r2
+	return max(deviation) #, trend_label, r2
 
 ########################################################################################################################
 dataset_length = 0
@@ -120,11 +119,22 @@ print("   The TOTAL dataset size is: ", dataset_length)
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Predicted_EAdh.txt", 'w+')
 for n, sym in enumerate(symbol):
-	max_deviation, trend_label, r2 = Validation_3D(sym, e[sym], predicted_e[sym], name[sym], imarker[n], icolour[n])
-	trend_file.write("# System = {}\n#\tE_Adh (eV)\t\tMaximum Absolute Error: \u03C4\u2264{:<1.2f} eV\n".format(sym,
-																								np.abs(max_deviation)))
-	trend_file.write("\t{}\t\tR\u00b2={:<1.2f}\n".format(trend_label, round(r2, 2)))
+	n_m = n
+	n_c = n
+	if n >= 2*len(icolour):
+		n_c = n - 2*len(icolour)
+	elif n >= len(icolour):
+		n_c = n - len(icolour)
+	if n >= len(imarker):
+		n_m = n - len(imarker)
 
+	max_deviation = Validation(sym, e[sym], predicted_e[sym], name[sym], imarker[n_m], icolour[n_c])
+#	max_deviation, trend_label, r2 = Validation(sym, e[sym], predicted_e[sym], name[sym], imarker[n], icolour[n])
+	trend_file.write("# System = {}\tData size {}\tE_Adh (eV)\tMaximum Absolute Error: \u03C4\u2264{:<1.2f} eV\n"
+					 .format(sym, len([i for i in e[sym] if i < 0]), np.abs(max_deviation)))
+#	trend_file.write("\t{}\t\tR\u00b2={:<1.2f}\n".format(trend_label, round(r2, 2)))
+
+plt.text(z_min*1.8/3, z_min*0.05, "Data Size = " + str(dataset_length))
 plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
 Display("$E_{Adh}$ (eV)", "Predicted $E_{Adh}$ (eV)", [z_min, 0], [z_min, 0], "")
 trend_file.close()
