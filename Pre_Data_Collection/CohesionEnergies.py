@@ -27,7 +27,7 @@ cohesion_e_bulk = sum([ecoh_bulk(i)[0] for i in elements]) / len(elements)
 #atoms = read(inputfiles[1])
 coordinating = {}
 if len(atoms_index) > 1:
-	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.25)
+	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.2)
 	a, b = neighborlist.neighbor_list('ij', atoms, cutoff)
 	for i in atoms_index:
 		coordinating[str(i)] = [b[n] for n in range(len(a)) if a[n] == i]

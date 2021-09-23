@@ -20,28 +20,20 @@ from Energies import Energies, Energy_prediction
 from WriteData import Write_labels, write_results
 
 if sys.argv:
-	arguments=sys.argv
+	argument = sys.argv[1]
 else:
-	arguments[1]= "."
+	argument = "."
 
 path = os.getcwd()
 name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
-cluster_elements = ["Au"]                           # Elements in the Cluster
-support = "MgO"                             # Surface name
-inputfiles = ["OUTCAR", "CONTCAR"]
-isolated_cluster = arguments[1]+"/gas/OUTCAR"           # ".../OTHER/Supported/MgO/Au/Basin_Hopping/1Au/gas/OUTCAR"
-isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+cluster_elements = ["Au"]                           		# Elements in the Cluster
+support = "MgO"                             				# Support's name
+inputfiles = ["OUTCAR", "CONTCAR"]							# files containing the energies and geometries
+isolated_cluster = argument + "/gas/OUTCAR"           	# file with the isolated cluster's energy
+isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"	# file with the support's energy
 
 
-#from ase.io import read
-#atoms = read(inputFiles[1])
-#from ase.visualize import view
-#view(atoms)
-print(name)
-
-#checkFiles([structureFile,energyFile,isolatedCluster])      	# it crashes with GenerationModel for Ecoh << eleNames
-								# comment it the get isolated clusters Ecoh only
 coordination = Coordination(inputfiles[1], cluster_elements, support)
 gcn = Generalised_coodination(inputfiles[1], cluster_elements, support)
 area = Areas(inputfiles[1], cluster_elements, support)
@@ -61,22 +53,4 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 Write_labels("labels.txt", labels)
 write_results("data.dat", values)
 
-
-energies = Energy_prediction(inputfiles[1], isolated_support, cluster_elements, support)
-#print(round(energy.adhesion,2), round(energies.e_adh,2))
-output = open("Eadh.dat", "w+")
-output.write("%.3f %.3f   # %s\n" %(energy.adhesion, energies.e_adh, name))
-output.close()
-#output = open("cc_Ecoh.dat", "w+")
-#output.write("%.3f %.3f  # %s\n" %(coordination.cluster_ave_coordination, energy.cohesion, name))
-#output.close()
-#output = open("Esurf.dat", "w+")
-#output.write("%.3f %.3f  # %s\n" %(energy.e_cluster_surface, energies.e_cluster_surface, name))
-#output.close()
-output = open("Eb.dat", "w+")
-output.write("%.3f %.3f  # %s\n" %(energy.binding, energies.e_binding, name))
-output.close()
-output = open("Etotal.dat", "w+")
-output.write("%.3f %.3f  # %s\n" %(energy.e_total, energies.e_system, name))
-output.close()
 

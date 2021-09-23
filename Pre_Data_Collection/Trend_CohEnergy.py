@@ -53,8 +53,11 @@ def SaveFig():
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
-def logarithm(x, a, b, c, d):
-	return d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
+# NOTE that 12 is the bulk coordination for FCC metals
+def logarithm(x, a):#, b, c): #, d):
+	return np.log(a)/np.log(a/(a+bulk_coord)) - (1/np.log(a/(a+bulk_coord)))*np.log(a+x)
+#	return 1/np.log(a/(a+b)) * (np.log(a) - c* np.log(a+x))
+#	d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
 
 
 def cubic(x, a, b, c, d):
@@ -70,11 +73,16 @@ def trend_function(x, y, bulk_coord, symbol, colour, marker, line):
 	x.append(bulk_coord)
 	y.append(1)
 	weights.append(0.1)
-	popt, pcov = curve_fit(cubic, x, y, sigma=weights)
-	r2 = 1-np.sqrt(sum([(y[i] - cubic(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
-	a, b, c, d = popt
-	trend_label = "Cubic: ax^3 + bx^2 +  cx + d = {:.2f}, {:.2f}, {:.2f}, {:.2f},".format(a, b, c, d)
-	plt.plot(np.linspace(0, 12, 150), cubic(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
+#	popt, pcov = curve_fit(cubic, x, y, sigma=weights)
+	popt, pcov = curve_fit(logarithm, x, y, sigma=weights)
+#	r2 = 1-np.sqrt(sum([(y[i] - cubic(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+	r2 = 1-np.sqrt(sum([(y[i] - logarithm(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+#	a, b, c, d = popt
+#	trend_label = "Cubic: ax^3 + bx^2 +  cx + d = {:.2f}, {:.2f}, {:.2f}, {:.2f},".format(a, b, c, d)
+	trend_label = "logarithmic: {:.2f}".format(*popt)
+	print(trend_label)
+#	plt.plot(np.linspace(0, 12, 150), cubic(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
+	plt.plot(np.linspace(0, 12, 150), logarithm(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
 	plt.plot(x, y, marker=marker, color=colour, linestyle="None", label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
 	return trend_label, popt, r2
@@ -82,10 +90,10 @@ def trend_function(x, y, bulk_coord, symbol, colour, marker, line):
 
 def Validation(ele, coord, coh_e, popt, imarker, icolour):
 	x = coh_e
-	y = [cubic(i, *popt) for i in coord]          		# in eV.atom^-1
-	max_deviation = max([(y[i] - x[i])*100/x[i] for i in range(len(x))])
+	y = [logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
+	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
-			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
+			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)) + "eV")
 
 	return max_deviation
 
@@ -117,7 +125,9 @@ for n in range(1, len(sys.argv)):
 	symbol = data[0][-1].split("/")[0]					# contains the list of systems' name
 	coord, coh_e, coh_e_bulk, bulk_coord = get_data(data)
 	max_deviation = Validation(symbol[:2], coord, coh_e, trend[symbol], imarker[n-1], icolour[n-1])
-	trend_file.write("# E_Coh/E_Coh^Bulk\tLogarithm interpolation: 1/E_Coh^Bulk * 1/log(a/(a+b)) * (log(a) - c* log(a+cc))\n")
-	trend_file.write("{}\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}%\n"
-					 .format(symbol, trend[symbol][0], trend[symbol][1], trend[symbol][2], r[symbol], np.abs(round(max_deviation, 1))))
+	trend_file.write("# E_Coh/E_Coh^Bulk\tLogarithm interpolation: 1/E_Coh^Bulk * log(a)/np.log(a/(a+bulk_coord)) - (1/np.log(a/(a+bulk_coord)))*np.log(a+cc)\n")
+	trend_file.write("{}\ta={:<3.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}eV\n"
+					 .format(symbol, trend[symbol][0], r[symbol], np.abs(round(max_deviation, 1))))
+#	trend_file.write("{}\ta={:<3.5f}\tb={:<5.5f}\tc={:<3.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}eV\n"
+#					 .format(symbol, trend[symbol][0], trend[symbol][1], trend[symbol][2], r[symbol], np.abs(round(max_deviation, 1))))
 Display("$\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", "Predicted $\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", [y_min, y_max], [y_min, y_max], "")

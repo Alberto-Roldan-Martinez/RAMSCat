@@ -42,13 +42,6 @@ def opt_atom_distance(support, site, element):          # Defines the optimised 
     return optimum_distance
 
 
-def sites(support):         # defines the common adsorption sites on a support sorted by adh, i.e., stronger to weaker.
-    sites = {
-        "MgO": ["O", "Mg"]
-    }
-    return sites[str(support)]
-
-
 def isolated_atoms(element):                     # energies of isolated atoms in vaccuo (RPBE)
     elements = {
                  'Fe': -3.4949,                 # 3rd row
@@ -67,7 +60,6 @@ def isolated_atoms(element):                     # energies of isolated atoms in
     return elements[element]
 
 
-
 def ecoh_bulk(element):                         # cohesion energies at bulk coordination (RPBE)
     ecoh = {
             'Co': [-7.1245, 12],    # hcp       # 3rd row
@@ -83,12 +75,12 @@ def ecoh_bulk(element):                         # cohesion energies at bulk coor
            }
     return ecoh[element]
 
-
-def ecoh_trend(element):                         # cohesion energies trend parameter (a in equations)
+def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
     coh_parameter = {
-            'Au': 3.18740093,                # 5th row
+            'Au': 10.88828,                # 5th row
            }
-    return coh_parameter[element]
+    a = coh_parameter[element]
+    return np.log(a)/np.log(a/(a + ecoh_bulk(element)[1])) - (1/np.log(a/(a + ecoh_bulk(element)[1])))*np.log(a+cc)
 
 
 def areas(element, coordination):                # Atomic areas previously calculated from surfaces as a function of the atom's coordination [0-->12]
@@ -133,30 +125,37 @@ def surf_energies(element, coordination):        # Atomic Surface energies previ
     return a * int(coordination) + b
 
 
-def morse_potential_depth(support, element, ics):                # considering as reference O sites and d_z
-    mp_depth = {
-            ('MgO', 'Au', -6.93621926, 2.96247442, 16.27817071),    # 5rd row
+def sites(support):         # defines the common adsorption sites on a support sorted by adh, i.e., stronger to weaker.
+    sites = {
+        "MgO": ["O", "Mg"]
     }
-    for i, sys in enumerate(mp_depth):
-        if sys[0] is support:
-            if sys[1] is element:
-                a = sys[2]
-                b = sys[3]
-                c = sys[4]
-    return a + b * np.log(ics + c)            # LOGARITHMIC
+    return sites[str(support)]
 
 
-def morse_potential(support, site, element, distance, d_eq):
-    mp = {
-            ('MgO', 'O',    'Au',   1.853,  2.324),    # 5rd row
-            ('MgO', 'Mg',   'Au',   1.139,  2.876),
-        }
-    for i, sys in enumerate(mp):
-        if sys[0] is support:
-            if sys[1] is site:
-                if sys[2] is element:
-                    a = sys[3]
-                    r_eq = sys[4]
-    return d_eq * (np.exp(-2 * a * (distance - r_eq)) - 2 * np.exp(-a * (distance - r_eq)))
+def morse_3D_energies(support, element, icc, x, y):
+    popts = {# support, metal, n-1											# popt and reference_e using Trend_AdhEnergy_Sites
+        ('MgO', 'Au',  1, 1.92146, 1.72757, 1.21384, 2.18831, 2.08383, 2.17571,  0.84201, 2.25829, -0.6396, -1.35581),		# 2 atoms
+        ('MgO', 'Au',  2, 1.18296, 1.57988, 0.94593, 2.88265, 1.42953, 1.96775, 13.43070, 1.60617, -0.3442, -1.65847),		# 3 atoms
+        ('MgO', 'Au',  3, 1.23430, 1.69203, 1.04552, 2.86776, 1.50758, 2.12566, 19.78013, 1.54962, -0.5365, -1.86308),		# 4 atoms
+        ('MgO', 'Au',  4, 1.32852, 1.84366, 1.05141, 2.83982, 1.41161, 2.10295, 27.30569, 1.43322, -0.5228, -1.96177),		# 5 atoms
+        ('MgO', 'Au',  5, 1.36965, 1.80618, 1.18215, 2.65505, 1.70042, 2.12625, 12.25984, 1.63363,  0.2132, -1.91265),		# 6 atoms
+        ('MgO', 'Au',  6, 1.27389, 1.76288, 0.87434, 2.84338, 1.52271, 2.09858, 17.30035, 1.53972, -0.8052, -1.71807),		# 7 atoms
+        ('MgO', 'Au',  7, 1.25468, 1.77093, 0.86635, 2.89051, 1.45040, 2.10521, 24.11202, 1.44576, -0.8657, -1.90081),		# 8 atoms
+        ('MgO', 'Au',  8, 1.47385, 1.89203, 0.88521, 2.61610, 2.08310, 2.15869,  7.15395, 1.77023, -1.1498, -1.37068),		# 9 atoms
+        ('MgO', 'Au',  9, 1.36951, 1.78969, 1.37531, 2.56345, 2.69254, 1.59514,  5.53220, 1.83200, -1.0898, -2.83989),		# 10 atoms
+        ('MgO', 'Au', 10, 1.27326, 1.80154, 1.17582, 2.85178, 1.78804, 2.07628, 23.30049, 1.51652, -1.2182, -2.69864)		# 11 atom
+            }
+    for i, sys in enumerate(popts):
+        if sys[0] == support:
+            if sys[1] == element:
+                if sys[2] == icc:
+                    support, element, icc, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min = sys
+                    adh_e = (a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-a2*(x - a_r_eq*np.sin(y/x)))) +
+                               b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-b2*(y - b_r_eq*np.sin(y/x))))) +\
+                               e_reference		# MORSE potentia
+
+    return adh_e, e_reference, e_min, [a2, b2]
+
+
 
 

@@ -120,7 +120,7 @@ average_z_interface = sum(z_c_interface) / len(z_c_interface)
 average_z_surface = sum(z_surface_neighbours) / len(z_surface_neighbours)
 average_interface_distance = average_z_interface - average_z_surface
 
-# Predicted Adhesion energy
+# Predicting Adhesion energy
 predicted_adhesion_e = []
 for i in cluster_interface:
 	isd_a = []

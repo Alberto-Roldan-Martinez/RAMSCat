@@ -19,7 +19,7 @@ from ase.io import read
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
-from Library import isolated_atoms, surf_energies, sites, morse_potential, ecoh_bulk, ecoh_trend, morse_potential_depth
+from Library import isolated_atoms, surf_energies, sites, ecoh_bulk, ecoh_trend, morse_3D_energies
 
 
 class Energies:
@@ -34,13 +34,20 @@ class Energies:
         e_atoms = sum([isolated_atoms(system[i].symbol) for i in range(len(system))
                        if system[i].symbol in cluster_elements])
 
+# c_coord = dictionary with the indexes of coordinating atoms within the cluster
         coordination = Coordination(inputfiles[1], cluster_elements, support)
         c_coord = coordination.cluster_coordinating
+# c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
         gcn = Generalised_coodination(inputfiles[1], cluster_elements, support)
         c_surf = gcn.cluster_surface_index
+# c_surf_area = area exposed to the vacuum according to interpolated area/atom in the Library
         area = Areas(inputfiles[1], cluster_elements, support)
         c_surf_area = area.cluster_surface_area
 
+# cohesion = cohesion energy per atom in the cluster in eV/atom from the DFT data
+# adhesion = adhesion energy in eV from the DFT calculated data
+# binding = binding energy in eV from the DFT calculated data
+# e_total = total energy in eV of the supported cluster from the DFT data
         self.cohesion = float((e_cluster - e_atoms) / len(cluster))
         self.adhesion = float(e_system - (e_cluster + e_slab))
 #        if sum(coordination.site_cluster_coordination) > 0:
@@ -49,7 +56,7 @@ class Energies:
 #            self.normalised_adhesion = self.adhesion
         self.binding = float((e_system - (e_slab + e_atoms))/len(cluster))
         self.e_total = float(e_system)
-
+# e_cluster_surface = surface energy (SE) in J/m^2 of the cluster atoms expossed to vacuum according to interpolated SE and area / atom in the Library
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
 
@@ -64,57 +71,80 @@ class Energy_prediction:
         system = read(inputfile)
         slab = read(isolated_support)
         e_slab = slab.get_total_energy()
-
+# c_coord = dictionary with the indexes of coordinating atoms within the cluster
+# interface_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y
         coordination = Coordination(inputfile, cluster_elements, support)
-        s_coord = coordination.support_coordinating
-        s_index = coordination.sites_index_all
-# D_eq for Morse Potential is defined by i_c and i_cc of the interface by a second order polynomial or logarithm function
-        i_c = coordination.interface_cluster
-        i_cc = coordination.interface_cc_average
         c_coord = coordination.cluster_coordinating
+        interface_distances = coordination.cluster_support_distances
 
+# c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
         gcn = Generalised_coodination(inputfile, cluster_elements, support)
         c_surf = gcn.cluster_surface_index
 
+# c_surf_area = area exposed to the vacuum according to interpolated area/atom in the Library
         area = Areas(inputfile, cluster_elements, support)
         c_surf_area = area.cluster_surface_area
 
-        self.e_adhesion(system, support, s_coord, s_index, i_c, i_cc)
-        self.e_cohesion(system, c_coord)
-        self.e_system = self.e_adh + e_slab + (self.e_coh * int(coordination.cluster_size) + self.e_atom)
-        self.e_binding = (self.e_system - (e_slab + self.e_atom))/int(coordination.cluster_size)
+# e_coh = predicted cohesion energy in eV of the whole cluster, i.e. N * E_coh/atom
+# e_atom = sum of all the atomic energies in eV in the cluster, i.e. N * E_i
+# e_adh = adhesion energy in eV as a function of the distance to the sites and the coordination within the cluster
+# e_system = total energy in eV
+# e_binding = binding energy in eV
+# e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
+
+        self.e_coh, e_atom = self.e_cohesion(system, c_coord)
+        self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord)
+        self.e_system = self.e_adh + e_slab + self.e_coh + e_atom
+        self.e_binding = self.e_system - e_slab - e_atom
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
-    def e_adhesion(self, system, support, s_coord, s_index, i_c, i_cc):
-        self.e_adh = 0
-        for site in sites(support):
-            for i in s_coord:
-                distances = []
-# D_eq for Morse Potential is defined by i_c and i_cc of the interface by a second order polynomial or log function
-                d_eq = morse_potential_depth(support, system[i].symbol, i_c*i_cc)         # R^2 = 0.94    <<< CHECK!
-                if len(s_coord[i]) > 0:
-                    for j in s_coord[i]:
-                        if system[j].symbol is site:
-                            distances.append([i, j, system.get_distance(i, j, mic=True, vector=False)])
-                    else:
-                        for j in s_index[site]:
-                            distances.append([i, j, system.get_distance(i, j, mic=True, vector=False)])
-                else:
-                    for j in s_index[site]:
-                        distances.append([i, j, system.get_distance(i, j, mic=True, vector=False)])
-
-                distances.sort(key=lambda x: x[2])
-                self.e_adh += morse_potential(support, site, system[distances[0][0]].symbol, distances[0][2], d_eq)\
-                              / (len(s_coord) * len(sites(support)))    # WHAT IF s_coord = 0?!?!?
-
     def e_cohesion(self, system, c_coord):
-        self.e_coh = 0
-        self.e_atom = 0
+        e_coh = 0
+        e_atom = 0
         for i in c_coord:
-            cc = len(c_coord[i])
-            bulk_coh, bulk_coord = ecoh_bulk(system[int(i)].symbol)
-            a = ecoh_trend(system[int(i)].symbol)
-            self.e_coh += float(1/abs(bulk_coh) * (bulk_coh*np.log(a)/np.log(a/(a+bulk_coord)) -
-                                                   (bulk_coh/np.log(a/(a+bulk_coord)))*np.log(a+cc)))
-            self.e_atom += float(isolated_atoms(system[int(i)].symbol))
+            e_coh += ecoh_trend(system[int(i)].symbol, len(c_coord[i]))
+            e_atom += float(isolated_atoms(system[int(i)].symbol))
+
+        return e_coh, e_atom
+
+    def e_adhesion(self, interface_distances, system, support, c_coord):
+        interface_adh_e = []
+        for i in interface_distances:
+            distance_a, distance_b = interface_distances[i]
+            adh_e, reference_e, e_min, distances_opt = morse_3D_Energies(support_name, system[int(i)].symbol,
+                                                                         len(c_coord[str(i)]), distance_a, distance_b)
+            interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5), round(distance_a[0][1]/distances_opt[0], 3),
+                                    round(distance_b[0][1]/distances_opt[1], 3)])
+# Adhesion Energy Prediction RULES
+# there is the distinction between two adsorption sites, i.e., strong and weak.
+# interaction with the stronger site, i.e., sites[0], has preference over sites[1]
+        interface_adh_e.sort(key=lambda x: x[1])
+        primary_sites = [interface_adh_e[0][0]]
+        secondary_sites = []
+        for n in range(1, len(interface_adh_e)):
+            i = interface_adh_e[n][0]
+            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
+                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
+                    primary_sites.append(i)
+                    for j in c_coord[str(i)]:
+                        if j in interface_indexes:
+                            secondary_sites.append(j)
+        if len(interface_adh_e) == len(primary_sites):
+            for n in range(1, len(cluster_interface_adh_e)):
+                i = interface_adh_e[n][0]
+                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
+                    primary_sites.remove(i)
+                    secondary_sites.append(i)
+        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+                               interface_adh_e[i][0] not in primary_sites])
+
+# Predict Adhesion energy
+        e_adh = 0
+        for n in range(len(interface_adh_e)):
+            if interface_adh_e[n][0] in primary_sites:
+                e_adh += interface_adh_e[n][1]/len(primary_sites)
+            elif interface_adh_e[n][0] in secondary_sites:
+                e_adh += interface_adh_e[n][1]/len(secondary_sites)
+
+        return e_adh
 
