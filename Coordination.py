@@ -42,8 +42,11 @@ class Coordination:
         self.support_cluster_min_distance_labels = [("dist_" + site) for site in sites(support)]
 
 # interface_cc_average "i_cc" = average interface atoms coordination within the cluster
-        self.interface_cc_average = sum([len(self.cluster_coordinating[n]) for n in self.interface_cluster_index]) /\
+        if len(self.interface_cluster_index) > 0:
+            self.interface_cc_average = sum([len(self.cluster_coordinating[str(n)]) for n in self.interface_cluster_index]) /\
                                     len(self.interface_cluster_index)
+        else:
+            self.interface_cc_average = 0
 
     def cluster_coordination(self, system, cluster_elements):
         average_coordination = 0
@@ -72,20 +75,27 @@ class Coordination:
         coordinating = {}
         cs_distance = {}
         cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
+        cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
+        interface_c_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
         cluster_support_distances = {}
         for site in sites(support):
             cs_distance[site] = 0
             distances = []
+            dist_array = []
             site_cluster_coordination[site] = 0
             support_zmax = max([i.position[2] for i in system if i.symbol == site])
             sites_index = [i.index for i in system if i.symbol == site and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
             s_sites.update({site: sites_index})
+            cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
+            interface_cluster_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
+
+
             optimised_distance = [opt_atom_distance(support, site, i) for i in cluster_elements]
             distance_cutoff = sum(optimised_distance) / len(optimised_distance)
             cutoff = neighborlist.natural_cutoffs(system, distance_cutoff)
             a, b, d = neighborlist.neighbor_list('ijd', system, cutoff)
 
-            for n in cluster_index:
+            for n in interface_c_index:
                 coord = [b[i] for i in range(len(a)) if a[i] == n and b[i] in sites_index and d[i] <= distance_cutoff*1.5]
                 if n not in coordinating:
                     coordinating[n] = coord
@@ -99,25 +109,21 @@ class Coordination:
                         if j not in interface_support_index:
                             interface_support_index.append(j)
                     distances.append(min([d[i] for i in range(len(a)) if a[i] == n and b[i] in coord]))
+                else:
+                    for j in sites_index:
+                        dist_array.append(system.get_distance(n, j, mic=True, vector=False))
+                    distances.append(min([dist_array]))
+                if n not in cluster_support_distances:
+                    cluster_support_distances[n] = [min(distances)]
+                else:
+                    cluster_support_distances[n].append(min(distances))
+
             if len(distances) > 0:
                 cs_distance[site] = float(sum(distances)/len(distances))
                 site_cluster_coordination[site] = int(len(distances))
             else:
-                dist_array = []
-                for i in cluster_index:
-                    for j in sites_index:
-                        dist_array.append(system.get_distance(i, j, mic=True, vector=False))
-                cs_distance[site] = float(min(dist_array))
+                cs_distance[site] = float(distances)
                 site_cluster_coordination[site] = 0
-
-            distances = []
-            for i in interface_cluster_index:
-                for j in sites_index:
-                    distances.append(system.get_distance(i, j, mic=True, vector=False))
-                if i not in cluster_support_distances:
-                    cluster_support_distances[i] = min(distances)
-                else:
-                    cluster_support_distances[i].append(min(distances))
 
         return cs_distance, coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances

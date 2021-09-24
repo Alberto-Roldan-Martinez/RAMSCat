@@ -19,7 +19,7 @@ from ase.io import read
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
-from Library import isolated_atoms, surf_energies, sites, ecoh_bulk, ecoh_trend, morse_3D_energies
+from Library import isolated_atoms, surf_energies, ecoh_trend, morse_3D_energies
 
 
 class Energies:
@@ -95,7 +95,7 @@ class Energy_prediction:
         self.e_coh, e_atom = self.e_cohesion(system, c_coord)
         self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord)
         self.e_total = self.e_adh + e_slab + self.e_coh + e_atom
-        self.e_binding = self.e_system - e_slab - e_atom
+        self.e_binding = self.e_total - e_slab - e_atom
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
     def e_cohesion(self, system, c_coord):
@@ -110,11 +110,11 @@ class Energy_prediction:
     def e_adhesion(self, interface_distances, system, support, c_coord):
         interface_adh_e = []
         for i in interface_distances:
-            distance_a, distance_b = interface_distances[i]
-            adh_e, reference_e, e_min, distances_opt = morse_3D_Energies(support_name, system[int(i)].symbol,
-                                                                         len(c_coord[str(i)]), distance_a, distance_b)
-            interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5), round(distance_a[0][1]/distances_opt[0], 3),
-                                    round(distance_b[0][1]/distances_opt[1], 3)])
+            adh_e, reference_e, e_min, distances_opt = morse_3D_energies(support, system[int(i)].symbol,
+                                            len(c_coord[str(i)]), interface_distances[i][0], interface_distances[i][1])
+            interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5),
+                                    round(interface_distances[i][0]/distances_opt[0], 3),
+                                    round(interface_distances[i][1]/distances_opt[1], 3)])
 # Adhesion Energy Prediction RULES
 # there is the distinction between two adsorption sites, i.e., strong and weak.
 # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
@@ -130,7 +130,7 @@ class Energy_prediction:
                         if j in interface_indexes:
                             secondary_sites.append(j)
         if len(interface_adh_e) == len(primary_sites):
-            for n in range(1, len(cluster_interface_adh_e)):
+            for n in range(1, len(interface_adh_e)):
                 i = interface_adh_e[n][0]
                 if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
                     primary_sites.remove(i)

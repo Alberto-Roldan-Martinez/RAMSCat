@@ -11,7 +11,7 @@
 '''
 
 import os, sys
-from CheckFiles import checkFiles
+# from CheckFiles import checkFiles
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
@@ -24,15 +24,17 @@ if sys.argv:
 else:
 	argument = "."
 
-path = os.getcwd()
-name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
+###################################################################################################
 cluster_elements = ["Au"]                           		# Elements in the Cluster
 support = "MgO"                             				# Support's name
 inputfiles = ["OUTCAR", "CONTCAR"]							# files containing the energies and geometries
-isolated_cluster = argument + "/gas/OUTCAR"           	# file with the isolated cluster's energy
+isolated_cluster = argument + "/gas/OUTCAR"           		# file with the isolated cluster's energy
 isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"	# file with the support's energy
+###################################################################################################
 
+path = os.getcwd()
+name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
 coordination = Coordination(inputfiles[1], cluster_elements, support)
 gcn = Generalised_coodination(inputfiles[1], cluster_elements, support)
@@ -47,8 +49,8 @@ labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coor
 values = [coordination.cluster_size, coordination.interface_cluster, coordination.site_cluster_coordination,
 		  coordination.interface_cc_average, coordination.cluster_ave_coordination, coordination.support_cluster_min_distance,
 		  z_distance.interface_height, z_distance.cluster_cm_surface_distance, float(gcn.gcn_average),
-		  area.cluster_interface_area, area.cluster_surface_area, energy.e_cluster_surface, energy.cohesion,
-		  energy.adhesion, energy.binding, energy.e_total, name]
+		  area.cluster_interface_area, area.cluster_surface_area, energy.e_cluster_surface, energy.cohesion/coordination.cluster_size,
+		  energy.adhesion, energy.binding/coordination.cluster_size, energy.e_total, name]
 
 Write_labels("labels.txt", labels)
 write_results("data.dat", values)

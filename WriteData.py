@@ -106,17 +106,17 @@ def write_results(outfile,data):
         if type(dat) is int:
             output.write(" {:3d} " .format(dat))
         elif type(dat) is float:
-            output.write(" {:> 9.3f}"  .format(dat))
+            output.write(" {:>9.3f}"  .format(dat))
         elif type(dat) is str:
             output.write(" # {:>s}" .format(dat))
         else:
-            output.write(" {:> 9.3f}" .format(dat))
+            output.write(" {:>9.3f}" .format(dat))
 
     output.write("\n")
     output.close()
 
 
-def write_outcar(structure_file, energy):
+def write_out(structure_file, energy):
     system = read(structure_file)
     output = open("OUTCAR", "w+")
     output.write(" energy  without entropy= {:> 12.6f} energy(sigma->0) = {:> 12.6f}\n" .format(energy, energy))
@@ -125,7 +125,7 @@ def write_outcar(structure_file, energy):
     xyz = system.get_positions()
     for i in range(len(xyz)):
         x, y, z = xyz[i]
-        output.write(" %.8f  %.8f  %.8f" %(x, y, z))
+        output.write(" {:> 5.8f}  {:> 5.8f}  {:> 5.8f}" .format(x, y, z))
         output.write("\n")
     output.write("---------------------------\n")
     output.close()
