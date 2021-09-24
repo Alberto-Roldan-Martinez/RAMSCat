@@ -38,7 +38,9 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 		  energies.e_adh, energies.e_binding/coordination.cluster_size, energies.e_total, name]
 
 
-Write_labels("Predicted.dat", labels)
+Write_labels("Predicted.txt", labels)
 write_results("Predicted.dat", values)
-write_out(structurefile, energies.e_total)
+# CONCATENATE txt and dat for VALIDATION
+# comment for VALIDATION
+#write_out(structurefile, energies.e_total)
 

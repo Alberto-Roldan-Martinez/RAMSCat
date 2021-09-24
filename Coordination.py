@@ -32,7 +32,7 @@ class Coordination:
 # sites_index_all = dictionary with the indexes of surface sites per kind of site
 # interface_cluster_index = indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
 # interface_support_index = indexes of the support coordinating with the cluster at 1.5 * optimised distance
-# site_cluster_coordination "cs_X" = dictionary with the number of surface sites (X) coordinating with the cluste
+# site_cluster_coordination "cs_X" = dictionary with the number of coordinating cluster atoms with the support sites (X)
         self.support_cluster_min_distance, self.support_coordinating, self.sites_index_all, \
         self.interface_cluster_index, self.interface_support_index, self.site_cluster_coordination,\
         self.cluster_support_distances = self.sites_coordination(system, cluster_elements, support)
@@ -118,12 +118,8 @@ class Coordination:
                 else:
                     cluster_support_distances[n].append(min(distances))
 
-            if len(distances) > 0:
-                cs_distance[site] = float(sum(distances)/len(distances))
-                site_cluster_coordination[site] = int(len(distances))
-            else:
-                cs_distance[site] = float(distances)
-                site_cluster_coordination[site] = 0
+            cs_distance[site] = float(sum(distances)/len(distances))
+            site_cluster_coordination[site] = int(len(coordinating))
 
         return cs_distance, coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances
