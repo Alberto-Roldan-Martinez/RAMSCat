@@ -16,7 +16,7 @@ from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
 from Zdistance import Cluster_surface_distance
-from Energies import Energies, Energy_prediction
+from Energies import Energies
 from WriteData import Write_labels, write_results
 
 if sys.argv:

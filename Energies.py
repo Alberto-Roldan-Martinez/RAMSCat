@@ -88,13 +88,13 @@ class Energy_prediction:
 # e_coh = predicted cohesion energy in eV of the whole cluster, i.e. N * E_coh/atom
 # e_atom = sum of all the atomic energies in eV in the cluster, i.e. N * E_i
 # e_adh = adhesion energy in eV as a function of the distance to the sites and the coordination within the cluster
-# e_system = total energy in eV
+# e_total = total energy in eV
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
         self.e_coh, e_atom = self.e_cohesion(system, c_coord)
         self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord)
-        self.e_system = self.e_adh + e_slab + self.e_coh + e_atom
+        self.e_total = self.e_adh + e_slab + self.e_coh + e_atom
         self.e_binding = self.e_system - e_slab - e_atom
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
