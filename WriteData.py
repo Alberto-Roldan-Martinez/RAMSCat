@@ -100,7 +100,7 @@ def write_results(outfile, data):
         else:
             line.append(value)
 
-    output = open(outfile, "a+")
+    output = open(outfile, "w+")
     output.write("  ")
     for n, dat in enumerate(line):
         if type(dat) is int:

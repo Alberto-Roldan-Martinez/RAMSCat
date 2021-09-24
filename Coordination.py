@@ -118,7 +118,11 @@ class Coordination:
                 else:
                     cluster_support_distances[n].append(min(distances))
 
-            cs_distance[site] = float(sum(distances)/len(distances))
+            if len(distances) > 1:
+                cs_distance[site] = float(sum(distances)/len(distances))
+            else:
+                print(distances[0])
+                cs_distance[site] = float(distances[0])
             site_cluster_coordination[site] = int(len(coordinating))
 
         return cs_distance, coordinating, s_sites, interface_cluster_index, interface_support_index, \

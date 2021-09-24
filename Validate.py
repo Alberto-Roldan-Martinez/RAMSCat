@@ -21,6 +21,7 @@ def get_data(dataset):
 	ifile = open(dataset).readlines()
 	dataset = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	labels_line = len([1 for i in range(len(ifile)) if ifile[i].startswith("#") is True]) - 2
+	un_labels = ifile[labels_line].split()
 #     Column   0 =     N      = Total number of atoms forming the cluster
 #     Column   1 =    i_c     = Number of cluster atoms coordinating the surface
 #     Column   2 =    cs_O    = Number of surface sites coordinating with the cluster
@@ -41,20 +42,21 @@ def get_data(dataset):
 #     Column  17 =   Etotal   = Total energy of the system (in eV)
 #     Column  18 = structure_path
 
+	un_labels.pop(0)
 	labels = []
-	for i in range(len(ifile[labels_line].split())):
+	for i in range(len(un_labels)):
 		if i in [6, 7, 9]:
-			labels.append(ifile[labels_line].split()[i] + " $(\AA)$")
+			labels.append(un_labels[i] + " $(\AA)$")
 		elif i in [11, 12]:
-			labels.append(ifile[labels_line].split()[i] + " $(\AA^{2})$")
+			labels.append(un_labels[i] + " $(\AA^{2})$")
 		elif i in [13]:
-			labels.append(ifile[labels_line].split()[i] + " $(J \cdot m^{\minus 2})$")
+			labels.append(un_labels[i] + " $(J \cdot m^{\minus 2})$")
 		elif i in [14, 16]:
-			labels.append(ifile[labels_line].split()[i] + " $(eV \cdot atom^{\minus 1})$")
+			labels.append(un_labels[i] + " $(eV \cdot atom^{\minus 1})$")
 		elif i in [15, 17]:
-			labels.append(ifile[labels_line].split()[i] + " $(eV)$")
+			labels.append(un_labels[i] + " $(eV)$")
 		else:
-			labels.append(ifile[labels_line].split()[i])
+			labels.append(un_labels[i])
 
 	data = []
 	symbol = []
@@ -143,5 +145,5 @@ for n, label in enumerate(labels_a):
 	axis_min = min(data_a[:][n] + data_b[:][n])
 	plt.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
 	plt.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
-	Display(label, "Predicted " + label, [axis_min, axis_max], [axis_min, axis_max], "")
+	Display(label, "Predicted " + label, [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
 trend_file.close()
