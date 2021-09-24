@@ -31,7 +31,7 @@ class Write_labels:
             else:
                 heading.append(value)
 
-        output = open(outfile,"w+")
+        output = open(outfile, "w+")
         output.write("#\n#\n#\n")
         for dat in line:
             output.write("#     %s\n" % dat)
@@ -90,7 +90,7 @@ class Write_labels:
 
 
 
-def write_results(outfile,data):
+def write_results(outfile, data):
     line = []
     for value in data:
         if type(value) is list:
