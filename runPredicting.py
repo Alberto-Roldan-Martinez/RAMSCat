@@ -4,13 +4,13 @@ Please cite - A. Shayeghi et al, PCCP, 2015, 17, 2104-2112
 Authors - The Johnston Group 10/7/15
 
 '''
-
+import time
 import GA.Input as In
 #from GA.Graphene import Graphene                        # to generate the surface
 from GA.MgO import MgO
 from GA.NewPoolGA import poolGA                         # generates:  pool.dat and POSCARs
                                                         # reads:      OUTCAR for final energy and structure
-
+start_time = time.time()
 
 eleNames = ["Au"]                                       # elements in the cluster
 eleNums = [10]                                           # number of atoms in the cluster
@@ -32,3 +32,6 @@ subString = "/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py"     # pac
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 
+time_out = open("Calculation_time.txt", 'w+')
+time_out.write("Time used to execute GA: {} seconds". format(time.time() - start_time))
+time_out.close()
