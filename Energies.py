@@ -119,6 +119,7 @@ class Energy_prediction:
 # there is the distinction between two adsorption sites, i.e., strong and weak.
 # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
         interface_adh_e.sort(key=lambda x: x[1])
+        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
         primary_sites = [interface_adh_e[0][0]]
         secondary_sites = []
         for n in range(1, len(interface_adh_e)):

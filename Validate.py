@@ -20,7 +20,7 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 def get_data(dataset):
 	ifile = open(dataset).readlines()
 	dataset = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
-	labels_line = len([1 for i in range(len(ifile)) if ifile[i].startswith("#") is True]) - 2
+	labels_line = len([1 for i in range(len(ifile)) if ifile[i].startswith("#") is True]) - 1
 	un_labels = ifile[labels_line].split()
 #     Column   0 =     N      = Total number of atoms forming the cluster
 #     Column   1 =    i_c     = Number of cluster atoms coordinating the surface
@@ -30,8 +30,8 @@ def get_data(dataset):
 #     Column   5 =     cc     = Average atomic coordination within the cluster
 #     Column   6 =   dist_O   = Average of minimum distances (in Å) between the surface sites and the clusters atoms
 #     Column   7 =  dist_Mg   = Average of minimum distances (in Å) between the surface sites and the clusters atoms
-#     Column   8 = cs_height  = Number of surface sites coordinating with the cluster
-#     Column   9 =   Zdist    = Distance (in Å) between the average surface hight and the cluster's centre of mass
+#     Column   8 = cs_height  = Distance (in Å) between the surface and the cluster
+#     Column   9 =   Zdist    = Distance (in Å) between the average surface high and the cluster's centre of mass
 #     Column  10 =    GCN     = Average generalised coordination number for the atoms in the cluster excluding the coordination with the support
 #     Column  11 =  c_i_area  = Cluster interface area (in Angstrom^2) -- check Library
 #     Column  12 =  c_s_area  = Area exposed by the cluster excluding the interface (in Angstrom^2)
@@ -43,26 +43,21 @@ def get_data(dataset):
 #     Column  18 = structure_path
 
 	un_labels.pop(0)
-	labels = []
-	for i in range(len(un_labels)):
-		if i in [6, 7, 9]:
-			labels.append(un_labels[i] + " $(\AA)$")
-		elif i in [11, 12]:
-			labels.append(un_labels[i] + " $(\AA^{2})$")
-		elif i in [13]:
-			labels.append(un_labels[i] + " $(J \cdot m^{\minus 2})$")
-		elif i in [14, 16]:
-			labels.append(un_labels[i] + " $(eV \cdot atom^{\minus 1})$")
-		elif i in [15, 17]:
-			labels.append(un_labels[i] + " $(eV)$")
-		else:
-			labels.append(un_labels[i])
+	site_a = un_labels[2][3:]
+	site_b = un_labels[3][3:]
+	labels = ["$NP_{n}$", "# $NP^{interface}$", "# " + site_a + "$^{interface}$", "# " + site_b + "$^{interface}$",
+			  "$\overline{coordination_{NP^{interface}}}$",
+			  "$\overline{d_{NP-" + site_a + "}^{min}}$ $(\AA)$", "$\overline{d_{NP-" + site_b + "}^{min}}$ $(\AA)$",
+			  "$\overline{d^{interface}}$ $(\AA)$", "$d_{support - NP_{CoM}}$ $(\AA)$", "$\overline{GCN_{NP}}$",
+			  "$Area_{NP^{interface}}$ $(\AA^{2})$", "$Area_{NP^{external}}$ $(\AA^{2})$",
+			  "$\gamma_{NP}$ $(J \cdot m^{\minus 2})$", "$E_{Coh}$ $(eV \cdot atom^{\minus 1})$",
+			  "$E_{Adh}$ $(eV)$", "$E_{B}$ $(eV \cdot atom^{\minus 1})$", "$E_{Total}$ $(eV)$"]
 
 	data = []
 	symbol = []
 	for i in range(len(dataset)):
-		if float(dataset[i][14]) and float(dataset[i][15]) and float(dataset[i][16]) and float(dataset[i][17]) <= 0.25 :
-			data.append([float(j) for j in dataset[i][:-2]])
+		if float(dataset[i][14]) and float(dataset[i][15]) and float(dataset[i][16]) and float(dataset[i][17]) <= 0.25:
+			data.append([float(j)for j in dataset[i][:-2]])
 			symbol.append(str(dataset[i][-1].split("/")[1] + dataset[i][-1].split("/")[2]))
 
 	return data, labels, symbol
@@ -115,7 +110,7 @@ if len(labels_a) != len(labels_b):
 if len(data_a) != len(data_b):
 	print(" ** The number of rows is {:d} and {:d} for {} and {} **".format(len(data_a), len(data_b), *sys.argv[1:]))
 	exit()
-for i in range(len(data_a)):
+for i in range(len(symbol_a)):
 	if symbol_a[i] != symbol_b[i]:
 		print(" *** The entries in row {:d} are different in for {} and {} ***".format(i, *sys.argv[1:]))
 		exit()
@@ -138,12 +133,14 @@ for n, label in enumerate(labels_a):
 	if n >= len(imarker):
 		n_m = i - len(imarker)
 
-	max_deviation = Validation(name, data_a[:][n], data_b[:][n], imarker[n_m], icolour[n_c])
+	x = [data_a[i][n] for i in range(len(data_a))]
+	y = [data_a[i][n] for i in range(len(data_b))]
+	max_deviation = Validation(name, x, y, imarker[n_m], icolour[n_c])
 	trend_file.write("# Column {}: {}\tSystem {}\tMaximum Absolute Error: \u03C4\u2264{:<1.2f}\n"
 					 .format(n, label, name, max_deviation))
-	axis_max = max(data_a[:][n] + data_b[:][n])
-	axis_min = min(data_a[:][n] + data_b[:][n])
-	plt.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
+	axis_max = max(x + y) + np.abs(max(x + y)*0.05)
+	axis_min = min(x + y) - np.abs(min(x + y)*0.05)
+#	plt.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
 	plt.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
 	Display(label, "Predicted " + label, [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
 trend_file.close()
