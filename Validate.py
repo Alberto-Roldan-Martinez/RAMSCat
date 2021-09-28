@@ -48,19 +48,21 @@ def get_data(dataset):
 	labels = ["$NP_{n}$", "# $NP^{interface}$", "# " + site_a + "$^{interface}$", "# " + site_b + "$^{interface}$",
 			  "$\overline{coordination_{NP^{interface}}}$",
 			  "$\overline{d_{NP-" + site_a + "}^{min}}$ $(\AA)$", "$\overline{d_{NP-" + site_b + "}^{min}}$ $(\AA)$",
-			  "$\overline{d^{interface}}$ $(\AA)$", "$d_{support - NP_{CoM}}$ $(\AA)$", "$\overline{GCN_{NP}}$",
-			  "$Area_{NP^{interface}}$ $(\AA^{2})$", "$Area_{NP^{external}}$ $(\AA^{2})$",
+			  "$\overline{d^{interface}}$ $(\AA)$", "$d_{ \overline{support} - NP_{CoM}}$ $(\AA)$",
+			  "$\overline{GCN_{NP}}$", "$Area_{NP^{interface}}$ $(\AA^{2})$", "$Area_{NP^{external}}$ $(\AA^{2})$",
 			  "$\gamma_{NP}$ $(J \cdot m^{\minus 2})$", "$E_{Coh}$ $(eV \cdot atom^{\minus 1})$",
 			  "$E_{Adh}$ $(eV)$", "$E_{B}$ $(eV \cdot atom^{\minus 1})$", "$E_{Total}$ $(eV)$"]
 
 	data = []
+	system_name = []
 	symbol = []
 	for i in range(len(dataset)):
 		if float(dataset[i][14]) and float(dataset[i][15]) and float(dataset[i][16]) and float(dataset[i][17]) <= 0.25:
 			data.append([float(j)for j in dataset[i][:-2]])
+			system_name.append(str(dataset[i][-1]))
 			symbol.append(str(dataset[i][-1].split("/")[1] + dataset[i][-1].split("/")[2]))
 
-	return data, labels, symbol
+	return data, labels, symbol, labels_line, system_name
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -89,19 +91,19 @@ def SaveFig():
 
 
 def Validation(name, x, y, imarker, icolour):
-	deviation = [np.abs(y[i] - x[i]) for i in range(len(x))]
+	deviation = [np.abs((y[i] - x[i])/x[i]) for i in range(len(x))]
 # Add label to each point if deviation is larger than 0.5
 	if max(deviation) > 0.5:
 		for i in range(len(x)):
 			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
 				plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5,
-			 label=str(name) + "$\cdot \\tau \leq$ " + str(round(max(deviation), 1)))
+			 label=str(name) + "$\cdot \\tau \leq$ " + str(round(max(deviation), 1)) + "%")
 	return max(deviation)
 
 ########################################################################################################################
-data_a, labels_a, symbol_a = get_data(sys.argv[1])
-data_b, labels_b, symbol_b = get_data(sys.argv[2])
+data_a, labels_a, symbol_a, labels_line_a, system_name_a = get_data(sys.argv[1])
+data_b, labels_b, symbol_b, labels_line_b, system_name_b = get_data(sys.argv[2])
 
 # CONTROL of comparable files
 if len(labels_a) != len(labels_b):
@@ -109,38 +111,56 @@ if len(labels_a) != len(labels_b):
 	exit()
 if len(data_a) != len(data_b):
 	print(" ** The number of rows is {:d} and {:d} for {} and {} **".format(len(data_a), len(data_b), *sys.argv[1:]))
+	data_missing = []
+	for i in range(len(symbol_a)):
+		if system_name_a[i] not in system_name_b:
+			data_missing.append([i + labels_line_a, system_name_a[i]], sys.argv[2])
+	for i in range(len(symbol_b)):
+		if system_name_b[i] not in system_name_a:
+			data_missing.append([i + labels_line_b, system_name_b[i], sys.argv[1]])
+	if len(data_missing) == 0:
+		print("\tThere are no systems missing")
+	else:
+		for i in data_missing:
+			print("\tIn line {:d}, the system {} is missing in {}".format(*i))
 	exit()
 for i in range(len(symbol_a)):
 	if symbol_a[i] != symbol_b[i]:
 		print(" *** The entries in row {:d} are different in for {} and {} ***".format(i, *sys.argv[1:]))
 		exit()
-print("   The dataset size is: ", len(symbol_a))
+print("   The dataset size is: ", len(system_name_a))
 
 #--------------------------------------- Validation ---------------------------------------
 trend_file = open("Validation_Summary.txt", 'w+')
-name = symbol_a[0]
-for n, label in enumerate(labels_a):
-	i = 0
-	if symbol_a[i] != name:
-		name = symbol_a[i]
-		i += 1
-	n_m = i
-	n_c = i
-	if i >= 2*len(icolour):
-		n_c = i - 2*len(icolour)
-	elif i >= len(icolour):
-		n_c = i - len(icolour)
-	if n >= len(imarker):
-		n_m = i - len(imarker)
+names = []
+for i in symbol_a:
+	if i not in names:
+		names.append(i)
+print(names)
+axis = []
+for n in range(13, len(labels_a)):
+	for i, name in enumerate(names):
+		n_m = i
+		n_c = i
+		if i >= 2*len(icolour):
+			n_c = i - 2*len(icolour)
+		elif i >= len(icolour):
+			n_c = i - len(icolour)
+		if n >= len(imarker):
+			n_m = i - len(imarker)
 
-	x = [data_a[i][n] for i in range(len(data_a))]
-	y = [data_a[i][n] for i in range(len(data_b))]
-	max_deviation = Validation(name, x, y, imarker[n_m], icolour[n_c])
-	trend_file.write("# Column {}: {}\tSystem {}\tMaximum Absolute Error: \u03C4\u2264{:<1.2f}\n"
-					 .format(n, label, name, max_deviation))
-	axis_max = max(x + y) + np.abs(max(x + y)*0.05)
-	axis_min = min(x + y) - np.abs(min(x + y)*0.05)
+		x = [data_a[j][n+1] for j in range(len(data_a)) if symbol_a[j] == name]
+		y = [data_b[j][n+1] for j in range(len(data_b)) if symbol_b[j] == name]
+		axis += x + y
+#		print(labels_a[n], n, i, name, x, y)
+#		exit()
+		max_deviation = Validation(name, x, y, imarker[n_m], icolour[n_c])
+		trend_file.write("# Column {}: {}\tSystem {}\tMaximum Absolute Error: \u03C4\u2264{:<1.2f}\n"
+						 .format(n, labels_a[n], name, max_deviation))
+
+	axis_max = max(axis) + np.abs(max(axis)*0.05)
+	axis_min = min(axis) - np.abs(min(axis)*0.05)
 #	plt.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
 	plt.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
-	Display(label, "Predicted " + label, [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
+	Display(labels_a[n], "Predicted " + labels_a[n], [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
 trend_file.close()

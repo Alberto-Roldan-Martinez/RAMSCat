@@ -42,5 +42,9 @@ Write_labels("Predicted.txt", labels)
 write_results("Predicted.dat", values)
 # CONCATENATE txt and dat for VALIDATION
 # comment for VALIDATION
+
+# CHANGE name in GA
+
+
 #write_out(structurefile, energies.e_total)
 
