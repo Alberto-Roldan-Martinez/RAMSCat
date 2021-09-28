@@ -80,7 +80,8 @@ def ecoh_trend(element, cc):                         # cohesion energies trend p
             'Au': 10.88828,                # 5th row
            }
     a = coh_parameter[element]
-    return -1*(np.log(a)/np.log(a/(a + ecoh_bulk(element)[1])) - (1/np.log(a/(a + ecoh_bulk(element)[1])))*np.log(a+cc))
+    return (np.log(a)/np.log(a/(a + ecoh_bulk(element)[1])) -
+            (1/np.log(a/(a + ecoh_bulk(element)[1])))*np.log(a+cc)) * ecoh_bulk(element)[0]
 
 
 def areas(element, coordination):                # Atomic areas previously calculated from surfaces as a function of the atom's coordination [0-->12]

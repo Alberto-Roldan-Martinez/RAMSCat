@@ -54,9 +54,8 @@ def SaveFig():
 
 
 # NOTE that 12 is the bulk coordination for FCC metals
+# Coh is NORMALISED by the bulk Coh
 def logarithm(x, a):#, b, c): #, d):
-
-# IS it actually NORMALISED???
 	return np.log(a)/np.log(a/(a+bulk_coord)) - (1/np.log(a/(a+bulk_coord)))*np.log(a+x)
 #	return 1/np.log(a/(a+b)) * (np.log(a) - c* np.log(a+x))
 #	d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
