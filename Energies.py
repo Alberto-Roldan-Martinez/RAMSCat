@@ -95,7 +95,7 @@ class Energy_prediction:
         self.e_coh, e_atom = self.e_cohesion(system, c_coord)
         self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord)
         self.e_total = self.e_adh + e_slab + (self.e_coh + e_atom) * len(c_coord)
-        self.e_binding = self.e_total - e_slab - e_atom * len(c_coord)
+        self.e_binding = (self.e_total - e_slab - e_atom * len(c_coord))/len(c_coord)
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
     def e_cohesion(self, system, c_coord):

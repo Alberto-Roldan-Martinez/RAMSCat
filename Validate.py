@@ -152,8 +152,6 @@ for n in range(13, len(labels_a)):
 		x = [data_a[j][n+1] for j in range(len(data_a)) if symbol_a[j] == name]
 		y = [data_b[j][n+1] for j in range(len(data_b)) if symbol_b[j] == name]
 		axis += x + y
-#		print(labels_a[n], n, i, name, x, y)
-#		exit()
 		max_deviation = Validation(name, x, y, imarker[n_m], icolour[n_c])
 		trend_file.write("# Column {}: {}\tSystem {}\tMaximum Absolute Error: \u03C4\u2264{:<1.2f}\n"
 						 .format(n, labels_a[n], name, max_deviation))
