@@ -66,38 +66,51 @@ def get_data(dataset):
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
-	plt.xlabel(str(xlabel), fontsize=14)
-	plt.ylabel(str(ylabel), fontsize=14)
-	plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
-#	plt.xticks(np.arange(int(xlim[0]), int(xlim[1]), 1))   # Xmin,Xmax,Xstep
-	plt.xlim(xlim)
-	plt.ylim(ylim)
+	ax.set_xlabel(xlabel, fontsize=14)
+	ax.set_ylabel(ylabel, fontsize=14)
+	ax.tick_params(axis='both', labelsize=12)
+	ax.set_xlim(xlim)
+	ax.set_ylim(ylim)
 	if trend_label != "":
-		plt.title(trend_label)
-	plt.legend(loc='best')
-	plt.tight_layout()
+		ax.set_title(trend_label, position=(0.5, 0.95))
+# make BLUE the structures used for fitting, e.g. 2, 3, 4a, 5a, ...
+	fitted_structures = ["2", "3", "4a", "5a", "6a", "7", "8", "9", "10", "11"]
+	legend = ax.legend(loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0.) #loc='best')
+	for text in legend.get_texts():
+		text_start = text.get_text().split("$")[0][2:]
+		if text_start in fitted_structures:
+			plt.setp(text, color="b")
+		else:
+			plt.setp(text, color="k")
+	figure.tight_layout()#rect=[0, 0, 0.75, 1])
 	plt.ion()
 	plt.show()
 	SaveFig()
-	plt.clf()
-
+	figure.clf()
+#		labels_colour = []
+# make BLUE the structures used for fitting, e.g. 2, 3, 4a, 5a, ...
+#	fitted_structures = ["2", "3", "4a", "5a", "6a", "7", "8", "9", "10", "11"]
+#	if name[2:] in fitted_structures:
+#		label_colour = "blue"
+#	else:
+#		labels_colour = "black"
 
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
-		plt.savefig(figure_out_name + ".svg", figsize=(16, 16), clear=True,
+		plt.savefig(figure_out_name + ".svg", figsize=(14, 16), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 
 def Validation(name, x, y, imarker, icolour):
 	deviation = [np.abs((y[i] - x[i])/x[i]) for i in range(len(x))]
 # Add label to each point if deviation is larger than 0.5
-	if max(deviation) > 0.5:
+	if max(deviation) > 1.0:
 		for i in range(len(x)):
 			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
-				plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5,
+				ax.text(x[i]+0.02, y[i]+0.02, str(i+1))
+	ax.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5,
 			 label=str(name) + "$\cdot \\tau \leq$ " + str(round(max(deviation), 1)) + "%")
 	return max(deviation)
 
@@ -136,9 +149,10 @@ names = []
 for i in symbol_a:
 	if i not in names:
 		names.append(i)
-print(names)
 axis = []
 for n in range(13, len(labels_a)):
+	figure = plt.figure(figsize=(8, 6), clear=True)
+	ax = figure.add_subplot()
 	for i, name in enumerate(names):
 		n_m = i
 		n_c = i
@@ -158,7 +172,7 @@ for n in range(13, len(labels_a)):
 
 	axis_max = max(axis) + np.abs(max(axis)*0.05)
 	axis_min = min(axis) - np.abs(min(axis)*0.05)
-#	plt.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
-	plt.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
+#	ax.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
+	ax.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
 	Display(labels_a[n], "Predicted " + labels_a[n], [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
 trend_file.close()
