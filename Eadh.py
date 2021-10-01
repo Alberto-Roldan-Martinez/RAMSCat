@@ -1,7 +1,7 @@
-'''
+"""
     by Alberto Roldan
 
-'''
+"""
 
 from ase.io import read
 from Coordination import Coordination

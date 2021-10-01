@@ -1,4 +1,4 @@
-'''
+"""
     Alberto Roldan
 
     Check if the input files are readable
@@ -7,7 +7,7 @@
         - Read geometry file
         - Read energy file
 
-'''
+"""
 
 def checkFiles(Files):
     for f in Files:

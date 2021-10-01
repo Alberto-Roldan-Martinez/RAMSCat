@@ -1,4 +1,4 @@
-'''
+"""
     by Alberto Roldan
 
     Reads inputs containing the energies and calculate
@@ -12,7 +12,7 @@
 
     STRUCTURE:
 
-'''
+"""
 
 import numpy as np
 from ase.io import read

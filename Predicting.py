@@ -1,9 +1,9 @@
-'''
+"""
     Versions:
         Alberto: 08/2019
         Alberto: 09/2020
 
-'''
+"""
 import os
 from Coordination import Coordination
 from GCN import Generalised_coodination

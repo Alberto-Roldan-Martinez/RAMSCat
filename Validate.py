@@ -1,9 +1,9 @@
-'''
+"""
 
 	Compares the columns in two input files if the values in column X and Y are < 0.25
 	USAGE: ~.py a.dat b.dat
 
-'''
+"""
 
 import sys
 import numpy as np

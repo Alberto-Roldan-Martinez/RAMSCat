@@ -1,4 +1,4 @@
-'''
+"""
     Versions:
         Alberto: 08/2019
 
@@ -8,7 +8,7 @@
         - Import coordination data
         - Import energy from the OUTCAR
 
-'''
+"""
 
 from ase.io import read
 

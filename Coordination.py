@@ -1,11 +1,11 @@
-'''
+"""
     by David Saadatmandi and Alberto Roldan
 
     Reads an input with geometries in XYZ format and calculates the
     the cluster coordination with the surface (cs)
     and coordination between metal atoms forming the cluster (cc).
 
-'''
+"""
 
 
 import numpy as np

@@ -1,11 +1,11 @@
-'''
+"""
     Alberto Roldan
 
     STRUCTURE:
         - Library of interatomic distances (metals)
             and bulk lattices as distance between sites (oxides)
 
-'''
+"""
 
 import numpy as np
 

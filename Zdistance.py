@@ -1,6 +1,6 @@
-'''
+"""
         provides the distance from the cluster's centre of mass to the average top surface
-'''
+"""
 
 
 from ase.io import read

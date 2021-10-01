@@ -1,6 +1,6 @@
-'''
+"""
         provides areas of the interface and cluster surface in A^2
-'''
+"""
 
 
 from ase.io import read

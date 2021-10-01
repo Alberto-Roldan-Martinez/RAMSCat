@@ -1,9 +1,9 @@
-'''    BASED ON Birmingham Parallel Genetic Algorithm
+"""    BASED ON Birmingham Parallel Genetic Algorithm
 
 Please cite - A. Shayeghi et al, PCCP, 2015, 17, 2104-2112
 Authors - The Johnston Group 10/7/15
 
-'''
+"""
 import time
 import GA.Input as In
 #from GA.Graphene import Graphene                        # to generate the surface

@@ -20,8 +20,5 @@
 	rm labels.txt Data.tmp
 #	python3 /home/alberto/Software/OTHER/NeuralNetwork/Plot.py Data.dat
 
-# to normalise -- implemented before Ebinding
-#	python3 /home/alberto/software/OTHER/NeuralNetwork/ENormalisation.py Data.dat
-#	python3 /home/alberto/software/OTHER/NeuralNetwork/Plot.py NData.dat
 
 

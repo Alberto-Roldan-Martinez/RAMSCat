@@ -1,6 +1,6 @@
-'''
+"""
         provides information related to the Generalised Coordination Number
-'''
+"""
 
 
 from ase.io import read
