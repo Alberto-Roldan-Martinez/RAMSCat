@@ -11,9 +11,6 @@ import numpy as np
 
 
 def opt_atom_distance(support, site, element):          # Defines the optimised ONE atom-support distance in Ansgtroms
-
-# add also the adhesion energy of a single atom so to have eadh (0)
-
     optdistances = {
                     ('MgO', 'O',    'Co',   ),    # 3rd row
                     ('MgO', 'Mg',   'Co',   ),
@@ -42,8 +39,6 @@ def opt_atom_distance(support, site, element):          # Defines the optimised 
             if sys[1] == site:
                 if sys[2] == element:
                     optimum_distance = sys[3]
-#                   e_adh_0 = sys[4]
-#   return optimum_distance, e_adh_0
     return optimum_distance
 
 

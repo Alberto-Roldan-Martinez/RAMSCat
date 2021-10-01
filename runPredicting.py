@@ -33,6 +33,8 @@ subString = "/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py"     # pac
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 
-time_out = open("Calculation_time.txt", 'w+')
+time_out = open("RAMSCat_Summary.txt", 'w+')
 time_out.write("Time used to execute GA: {} seconds". format(time.time() - start_time))
+time_out.write("\nThe 5 most stable structures:")
 time_out.close()
+os.system("grep Energy pool.dat | sort -k2n | head -5 >> RAMSCat_Summary.txt")
