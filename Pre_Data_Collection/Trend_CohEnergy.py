@@ -117,7 +117,6 @@ for n in range(1, len(sys.argv)):
 #	for i in range(len(coord)):
 #		plt.text(coord[i]+0.05, coh_e[i]+0.01, str(symbol + data[i][-1].split("/")[2]))
 	trend_label, trend[symbol], r[symbol] = trend_function(coord, coh_e, bulk_coord, symbol, icolour[n-1], imarker[n-1], iliner[n])
-	print(len(coord), len(data), coord)
 Display("$\overline{coordination_{NP}}$", "$\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", [-0.15, 12.15], [-0.02, 1.02], trend_label)
 ########################################################################################################################
 trend_file = open("Interpolation_ECoh_Trends.txt", 'w+')
