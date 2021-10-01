@@ -82,7 +82,7 @@ def ecoh_bulk(element):                         # cohesion energies at bulk coor
 
 def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
     coh_parameter = {
-            'Au': 10.88828,                # 5th row
+            'Au': 8.00531, #10.88828,                # 5th row
            }
     a = coh_parameter[element]
     return (np.log(a)/np.log(a/(a + ecoh_bulk(element)[1])) -
@@ -140,7 +140,7 @@ def sites(support):         # defines the common adsorption sites on a support s
 
 def morse_3D_energies(support, element, icc, x, y):
     popts = {# support, metal, n-1											# popt and reference_e using Trend_AdhEnergy_Sites
-#       add the icc = 0 sum of O-sites and Mg-site
+        ('MgO', 'Au',  0, 1.24123, 1.64706, 0.59456, 2.97495, 1.67188, 1.91902,  8.47915, 1.82317, -0.1787, -1.27773),		# 1 atom
         ('MgO', 'Au',  1, 1.92146, 1.72757, 1.21384, 2.18831, 2.08383, 2.17571,  0.84201, 2.25829, -0.6396, -1.35581),		# 2 atoms
         ('MgO', 'Au',  2, 1.18296, 1.57988, 0.94593, 2.88265, 1.42953, 1.96775, 13.43070, 1.60617, -0.3442, -1.65847),		# 3 atoms
         ('MgO', 'Au',  3, 1.23430, 1.69203, 1.04552, 2.86776, 1.50758, 2.12566, 19.78013, 1.54962, -0.5365, -1.86308),		# 4 atoms

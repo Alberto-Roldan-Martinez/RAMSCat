@@ -15,7 +15,7 @@ from Library import sites
 
 input_file = ["OUTCAR", "CONTCAR"]
 support_name = sys.argv[1] 			# name of clean support, e.g., MgO
-gas_cluster_path = sys.argv[2]		# path to the isolated (gas phase) cluster with exact same geometry to the supported
+gas_cluster_path = sys.argv[2]		# path to the isolated (gas phase) cluster with exact same geometry to the supported one
 path = os.getcwd()
 path_name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
@@ -27,10 +27,11 @@ except:
 	print(" Clean Support Name Incorrect or Inexistent!")
 	exit()
 try:
-	gas_cluster = read(gas_cluster_path)
-except:
 	gas_cluster_file = str(gas_cluster_path + "/" + input_file[1])
 	gas_cluster = read(gas_cluster_file)
+except:
+	print(" Gas Phase Cluster Input does not exist or the path is not right, i.e. ../gas/")
+	exit()
 try:
 	supported_cluster_file = str("./" + input_file[1])
 	supported_cluster = read(supported_cluster_file, index=-1)
