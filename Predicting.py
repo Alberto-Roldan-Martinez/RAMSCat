@@ -1,9 +1,11 @@
-"""
-    Versions:
-        Alberto: 08/2019
-        Alberto: 09/2020
+#!/usr/bin/env python3
+#"""
+#    Versions:
+#        Alberto: 08/2019
+#        Alberto: 09/2020
+#
+#"""
 
-"""
 import os
 from Coordination import Coordination
 from GCN import Generalised_coodination
@@ -38,8 +40,8 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 		  energies.e_adh, energies.e_binding/coordination.cluster_size, energies.e_total, name]
 
 
-# CONCATENATE txt and dat for VALIDATION
 Write_labels("Predicted.txt", labels)
 write_results("Predicted.dat", values)
+os.system("cat Predicted.dat >> Predicted.txt; mv Predicted.txt Predicted.dat")
 write_out(structurefile, energies.e_total)
 

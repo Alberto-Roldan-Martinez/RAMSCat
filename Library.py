@@ -11,6 +11,9 @@ import numpy as np
 
 
 def opt_atom_distance(support, site, element):          # Defines the optimised ONE atom-support distance in Ansgtroms
+
+# add also the adhesion energy of a single atom so to have eadh (0)
+
     optdistances = {
                     ('MgO', 'O',    'Co',   ),    # 3rd row
                     ('MgO', 'Mg',   'Co',   ),
@@ -39,6 +42,8 @@ def opt_atom_distance(support, site, element):          # Defines the optimised 
             if sys[1] == site:
                 if sys[2] == element:
                     optimum_distance = sys[3]
+#                   e_adh_0 = sys[4]
+#   return optimum_distance, e_adh_0
     return optimum_distance
 
 
@@ -135,6 +140,7 @@ def sites(support):         # defines the common adsorption sites on a support s
 
 def morse_3D_energies(support, element, icc, x, y):
     popts = {# support, metal, n-1											# popt and reference_e using Trend_AdhEnergy_Sites
+#       add the icc = 0 sum of O-sites and Mg-site
         ('MgO', 'Au',  1, 1.92146, 1.72757, 1.21384, 2.18831, 2.08383, 2.17571,  0.84201, 2.25829, -0.6396, -1.35581),		# 2 atoms
         ('MgO', 'Au',  2, 1.18296, 1.57988, 0.94593, 2.88265, 1.42953, 1.96775, 13.43070, 1.60617, -0.3442, -1.65847),		# 3 atoms
         ('MgO', 'Au',  3, 1.23430, 1.69203, 1.04552, 2.86776, 1.50758, 2.12566, 19.78013, 1.54962, -0.5365, -1.86308),		# 4 atoms
@@ -153,7 +159,7 @@ def morse_3D_energies(support, element, icc, x, y):
                     support, element, icc, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min = sys
                     adh_e = (a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-a2*(x - a_r_eq*np.sin(y/x)))) +
                                b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-b2*(y - b_r_eq*np.sin(y/x))))) +\
-                               e_reference		# MORSE potentia
+                               e_reference		# MORSE potential
 
     return adh_e, e_reference, e_min, [a2, b2]
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """    BASED ON Birmingham Parallel Genetic Algorithm
 
 Please cite - A. Shayeghi et al, PCCP, 2015, 17, 2104-2112
@@ -19,7 +20,7 @@ nPool = 15                                              # number of structures i
 cross = "random"                                        # algorithm to generate structures
 mutType = "move"                                        # algorithm to generate mutants
 mutate = 0.1                                            # mutation ratio
-r_ij = 2.8                                              # distance between atoms in the cluster?
+r_ij = 2.5                                              # distance between atoms in the cluster? e.g. 3rd row -> 2.5
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
