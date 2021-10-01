@@ -38,13 +38,8 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 		  energies.e_adh, energies.e_binding/coordination.cluster_size, energies.e_total, name]
 
 
+# CONCATENATE txt and dat for VALIDATION
 Write_labels("Predicted.txt", labels)
 write_results("Predicted.dat", values)
-# CONCATENATE txt and dat for VALIDATION
-# comment for VALIDATION
-
-# CHANGE name in GA
-
-
-#write_out(structurefile, energies.e_total)
+write_out(structurefile, energies.e_total)
 

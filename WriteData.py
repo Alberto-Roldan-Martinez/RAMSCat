@@ -118,7 +118,7 @@ def write_results(outfile, data):
 
 def write_out(structure_file, energy):
     system = read(structure_file)
-    output = open("OUTCAR", "w+")
+    output = open("RAMSCat.out", "w+")
     output.write(" energy  without entropy= {:> 12.6f} energy(sigma->0) = {:> 12.6f}\n" .format(energy, energy))
     output.write(" POSITION\n---------------------------\n")               # to adapt the reading from GA
 

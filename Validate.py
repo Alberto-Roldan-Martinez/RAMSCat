@@ -57,7 +57,11 @@ def get_data(dataset):
 	system_name = []
 	symbol = []
 	for i in range(len(dataset)):
-		if float(dataset[i][14]) and float(dataset[i][15]) and float(dataset[i][16]) and float(dataset[i][17]) <= 0.25:
+		energies = [float(dataset[i][14]), float(dataset[i][15]), float(dataset[i][16]), float(dataset[i][17])]
+		mask = [(dataset[i][-1], labels[n+13], e) for n, e in enumerate(energies) if e > 0.25]
+		if len(mask) > 0:
+			[print(m) for m in mask]
+		else:
 			data.append([float(j)for j in dataset[i][:-2]])
 			system_name.append(str(dataset[i][-1]))
 			symbol.append(str(dataset[i][-1].split("/")[1] + dataset[i][-1].split("/")[2]))
@@ -87,13 +91,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	plt.show()
 	SaveFig()
 	figure.clf()
-#		labels_colour = []
-# make BLUE the structures used for fitting, e.g. 2, 3, 4a, 5a, ...
-#	fitted_structures = ["2", "3", "4a", "5a", "6a", "7", "8", "9", "10", "11"]
-#	if name[2:] in fitted_structures:
-#		label_colour = "blue"
-#	else:
-#		labels_colour = "black"
+
 
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
@@ -125,12 +123,12 @@ if len(labels_a) != len(labels_b):
 if len(data_a) != len(data_b):
 	print(" ** The number of rows is {:d} and {:d} for {} and {} **".format(len(data_a), len(data_b), *sys.argv[1:]))
 	data_missing = []
-	for i in range(len(symbol_a)):
+	for i in range(len(system_name_a)):
 		if system_name_a[i] not in system_name_b:
-			data_missing.append([i + labels_line_a, system_name_a[i]], sys.argv[2])
-	for i in range(len(symbol_b)):
+			data_missing.append([i + labels_line_a + 3, system_name_a[i+1], sys.argv[2]])
+	for i in range(len(system_name_b)):
 		if system_name_b[i] not in system_name_a:
-			data_missing.append([i + labels_line_b, system_name_b[i], sys.argv[1]])
+			data_missing.append([i + labels_line_b + 3, system_name_b[i+1], sys.argv[1]])
 	if len(data_missing) == 0:
 		print("\tThere are no systems missing")
 	else:
@@ -149,10 +147,10 @@ names = []
 for i in symbol_a:
 	if i not in names:
 		names.append(i)
-axis = []
 for n in range(13, len(labels_a)):
 	figure = plt.figure(figsize=(8, 6), clear=True)
 	ax = figure.add_subplot()
+	axis = []
 	for i, name in enumerate(names):
 		n_m = i
 		n_c = i
@@ -172,6 +170,9 @@ for n in range(13, len(labels_a)):
 
 	axis_max = max(axis) + np.abs(max(axis)*0.05)
 	axis_min = min(axis) - np.abs(min(axis)*0.05)
+	if axis_max - axis_min <= 1:
+		axis_max = axis_max + np.abs(axis_min*0.5)
+		axis_min = axis_min - np.abs(axis_min*0.5)
 #	ax.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
 	ax.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
 	Display(labels_a[n], "Predicted " + labels_a[n], [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))

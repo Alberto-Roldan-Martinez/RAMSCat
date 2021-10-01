@@ -13,7 +13,6 @@
 			cat data.dat >> ../Data.tmp
 			rm data.dat
 			mv labels.txt ../.
-#      python3 ~/Software/OTHER/NeuralNetwork/CatStructure.py
 		fi
 		cd ..
        	done
