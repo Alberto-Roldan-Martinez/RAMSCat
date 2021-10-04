@@ -11,7 +11,7 @@ from ase import neighborlist
 from Library import isolated_atoms, ecoh_bulk
 
 
-inputfiles = ["OUTCAR"]
+inputfiles = ["OUTCAR", "CONTCAR"]
 path = os.getcwd()
 path_name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
@@ -24,10 +24,10 @@ cohesion_e = (e_atoms - sum([isolated_atoms(i) for i in elements])) / len(elemen
 cohesion_e_bulk = sum([ecoh_bulk(i)[0] for i in elements]) / len(elements)
 
 # Reading the system for its average COORDINATION
-#atoms = read(inputfiles[1])
+atoms = read(inputfiles[1])
 coordinating = {}
 if len(atoms_index) > 1:
-	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.2)
+	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.3)
 	a, b = neighborlist.neighbor_list('ij', atoms, cutoff)
 	for i in atoms_index:
 		coordinating[str(i)] = [b[n] for n in range(len(a)) if a[n] == i]
@@ -41,5 +41,5 @@ ifile.write("# ave_coord\tE_Coh (eV.atom\N{SUPERSCRIPT minus}\N{SUPERSCRIPT ONE}
 ifile.write("{:>3.4f}\t\t{:>5.4f}\t\t\t{:>3.2f} {:>5.4f}\t" .format(average_coordination, cohesion_e, coord_bulk, cohesion_e_bulk))
 #for i in range((len(atoms_index))):
 #	ifile.write(" {:>3d}" .format(len(coordinating[str(i)])))
-ifile.write("\t# {}\t\t{}\n" .format(atoms.symbols, path_name))
+ifile.write("\t# {}\t\t{}\n" .format(str(path.split("/")[-4] + path.split("/")[-2]), path_name))
 ifile.close()

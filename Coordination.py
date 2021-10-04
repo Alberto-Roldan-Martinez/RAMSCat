@@ -54,9 +54,9 @@ class Coordination:
 #        del cluster_atoms[[atom.index for atom in cluster_atoms if atom.symbol not in cluster_elements]]
         coordinating = {}
         if len(cluster_index) > 1:
-            cutoff = sum([self.bulk_distances(system[i].symbol)*1.3 for i in cluster_index])\
-                     /len(cluster_index)
-#            cutoff = neighborlist.natural_cutoffs(system, mult=1.3)
+#            cutoff = sum([self.bulk_distances(system[i].symbol)*1.3 for i in cluster_index])\
+#                     /len(cluster_index)
+            cutoff = neighborlist.natural_cutoffs(system, mult=1.3)
             a, b = neighborlist.neighbor_list('ij', system, cutoff)
             for i in cluster_index:
                 coordinating[str(i)] = [b[n] for n in range(len(a)) if a[n] == i and b[n] in cluster_index]
