@@ -21,7 +21,7 @@ atoms_index = [atoms[i].index for i in range(len(atoms))]
 e_atoms = atoms.get_total_energy()                      # The total energy
 elements = atoms.get_chemical_symbols()                 # The elements forming it
 cohesion_e = (e_atoms - sum([isolated_atoms(i) for i in elements])) / len(elements)
-cohesion_e_bulk = sum([ecoh_bulk(i)[0] for i in elements]) / len(elements)
+cohesion_e_bulk = sum([ecoh_bulk([i])[0] for i in elements]) / len(elements)
 
 # Reading the system for its average COORDINATION
 atoms = read(inputfiles[1])
@@ -34,7 +34,7 @@ if len(atoms_index) > 1:
 else:
 	coordinating[str(atoms_index[0])] = 0
 average_coordination = sum([len(coordinating[str(i)]) for i in atoms_index])/len(atoms_index)
-coord_bulk = sum([ecoh_bulk(i)[1] for i in elements]) / len(elements)
+coord_bulk = sum([ecoh_bulk([i])[1] for i in elements]) / len(elements)
 
 ifile = open("Trend_CohEnergy.dat", 'w+')
 ifile.write("# ave_coord\tE_Coh (eV.atom\N{SUPERSCRIPT minus}\N{SUPERSCRIPT ONE})\tE_Coh^Bulk\t\tElements\tPath\n")

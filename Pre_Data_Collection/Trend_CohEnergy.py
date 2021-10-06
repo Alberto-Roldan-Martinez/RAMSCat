@@ -67,7 +67,13 @@ def cubic(x, a, b, c, d):
 
 def trend_function(x, y, bulk_coord, symbol, colour, marker, line, name):
 	plt.plot([0, bulk_coord], [0, 1], marker=marker, color=colour, fillstyle="none", linestyle="None", markersize=3)
-	weights = list(np.ones(len(x)))
+	magic_clusters = ["116", "13", "140", "146", "147", "19", "201", "225", "38", "44", "55", "6a", "79", "85"]
+	weights = []
+	for i in range(len(x)):
+		if str(name[i][2:]) in magic_clusters:
+			weights.append(0.5)
+		else:
+			weights.append(1)
 	x.append(0.)
 	y.append(0.)
 	name.append("")
@@ -87,7 +93,6 @@ def trend_function(x, y, bulk_coord, symbol, colour, marker, line, name):
 #	plt.plot(np.linspace(0, 12, 150), cubic(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
 	plt.plot(np.linspace(0, 12, 150), logarithm(np.linspace(0, 12, 150), *popt), color=colour, linestyle=line)
 
-	magic_clusters = ["116", "13", "140", "146", "147", "19", "201", "225", "38", "44", "55", "6a", "79", "85"]
 	magic_x = [x[i] for i in range(len(x)) if str(name[i][2:]) in magic_clusters]
 	magic_y = [y[i] for i in range(len(y)) if str(name[i][2:]) in magic_clusters]
 	new_x = [x[i] for i in range(len(x)) if str(name[i][2:]) not in magic_clusters]
@@ -96,17 +101,22 @@ def trend_function(x, y, bulk_coord, symbol, colour, marker, line, name):
 	plt.plot(new_x, new_y, marker=marker, color=colour, linestyle="None", markersize=3,
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 # Add names next to the point
-#	for i in range(len(name[:-2])):
-#		plt.text(x[i]+0.05, y[i]+0.01, str(name[i]), color=colour)
+	for i in range(len(name[:-2])):
+		plt.text(x[i]+0.05, y[i]+0.01, str(name[i]), color=colour)
 
 	return trend_label, popt, r2
 
 
-def Validation(ele, coord, coh_e, popt, imarker, icolour):
-	x = coh_e
+def Validation(ele, coord, coh_e, popt, imarker, icolour, name):
+	magic_clusters = ["116", "13", "140", "146", "147", "19", "201", "225", "38", "44", "55", "6a", "79", "85"]
 	y = [logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
-	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
+	max_deviation = max([np.abs(y[i] - coh_e[i]) for i in range(len(coh_e))])
+	magic_x = [coh_e[i] for i in range(len(coh_e)) if str(name[i][2:]) in magic_clusters]
+	magic_y = [y[i] for i in range(len(y)) if str(name[i][2:]) in magic_clusters]
+	new_x = [coh_e[i] for i in range(len(coh_e)) if str(name[i][2:]) not in magic_clusters]
+	new_y = [y[i] for i in range(len(y)) if str(name[i][2:]) not in magic_clusters]
+	plt.plot(magic_x, magic_y, marker=imarker, color=icolour, fillstyle='none', linestyle="None", markersize=3)
+	plt.plot(new_x, new_y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)) + "eV")
 
 	return max_deviation
@@ -133,8 +143,9 @@ for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol = data[0][-1].split("/")[0]					# contains the list of systems' name
+	names = [data[i][-2] for i in range(len(data))]
 	coord, coh_e, coh_e_bulk, bulk_coord = get_data(data)
-	max_deviation = Validation(symbol[:2], coord, coh_e, trend[symbol], imarker[n-1], icolour[n-1])
+	max_deviation = Validation(symbol[:2], coord, coh_e, trend[symbol], imarker[n-1], icolour[n-1], names)
 	trend_file.write("# E_Coh/E_Coh^Bulk\tLogarithm interpolation: 1/E_Coh^Bulk * log(a)/np.log(a/(a+bulk_coord)) - (1/np.log(a/(a+bulk_coord)))*np.log(a+cc)\n")
 	trend_file.write("{}\ta={:<3.5f}\tR\u00B2={:<1.2f}\t\u03C4\u2264{:<1.1f}eV\n"
 					 .format(symbol, trend[symbol][0], r[symbol], np.abs(round(max_deviation, 1))))

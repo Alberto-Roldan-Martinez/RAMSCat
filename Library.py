@@ -84,7 +84,7 @@ def ecoh_bulk(element):                         # cohesion energies at bulk coor
 def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
     if type(element) is list and len(element) == 1:
         coh_parameter = {
-                'Au': 6.88176, #10.88828,                # 5th row
+                'Au': 14.25097,                # 5th row
                }
         a = coh_parameter[str(element[0])]
         b_ecoh, b_coord = ecoh_bulk(element)

@@ -104,13 +104,12 @@ class Energy_prediction:
         e_atom = 0
         average_coordination = 0
         for i in c_coord:
-            e_coh += ecoh_trend([system[int(i)].symbol], len(c_coord[i]))
+#            e_coh += ecoh_trend([system[int(i)].symbol], len(c_coord[i]))
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
             if system[int(i)].symbol not in cluster_elements:
                 cluster_elements.append(system[int(i)].symbol)
-        print(cluster_elements, average_coordination)
-#        e_coh = ecoh_trend(cluster_elements, average_coordination)
+        e_coh = ecoh_trend(cluster_elements, average_coordination)
 
         return e_coh, e_atom
 
