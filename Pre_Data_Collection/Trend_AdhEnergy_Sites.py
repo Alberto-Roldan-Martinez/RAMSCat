@@ -64,7 +64,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(12, 16), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', label=trend_label)
+	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', markersize=3, label=trend_label)
 
 	grid = 50
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -147,7 +147,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	a, b, c = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(id - {:.2f})) - 2 * exp(-{:.2f}*(id - {:.2f})))".format(b, a, c, a, c)
 	plt.plot(np.linspace(xlim[0], xlim[1], 150), morse(np.linspace(xlim[0], xlim[1], 150), *popt), color=colour, linestyle=line)
-	plt.plot(x, y, marker=marker, color=colour, linestyle="None", label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
+			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
 	return trend_label, popt, r2
 
@@ -180,8 +181,8 @@ def Validation_3D(ele, x0, y0, z0, popt, reference_e, imarker, icolour):
 	x = z0
 	y = morse_3D(np.array([x0, y0]), *popt) + reference_e
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", label=str(ele) + "$\cdot \\tau \leq$ " +
-																		   str(round(max_deviation, 1)))
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
+			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)))
 	return max_deviation
 
 ########################################################################################################################

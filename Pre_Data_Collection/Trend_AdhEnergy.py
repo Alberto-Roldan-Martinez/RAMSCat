@@ -59,7 +59,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(12, 16), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', label=trend_label)
+	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', markersize=3, label=trend_label)
 
 	grid = 30
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -130,7 +130,7 @@ def Validation_3D(ele, x0, y0, z0, popt, reference_e, imarker, icolour):
 	for i in range(len(x)):
 		plt.text(x[i]+0.02, y[i]+0.02, str(i+1))
 
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",markersize=3,
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)))
 
 	return max_deviation

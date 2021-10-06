@@ -61,27 +61,40 @@ def isolated_atoms(element):                     # energies of isolated atoms in
 
 
 def ecoh_bulk(element):                         # cohesion energies at bulk coordination (RPBE)
-    ecoh = {
-            'Co': [-7.1245, 12],    # hcp       # 3rd row
-            'Ni': [-5.6273, 12],
-            'Cu': [-4.0698, 12],                # 3rd row
-            'Ru': [-9.4469, 12],    # hcp       # 4rd row
-            'Rh': [-7.5247, 12],
-            'Pd': [-5.5162, 12],
-            'Ag': [-3.0364, 12],                # 4rd row
-            'Ir': [-9.4589, 12],                # 5rd row
-            'Pt': [-6.5738, 12],
-            'Au': [-3.5650, 12],                # 5th row
-           }
-    return ecoh[element]
+    if type(element) is list and len(element) == 1:
+        ecoh = {
+                'Co': [-7.1245, 12],    # hcp       # 3rd row
+                'Ni': [-5.6273, 12],
+                'Cu': [-4.0698, 12],                # 3rd row
+                'Ru': [-9.4469, 12],    # hcp       # 4rd row
+                'Rh': [-7.5247, 12],
+                'Pd': [-5.5162, 12],
+                'Ag': [-3.0364, 12],                # 4rd row
+                'Ir': [-9.4589, 12],                # 5rd row
+                'Pt': [-6.5738, 12],
+                'Au': [-3.5650, 12],                # 5th row
+               }
+        b_ecoh = ecoh[str(element[0])]
+    else:
+        print(" --- Bulk alloys not implemented in the Library yet ---")
+        exit()
+
+    return b_ecoh
 
 def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
-    coh_parameter = {
-            'Au': 6.88176, #10.88828,                # 5th row
-           }
-    a = coh_parameter[element]
-    return (np.log(a)/np.log(a/(a + ecoh_bulk(element)[1])) -
-            (1/np.log(a/(a + ecoh_bulk(element)[1])))*np.log(a+cc)) * ecoh_bulk(element)[0]
+    if type(element) is list and len(element) == 1:
+        coh_parameter = {
+                'Au': 6.88176, #10.88828,                # 5th row
+               }
+        a = coh_parameter[str(element[0])]
+        b_ecoh, b_coord = ecoh_bulk(element)
+    else:
+        print(" --- Alloys not implemented in the Library yet ---")
+        exit()
+#        a = coh_parameter[element]
+
+    return (np.log(a)/np.log(a/(a + b_coord)) -
+            (1/np.log(a/(a + b_coord))*np.log(a+cc))) * b_ecoh
 
 
 def areas(element, coordination):                # Atomic areas previously calculated from surfaces as a function of the atom's coordination [0-->12]

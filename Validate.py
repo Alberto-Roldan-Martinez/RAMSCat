@@ -108,7 +108,7 @@ def Validation(name, x, y, imarker, icolour):
 		for i in range(len(x)):
 			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
 				ax.text(x[i]+0.02, y[i]+0.02, str(i+1))
-	ax.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5,
+	ax.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5, markersize=3,
 			 label=str(name) + "$\cdot \\tau \leq$ " + str(round(max(deviation), 1)) + "%")
 	return max(deviation)
 

@@ -66,7 +66,7 @@ def cubic(x, a, b, c, d):
 
 
 def trend_function(x, y, bulk_coord, symbol, colour, marker, line, name):
-	plt.plot([0, bulk_coord], [0, 1], marker=marker, color=colour, fillstyle="none", linestyle="None")
+	plt.plot([0, bulk_coord], [0, 1], marker=marker, color=colour, fillstyle="none", linestyle="None", markersize=3)
 	weights = list(np.ones(len(x)))
 	x.append(0.)
 	y.append(0.)
@@ -92,8 +92,9 @@ def trend_function(x, y, bulk_coord, symbol, colour, marker, line, name):
 	magic_y = [y[i] for i in range(len(y)) if str(name[i][2:]) in magic_clusters]
 	new_x = [x[i] for i in range(len(x)) if str(name[i][2:]) not in magic_clusters]
 	new_y = [y[i] for i in range(len(y)) if str(name[i][2:]) not in magic_clusters]
-	plt.plot(magic_x, magic_y, marker=marker, color=colour, fillstyle='none', linestyle="None")
-	plt.plot(new_x, new_y, marker=marker, color=colour, linestyle="None", label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	plt.plot(magic_x, magic_y, marker=marker, color=colour, fillstyle='none', linestyle="None", markersize=3)
+	plt.plot(new_x, new_y, marker=marker, color=colour, linestyle="None", markersize=3,
+			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 # Add names next to the point
 #	for i in range(len(name[:-2])):
 #		plt.text(x[i]+0.05, y[i]+0.01, str(name[i]), color=colour)
@@ -105,7 +106,7 @@ def Validation(ele, coord, coh_e, popt, imarker, icolour):
 	x = coh_e
 	y = [logarithm(i, *popt) for i in coord]          		# in eV.atom^-1
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
-	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None",
+	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(round(max_deviation, 1)) + "eV")
 
 	return max_deviation

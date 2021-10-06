@@ -157,7 +157,7 @@ def trend_lorentzian(x, y, element, colour, marker, line):
 	a, b, c, d = popt1
 	trend_label = "Lorentzian: a, b, c, d =" + str(round(a, 5)) + ", " +\
 				  str(round(b, 5)) + ", " + str(round(c, 5)) + ", " + str(round(d, 5))
-	plt.plot(x, y, marker=marker, color=colour, linestyle="None")
+	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	plt.plot(np.linspace(0, 12, 150), trendline_1(np.linspace(0, 12, 150), *popt1), color=colour, linestyle=line,
 			 label=str(element) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
@@ -170,7 +170,7 @@ def trend_lineal(x, y, element, colour, marker, line):
 	r2 = 1-np.sqrt(sum([(y[i] - trendline_2(x[i], *popt2))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b = popt2
 	trend_label = "a*x + b =" + str(round(a, 5)) + "x +" + str(round(b, 5))
-	plt.plot(x, y, marker=marker, color=colour, linestyle="None")
+	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	plt.plot(np.linspace(0, 12, 150), trendline_2(np.linspace(0, 12, 150), *popt2), color=colour, linestyle=line,
 			 label=str(element) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 
@@ -193,8 +193,8 @@ def Lineal_Validation(ele, areas, areas_validation, coord_matrix, coord_matrix_v
 	note = [notes(i) for i in notes_val if i != "#"]
 	max_deviation = max([(y_validate[i] - x_validate[i])*100/x_validate[i] for i in range(len(x_validate))])
 
-	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
-	plt.plot(x_validate, y_validate,  marker=imarker, color=icolour, linestyle="None",
+	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", markersize=3, linestyle="None")
+	plt.plot(x_validate, y_validate,  marker=imarker, color=icolour, linestyle="None", markersize=3,
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
@@ -223,8 +223,8 @@ def Lorenz_Validation(ele, surf_e, surf_e_validation, matrix_norm, matrix_valida
 	note = [notes(i) for i in notes_val if i != "#"]
 	max_deviation = max([(y_validate[i] - x_validate[i])*100/x_validate[i] for i in range(len(x_validate))])
 
-	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", linestyle="None")
-	plt.plot(x_validate, y_validate, marker=imarker, color=icolour, linestyle="None",
+	plt.plot(x0_validate, y0_validate, marker=imarker, color=icolour, fillstyle="none", markersize=3, linestyle="None")
+	plt.plot(x_validate, y_validate, marker=imarker, color=icolour, linestyle="None", markersize=3,
 			 label=str(ele) + "$\cdot \\tau \leq$ " + str(np.abs(round(max_deviation, 1))) + "%")
 	for i in range(len(x_validate)):
 		if note[i] != "#":
@@ -285,7 +285,7 @@ for i, ele in enumerate(set(elements)):
 # Area trend
 	x_axis = np.arange(3, 12, 1)
 	y = coord_areas[ele]										# in Angstroms^2
-	plt.plot(bulk[ele][0], bulk[ele][1], marker=imarker[i], color=icolour[i], fillstyle="none", linestyle="None")
+	plt.plot(bulk[ele][0], bulk[ele][1], marker=imarker[i], color=icolour[i], fillstyle="none", markersize=3, linestyle="None")
 #	trend_label, area_popt[ele], r2[ele] = trend_lineal(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 	trend_label, area_popt[ele], r2[ele] = trend_lorentzian(x_axis, y, ele, icolour[i], imarker[i], iliner[i+1])
 Display("Coordination", "Area ($\\AA ^{2} \cdot atom^{\minus 1}$)", [0, 12.15],

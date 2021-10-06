@@ -31,7 +31,7 @@ class Generalised_coodination:
         cluster_surface_index = []
         for n in cluster_index:
             i_gcn = 0
-            e_coh, bulk_coordination = ecoh_bulk(system[n].symbol)
+            e_coh, bulk_coordination = ecoh_bulk([system[n].symbol])
             if len(c_coord[str(n)]) > 0:
                 for j in c_coord[str(n)]:
                     i_gcn += len(c_coord[str(j)])            # coordination of the coordinating atom of n
