@@ -56,10 +56,12 @@ def get_data(dataset):
 	data = []
 	system_name = []
 	symbol = []
+
 	for i in range(len(dataset)):
 		energies = [float(dataset[i][14]), float(dataset[i][15]), float(dataset[i][16]), float(dataset[i][17])]
 		mask = [(dataset[i][-1], labels[n+13], e) for n, e in enumerate(energies) if e > 0.25]
 		if len(mask) > 0:
+			print(" >>> out of chart energies:")
 			[print(m) for m in mask]
 		else:
 			data.append([float(j)for j in dataset[i][:-2]])
@@ -86,6 +88,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 			plt.setp(text, color="b")
 		else:
 			plt.setp(text, color="k")
+
 	figure.tight_layout()#rect=[0, 0, 0.75, 1])
 	plt.ion()
 	plt.show()
@@ -125,10 +128,10 @@ if len(data_a) != len(data_b):
 	data_missing = []
 	for i in range(len(system_name_a)):
 		if system_name_a[i] not in system_name_b:
-			data_missing.append([i + labels_line_a + 3, system_name_a[i+1], sys.argv[2]])
+			data_missing.append([i + labels_line_a + 1, system_name_a[i], sys.argv[2]])
 	for i in range(len(system_name_b)):
 		if system_name_b[i] not in system_name_a:
-			data_missing.append([i + labels_line_b + 3, system_name_b[i+1], sys.argv[1]])
+			data_missing.append([i + labels_line_b + 1, system_name_b[i], sys.argv[1]])
 	if len(data_missing) == 0:
 		print("\tThere are no systems missing")
 	else:
@@ -171,8 +174,8 @@ for n in range(13, len(labels_a)):
 	axis_max = max(axis) + np.abs(max(axis)*0.05)
 	axis_min = min(axis) - np.abs(min(axis)*0.05)
 	if axis_max - axis_min <= 1:
-		axis_max = axis_max + np.abs(axis_min*0.5)
-		axis_min = axis_min - np.abs(axis_min*0.5)
+		axis_max = axis_max + np.abs(axis_min*0.1)
+		axis_min = axis_min - np.abs(axis_min*0.1)
 #	ax.text((axis_max - axis_min)*1.8/3, (axis_max - axis_min)*0.05, "Samples = " + str(len(symbol_a)))
 	ax.plot([axis_min, axis_max], [axis_min, axis_max], "k-", lw=1.5)
 	Display(labels_a[n], "Predicted " + labels_a[n], [axis_min, axis_max], [axis_min, axis_max], "Samples = " + str(len(symbol_a)))
