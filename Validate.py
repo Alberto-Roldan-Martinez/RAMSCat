@@ -10,7 +10,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
+from tkinter import *
+
 
 icolour = ["b", "r", "k", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] # n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
@@ -85,9 +86,9 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	for text in legend.get_texts():
 		text_start = text.get_text().split("$")[0][2:]
 		if text_start in fitted_structures:
-			plt.setp(text, color="b")
+			plt.setp(text, color="b", size=12)
 		else:
-			plt.setp(text, color="k")
+			plt.setp(text, color="k", size=12)
 
 	figure.tight_layout()#rect=[0, 0, 0.75, 1])
 	plt.ion()
@@ -107,10 +108,10 @@ def SaveFig():
 def Validation(name, x, y, imarker, icolour):
 	deviation = [np.abs((y[i] - x[i])/x[i]) for i in range(len(x))]
 # Add label to each point if deviation is larger than 0.5
-	if max(deviation) > 1.0:
-		for i in range(len(x)):
-			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
-				ax.text(x[i]+0.02, y[i]+0.02, str(i+1))
+#	if max(deviation) > 1.0:
+#		for i in range(len(x)):
+#			if x[i] <= 0 and np.abs(y[i] - x[i]) > 0.3:
+#				ax.text(x[i]+0.02, y[i]+0.02, str(i+1))
 	ax.plot(x, y,  marker=imarker, color=icolour, linestyle="None", alpha=0.5, markersize=3,
 			 label=str(name) + "$\cdot \\tau \leq$ " + str(round(max(deviation), 1)) + "%")
 	return max(deviation)
@@ -171,8 +172,8 @@ for n in range(13, len(labels_a)):
 		trend_file.write("# Column {}: {}\tSystem {}\tMaximum Absolute Error: \u03C4\u2264{:<1.2f}\n"
 						 .format(n, labels_a[n], name, max_deviation))
 
-	axis_max = max(axis) + np.abs(max(axis)*0.05)
-	axis_min = min(axis) - np.abs(min(axis)*0.05)
+	axis_max = max(axis)
+	axis_min = min(axis)
 	if axis_max - axis_min <= 1:
 		axis_max = axis_max + np.abs(axis_min*0.1)
 		axis_min = axis_min - np.abs(axis_min*0.1)

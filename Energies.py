@@ -99,7 +99,7 @@ class Energy_prediction:
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
     def e_cohesion(self, system, c_coord):
-        cluster_elements = []
+#        cluster_elements = []
         e_coh = 0
         e_atom = 0
         average_coordination = 0
