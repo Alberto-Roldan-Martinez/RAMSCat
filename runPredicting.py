@@ -20,7 +20,7 @@ nPool = 15                                              # number of structures i
 cross = "random"                                        # algorithm to generate structures
 mutType = "move"                                        # algorithm to generate mutants
 mutate = 0.1                                            # mutation ratio
-r_ij = 2.5                                              # distance between atoms in the cluster? e.g. 3rd row -> 2.5
+r_ij = 2.8                                              # distance between atoms in the cluster? e.g. 3rd row -> 2.5
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
@@ -34,7 +34,7 @@ StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cr
 				   boxAdd, surface, surfGA)
 
 time_out = open("RAMSCat_Summary.txt", 'w+')
-time_out.write("Time used to execute GA: {} seconds". format(time.time() - start_time))
+time_out.write("Time used to execute GA: {:>.3f} hours". format((time.time() - start_time)/3600))
 time_out.write("\nThe 5 most stable structures:")
 time_out.close()
 os.system("grep Energy pool.dat | sort -k2n | head -5 >> RAMSCat_Summary.txt")
