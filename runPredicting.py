@@ -33,7 +33,7 @@ natoms = sum(eleNums)
 
 surfGA = True                                           # is it a supported cluster?
 #surface = Graphene(x=8,y=8,z=1,vac=15,clusHeight=2.5)  # how is the support's surface
-surface = MgO(x=8, y=8, z=4, vac=6, clusHeight=2.3)     # how is the support's surface
+surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
 
 subString = "/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py"     # package to calculate the Energy
 
@@ -42,6 +42,6 @@ StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cr
 
 time_out = open("RAMSCat_Summary.txt", 'w+')
 time_out.write("Time used to execute GA: {:>.3f} hours". format((time.time() - start_time)/3600))
-time_out.write("\nThe 5 most stable structures:")
+time_out.write("\nThe 5 most stable structures:\n")
 time_out.close()
 os.system("grep Energy pool.dat | sort -k2n | head -5 >> RAMSCat_Summary.txt")
