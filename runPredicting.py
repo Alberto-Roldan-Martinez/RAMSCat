@@ -15,17 +15,17 @@ from GA.NewPoolGA import poolGA                         # generates:  pool.dat a
 start_time = time.time()
 
 eleNames = ["Au"]                                       # elements in the cluster
-eleNums = [10]                                           # number of atoms in the cluster
+eleNums = [10]                                          # number of atoms in the cluster
 boxAdd = 15.0
 nPool = 15                                              # number of structures in the pool file
 # --- algorithm to generate structures
 cross = "random"                                        #
-#cross = "weighted"										# determined by fitness of the two clusters selected for crossover.
+#cross = "weighted"                                     # determined by fitness of the two clusters selected for crossover.
 # --- algorithm to generate mutants
-#mutType = "random"										# new random cluster geometry
-mutType = "move"										# selected from the pool and 20% of the geometry is displaced by up to 1 angstrom
-#mutType = "homotop"									# (only bimetallics) two atoms have their atom types swapped
-#mutType = "rotate"										# (Surface global optimisation only) selected from the pool and a random rotation is performed.
+#mutType = "random"                                     # new random cluster geometry
+mutType = "move"                                        # selected from the pool and 20% of the geometry is displaced by up to 1 angstrom
+#mutType = "homotop"                                    # (only bimetallics) two atoms have their atom types swapped
+#mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
 mutate = 0.1                                            # mutation ratio
 r_ij = 2.8                                              # distance between atoms in the cluster? e.g. 3rd row -> 2.5
 eleMasses = In.masses(eleNames)
@@ -44,4 +44,4 @@ time_out = open("RAMSCat_Summary.txt", 'w+')
 time_out.write("Time used to execute GA: {:>.3f} hours". format((time.time() - start_time)/3600))
 time_out.write("\nThe 5 most stable structures:\n")
 time_out.close()
-os.system("grep Energy pool.dat | sort -k2n | head -5 >> RAMSCat_Summary.txt")
+os.system("grep Energy pool.dat | sort -k2n -r | head -5 >> RAMSCat_Summary.txt")
