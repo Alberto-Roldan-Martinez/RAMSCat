@@ -50,8 +50,8 @@ def Rewrite(in_file_name, atom_index, displacement):
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-structure = read(structure_file)
 for d in displacements:
+	structure = read(structure_file)
 	if atom_position.startswith("T") or atom_position.startswith("t"):
 		structure.positions[atom_index] = structure.positions[atom_index]+[0, 0, d]
 	else:
