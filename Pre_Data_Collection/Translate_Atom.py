@@ -30,13 +30,17 @@ def Rewrite(in_file_name, atom_index, displacement):
 	out_file = open(out_file_name, 'w+')
 	out_file.write("The atom {} has been translated by {} Angstroms along the Z axis\n" .format(atom_index, displacement))
 
-	for line in range(1, 9):
+	for i in range(1, 9):
+		line = structure[i].split()
+		if line[0].startswith("C") or line[0].startswith("D"):
+			xyz_line = i + 1
+	print(structure[xyz_line])
+	for line in range(1, xyz_line):
 		out_file.write(structure[line])
 		elements = [int(i) for i in structure[6].split()]
 	for n_atoms in elements:
 		xyz = []
-		i = 8				# lines in the POSCAR before the xyz positions
-		print(structure[i])
+		i = xyz_line				# lines in the POSCAR before the xyz positions
 		for line in range(i, n_atoms+i):
 			xyz_line = [float(n) for n in structure[line].split()[:3]]
 			for n in structure[line].split()[3:]:
@@ -45,7 +49,11 @@ def Rewrite(in_file_name, atom_index, displacement):
 		i += n_atoms
 		xyz = sorted(xyz, key=lambda x: x[2], reverse=False)
 		for a in xyz:
-			out_file.write(" {:>15.11f} {:>15.11f} {:>15.11f}  {:s} {:s} {:s}\n" .format(float(a[0]), float(a[1]),
+			if len(a) == 3:
+				out_file.write(" {:>15.11f} {:>15.11f} {:>15.11f}\n" .format(float(a[0]), float(a[1]),
+																					  float(a[2])))
+			else:
+				out_file.write(" {:>15.11f} {:>15.11f} {:>15.11f}  {:s} {:s} {:s}\n" .format(float(a[0]), float(a[1]),
 																					  float(a[2]), a[3], a[4], a[5]))
 	out_file.close()
 # ----------------------------------------------------------------------------------------------------------------------
@@ -54,13 +62,15 @@ def Rewrite(in_file_name, atom_index, displacement):
 for d in displacements:
 	structure = read(structure_file)
 	if atom_position.startswith("T") or atom_position.startswith("t"):
+		print("found it! ", structure.positions[atom_index])
 		structure.positions[atom_index] = structure.positions[atom_index]+[0, 0, d]
+		print(structure.positions[atom_index])
 	else:
 		structure.positions[atom_index] = structure.positions[atom_index]-[0, 0, d]
 
 	write(structure_file+".vasp", structure, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 	Rewrite(structure_file+".vasp", atom_index, d)
-os.remove(structure_file+".vasp")
+	os.remove(structure_file+".vasp")
 
 # for i in -0.2 -0.1 -0.05 0.05 0.1 0.2 0.3 0.4 0.5 1 1.5 2 3 ; do a=$(echo $i m$i |awk '{if ($1 < 0) print $2; else print $1}'); rm -rf $a; mkdir $a; cp INCAR KPOINTS run.sh $a; mv CONTCAR_i*_d$i\.vasp $a/POSCAR; cd $a; cp POSCAR POSCAR_0; sbatch run.sh; cd ..;  done;
 
