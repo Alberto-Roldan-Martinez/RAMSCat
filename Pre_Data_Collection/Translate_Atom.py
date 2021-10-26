@@ -34,7 +34,6 @@ def Rewrite(in_file_name, atom_index, displacement):
 		line = structure[i].split()
 		if line[0].startswith("C") or line[0].startswith("D"):
 			xyz_line = i + 1
-	print(structure[xyz_line])
 	for line in range(1, xyz_line):
 		out_file.write(structure[line])
 		elements = [int(i) for i in structure[6].split()]
@@ -62,9 +61,7 @@ def Rewrite(in_file_name, atom_index, displacement):
 for d in displacements:
 	structure = read(structure_file)
 	if atom_position.startswith("T") or atom_position.startswith("t"):
-		print("found it! ", structure.positions[atom_index])
 		structure.positions[atom_index] = structure.positions[atom_index]+[0, 0, d]
-		print(structure.positions[atom_index])
 	else:
 		structure.positions[atom_index] = structure.positions[atom_index]-[0, 0, d]
 
