@@ -21,13 +21,11 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 
 def get_data(data):
 	coord = [float(data[i][0]) for i in range(len(data))]			# contains the average coordinations
-	gcn = [float(data[i][1]) for i in range(len(data))]			# contains the average coordination number from the site of interest
-	distance = [float(data[i][2]) for i in range(len(data))]			# contains the shortest distance between the site of interest and a neighbour
-	coh_e_bulk = sum([float(data[i][5]) for i in range(len(data))])/(len(data))	# contains the average bulk cohesion energies in eV.atom^-1
-	coh_e = [float(data[i][3])/coh_e_bulk for i in range(len(data))]			# contains the (cohesion energies) / (Ecoh bulk average)
-	bulk_coord = sum([float(data[i][4]) for i in range(len(data))])/len(data)	# average coord in the bulk (fcc~12)
+	coh_e_bulk = sum([float(data[i][3]) for i in range(len(data))])/(len(data))	# contains the average bulk cohesion energies in eV.atom^-1
+	coh_e = [float(data[i][1])/coh_e_bulk for i in range(len(data))]			# contains the (cohesion energies) / (Ecoh bulk average)
+	bulk_coord = sum([float(data[i][2]) for i in range(len(data))])/len(data)	# average coord in the bulk (fcc~12)
 
-	return coord, gcn, distance, coh_e, coh_e_bulk, bulk_coord
+	return coord, coh_e, coh_e_bulk, bulk_coord
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -133,9 +131,9 @@ y_max = 1
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
-	symbol = str(data[0][-2][2:-2])					# contains the list of systems' name
+	symbol = data[0][-1].split("/")[0]					# contains the list of systems' name
 	names = [data[i][-2] for i in range(len(data))]
-	coord, gcn, distance, coh_e, coh_e_bulk, bulk_coord = get_data(data)
+	coord, coh_e, coh_e_bulk, bulk_coord = get_data(data)
 	trend_label, trend[symbol], r[symbol] = trend_function(coord, coh_e, bulk_coord, symbol, icolour[n-1], imarker[n-1], iliner[n], names)
 Display("$\overline{coordination_{NP}}$", "$\\frac{E_{Coh}}{E_{Coh}^{Bulk}}$", [-0.15, 12.15], [-0.02, 1.02], trend_label)
 ########################################################################################################################
