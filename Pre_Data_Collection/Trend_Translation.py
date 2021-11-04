@@ -23,7 +23,7 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 def get_data(data):
 	data.sort(key=lambda x: x[3])
 	i_atom = [int(data[i][0]) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom index of interest
-	i_coord = [int(data[i][1]) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom's coordination
+	i_coord = [int(float(data[i][1])) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom's coordination
 	i_gcn = [float(data[0][2]) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom's site generalised coordination number (the closest point)
 	i_distance = [float(data[i][3]) for i in range(len(data)) if float(data[i][4]) < 0]		# contains the atom's distance to the closest neighbour
 	t_energy = [float(data[i][4]) for i in range(len(data)) if float(data[i][4]) < 0]		# contains the system's energy

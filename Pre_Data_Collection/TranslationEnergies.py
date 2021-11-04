@@ -63,7 +63,7 @@ i_distance = distances[1]
 
 ifile = open("Trend_Translation.dat", 'w+')
 ifile.write("# i_atom\ti_coord\ti_gcn\ti_distance(A)\tE(eV)\t\tElements\tPath\n")
-ifile.write("{:3d}\t\t{:>3.4f}\t{:>3.4f}\t{:>5.4f}\t\t{:>3.2f}\t" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, i_distance, e_atoms))
+ifile.write("{:3d}\t\t{:>3d}\t{:>3.4f}\t{:>5.4f}\t\t{:>3.2f}\t" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, i_distance, e_atoms))
 #for i in range((len(atoms_index))):
 #	ifile.write(" {:>3d}" .format(len(coordinating[str(i)])))
 ifile.write("\t# {}\t{}\n" .format(set(elements), path_name))
