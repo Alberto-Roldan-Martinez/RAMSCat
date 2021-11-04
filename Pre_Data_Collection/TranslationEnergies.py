@@ -47,13 +47,10 @@ else:
 	coordinating[str(atoms_index[0])] = 0
 
 # Generalised coordination of the atom of interest
+i_gcn = 0
 if len(coordinating[str(i_atom)]) > 0:
-	gcn = 0
 	for j in coordinating[str(i_atom)]:
-		gcn += len(coordinating[str(j)])            # coordination of the coordinating atom to the one of interest
-	i_gcn = gcn/ecoh_bulk([atoms[i_atom].symbol])[1]
-else:
-	i_gcn = 0
+		i_gcn += len(coordinating[str(j)])/ecoh_bulk([atoms[j].symbol])[1]            # coordination of the coordinating atom to the one of interest
 # Shortest distance to the closest atoms in the system
 distances = []
 for atom in atoms:

@@ -1,5 +1,7 @@
 """
         provides information related to the Generalised Coordination Number
+
+        original reference: doi/10.1002/anie.201402958
 """
 
 
@@ -34,8 +36,8 @@ class Generalised_coodination:
             e_coh, bulk_coordination = ecoh_bulk([system[n].symbol])
             if len(c_coord[str(n)]) > 0:
                 for j in c_coord[str(n)]:
-                    i_gcn += len(c_coord[str(j)])            # coordination of the coordinating atom of n
-                gcn[n] = i_gcn/bulk_coordination
+                    i_gcn += len(c_coord[str(j)])/ecoh_bulk([system[j].symbol])[1]           # coordination of the coordinating atom of n
+                gcn[n] = i_gcn
             if len(c_coord[str(n)]) < bulk_coordination and n not in cluster_surface_index:  # exposed atoms at the surface
                 cluster_surface_index.append(n)
             if len(c_coord[str(n)]) == bulk_coordination and n not in cluster_bulk_index:
