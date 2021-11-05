@@ -197,8 +197,20 @@ z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
 
 # ------------------------------------------- 2D Display ------------------------
 for n, sym in enumerate(symbol):
-	trend_label, trend_2D[sym], r2_2D[sym] = trend_morse(i_distances[sym], e_coh[sym], sym, x_limits, icolour[n],
-														 imarker[n], iliner[n])
+	n_marker = n
+	n_colour = n
+	n_liner = n
+	if n >= 2*len(icolour):
+		n_colour = n - 2*len(icolour)
+	elif n >= len(icolour):
+		n_colour = n - len(icolour)
+	if n >= len(imarker):
+		n_marker = n - len(imarker)
+	if n >= len(iliner):
+		n_liner = n - len(iliner)
+
+	trend_label, trend_2D[sym], r2_2D[sym] = trend_morse(i_distances[sym], e_coh[sym], sym, x_limits, icolour[n_colour],
+														 imarker[n_marker], iliner[n_liner])
 	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, trend_label_2D)
 
@@ -214,6 +226,15 @@ exit()
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_Translation.txt", 'w+')
 for n, sym in enumerate(symbol):
+	n_marker = n
+	n_colour = n
+	if n >= 2*len(icolour):
+		n_colour = n - 2*len(icolour)
+	elif n >= len(icolour):
+		n_colour = n - len(icolour)
+	if n >= len(imarker):
+		n_marker = n - len(imarker)
+
 	max_deviation = Validation_3D(sym, int(i_coords[sym][0]), i_distances[sym], i_gcns[sym], e_coh[sym], trend_3D[sym],
 								  imarker[n], icolour[n])
 	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[sym]
