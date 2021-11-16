@@ -46,7 +46,7 @@ def Rewrite(in_file_name, atom_index, displacement):
 				xyz_line.append(n)
 			xyz.append(xyz_line)
 		i += n_atoms
-		xyz = sorted(xyz, key=lambda x: x[2], reverse=False)
+#		xyz = sorted(xyz, key=lambda x: x[2], reverse=False)
 		for a in xyz:
 			if len(a) == 3:
 				out_file.write(" {:>15.11f} {:>15.11f} {:>15.11f}\n" .format(float(a[0]), float(a[1]),
@@ -69,7 +69,7 @@ for d in displacements:
 	Rewrite(structure_file+".vasp", atom_index, d)
 	os.remove(structure_file+".vasp")
 
-# for i in -0.2 -0.1 -0.05 0.05 0.1 0.2 0.3 0.4 0.5 1 1.5 2 3 ; do a=$(echo $i m$i |awk '{if ($1 < 0) print $2; else print $1}'); rm -rf $a; mkdir $a; cp INCAR KPOINTS run.sh $a; mv CONTCAR_i*_d$i\.vasp $a/POSCAR; cd $a; cp POSCAR POSCAR_0; sbatch run.sh; cd ..;  done;
+# for i in -0.5 -0.3 -0.2 -0.1 -0.05 0.05 0.1 0.2 0.3 0.4 0.5 1 1.5 2 3 5 ; do a=$(echo $i m$i |awk '{if ($1 < 0) print $2; else print $1}'); rm -rf $a; mkdir $a; cp INCAR KPOINTS run.sh $a; mv CONTCAR_i*_d$i\.vasp $a/POSCAR; cd $a; cp POSCAR POSCAR_0; sbatch run.sh; cd ..;  done;
 
 
 

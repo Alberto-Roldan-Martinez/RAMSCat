@@ -21,14 +21,23 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 
 
 def get_data(data):
-	data.sort(key=lambda x: x[3])
-	i_atom = [int(data[i][0]) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom index of interest
-	i_coord = [int(float(data[i][1])) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom's coordination
-	i_gcn = [float(data[0][2]) for i in range(len(data)) if float(data[i][4]) < 0]			# contains the atom's site generalised coordination number (the closest point)
-	i_distance = [float(data[i][3]) for i in range(len(data)) if float(data[i][4]) < 0]		# contains the atom's distance to the closest neighbour
+#	data.sort(key=lambda x: x[3])
 	t_energy = [float(data[i][4]) for i in range(len(data)) if float(data[i][4]) < 0]		# contains the system's energy
+	i_distance = [float(data[i][3]) for i in range(len(data)) if float(data[i][4]) < 0]		# contains the atom's distance to the closest neighbour
+	i_atom = 0							# contains the atom index of interest
+	i_coord = 0							# contains the atom's coordination
+	i_gcn = 0 							# contains the atom's site generalised coordination number (the closest point)
+	for i in range(len(data)):
+		if t_energy[i] == min(t_energy):
+			i_atom = int(data[i][0])
+			i_coord = int(float(data[i][1]))
+			i_gcn = float(data[i][2])
+	e_reference = [t_energy[i] for i in range(len(t_energy)) if i_distance[i] == max(i_distance)][0]
 
-	return i_atom, i_coord, i_gcn, i_distance, t_energy
+	e_coh = [i-e_reference for i in t_energy]
+
+
+	return i_atom, i_coord, i_gcn, i_distance, e_coh
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -188,14 +197,14 @@ stand_dev = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
-	symbol.append(data[0][-2])					# contains the list of systems' name
-	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], t_energies = get_data(data)
-	e_coh[symbol[-1]] = [i-t_energies[-1] for i in t_energies]
+	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
+	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]] = get_data(data)
 x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, max([max(i_distances[sym]) for sym in symbol])*1.1]
-y_limits = [min([min(i_gcns[sym]) for sym in symbol])*0.9, max([max(i_gcns[sym]) for sym in symbol])*1.1]
+y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
 z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
 
 # ------------------------------------------- 2D Display ------------------------
+title_label = []
 for n, sym in enumerate(symbol):
 	n_marker = n
 	n_colour = n
@@ -212,8 +221,10 @@ for n, sym in enumerate(symbol):
 	trend_label, trend_2D[sym], r2_2D[sym] = trend_morse(i_distances[sym], e_coh[sym], sym, x_limits, icolour[n_colour],
 														 imarker[n_marker], iliner[n_liner])
 	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))
-Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, trend_label_2D)
+	title_label.append(str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym])))
+Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, title_label)
 
+exit()
 # ------------------------------------------- 3D Display ------------------------
 for n, sym in enumerate(symbol):
 	trend_3D[sym], r2_3D[sym], stand_dev[sym] = trend_morse_3D(i_distances[sym], i_gcns[sym], e_coh[sym])

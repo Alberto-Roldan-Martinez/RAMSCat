@@ -9,7 +9,7 @@
 import os, sys
 from ase.io import read
 from ase import neighborlist
-from Library import isolated_atoms, ecoh_bulk
+from Library import ecoh_bulk
 
 
 inputfiles = ["OUTCAR", "CONTCAR"]
@@ -58,9 +58,16 @@ for atom in atoms:
 distances = sorted(distances)
 i_distance = distances[1]
 
+# XYZ position of the atom of interest
+#x, y, z = atoms[i_atom].position
+
 ifile = open("Trend_Translation.dat", 'w+')
+#ifile.write("# atom  coord\tgcn\tX\t Y\t  Z\t\tE(eV)\t\tElements\tPath\n")
+#ifile.write("{:3d}\t{:>3d}\t{:>3.4f}\t{:>5.6f} {:>5.6f} {:>5.6f}\t{:>3.5f}" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, x, y, z, e_atoms))
 ifile.write("# i_atom\ti_coord\ti_gcn\ti_distance(A)\tE(eV)\t\tElements\tPath\n")
-ifile.write("{:3d}\t\t{:>3d}\t{:>3.4f}\t{:>5.4f}\t\t{:>3.2f}\t" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, i_distance, e_atoms))
+ifile.write("{:3d}\t\t{:>3.4f}\t{:>3.4f}\t{:>5.4f}\t\t{:>3.5f}\t" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, i_distance, e_atoms))
+
+
 #for i in range((len(atoms_index))):
 #	ifile.write(" {:>3d}" .format(len(coordinating[str(i)])))
 ifile.write("\t# {}\t{}\n" .format(set(elements), path_name))
