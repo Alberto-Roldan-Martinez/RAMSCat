@@ -39,7 +39,7 @@ elements = atoms.get_chemical_symbols()                 # The elements forming i
 atoms = read(inputfiles[1])
 coordinating = {}
 if len(atoms) > 1:
-	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.3)
+	cutoff = neighborlist.natural_cutoffs(atoms, mult=1.25)
 	a, b, d = neighborlist.neighbor_list('ijd', atoms, cutoff)
 	for i in atoms_index:
 		coordinating[str(i)] = [b[n] for n in range(len(a)) if a[n] == i]
@@ -51,21 +51,28 @@ i_gcn = 0
 if len(coordinating[str(i_atom)]) > 0:
 	for j in coordinating[str(i_atom)]:
 		i_gcn += len(coordinating[str(j)])/ecoh_bulk([atoms[j].symbol])[1]            # coordination of the coordinating atom to the one of interest
+
+# the average distance between the atom of interest and first neighbours
+if len(coordinating[str(i_atom)]) > 0:
+	distance = sum([d[n] for n in range(len(a)) if a[n] == i_atom])/len(coordinating[str(i_atom)])
+	print(coordinating[str(i_atom)],[d[n] for n in range(len(a)) if a[n] == i_atom])
+else:
+	distance = 0
+
 # Shortest distance to the closest atoms in the system
-distances = []
-for atom in atoms:
-	distances.append(atoms.get_distance(i_atom, atom.index, mic=True, vector=False))
-distances = sorted(distances)
-i_distance = distances[1]
+#distances = []
+#for atom in atoms:
+#	distances.append(atoms.get_distance(i_atom, atom.index, mic=True, vector=False))
+#distances = sorted(distances)
+#i_distance = distances[1]
 
 # XYZ position of the atom of interest
-#x, y, z = atoms[i_atom].position
+x, y, z = atoms[i_atom].position
 
 ifile = open("Trend_Translation.dat", 'w+')
-#ifile.write("# atom  coord\tgcn\tX\t Y\t  Z\t\tE(eV)\t\tElements\tPath\n")
-#ifile.write("{:3d}\t{:>3d}\t{:>3.4f}\t{:>5.6f} {:>5.6f} {:>5.6f}\t{:>3.5f}" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, x, y, z, e_atoms))
-ifile.write("# i_atom\ti_coord\ti_gcn\ti_distance(A)\tE(eV)\t\tElements\tPath\n")
-ifile.write("{:3d}\t\t{:>3.4f}\t{:>3.4f}\t{:>5.4f}\t\t{:>3.5f}\t" .format(i_atom, len(coordinating[str(i_atom)]), i_gcn, i_distance, e_atoms))
+ifile.write("# atom  coord\tgcn\tdistance(A)\tX\t Y\t  Z\tE(eV)\t\tElements\tPath\n")
+ifile.write("{:5d}\t{:>3d}\t{:>3.4f}\t{:>3.4f}\t\t{:>5.4f} {:>5.4f} {:>5.4f}\t{:>3.5f}"
+			.format(i_atom, len(coordinating[str(i_atom)]), i_gcn, distance, x, y, z, e_atoms))
 
 
 #for i in range((len(atoms_index))):
