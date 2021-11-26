@@ -28,12 +28,13 @@ def get_data(data):
 	i_coord = 0							# contains the atom's coordination
 	i_gcn = 0 							# contains the atom's site generalised coordination number (the closest point)
 	for i in range(len(data)):
-		if t_energy[i] == min(t_energy):
-			i_atom = int(data[i][0])
-			i_coord = int(float(data[i][1]))
-			i_gcn = float(data[i][2])
-			d_e_min = float(data[i][3])
-			xyz_reference = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])])
+		if float(data[i][7]) < 0:
+			if t_energy[i] == min(t_energy):
+				i_atom = int(data[i][0])
+				i_coord = int(float(data[i][1]))
+				i_gcn = float(data[i][2])
+				d_e_min = float(data[i][3])
+				xyz_reference = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])])
 	for i in range(len(data)):
 		if float(data[i][7]) < 0:
 			if int(float(data[i][1])) == i_coord or float(data[i][2]) == i_gcn:
@@ -42,7 +43,6 @@ def get_data(data):
 				vector = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])]) - xyz_reference
 				d = np.sqrt(vector.dot(vector))
 				i_distance.append(d_e_min + d)
-				print(vector, d_e_min, np.sqrt(vector.dot(vector)), i_distance[-1])
 	e_reference = [t_energy[i] for i in range(len(t_energy)) if i_distance[i] == max(i_distance)][0]
 	e_coh = [i-e_reference for i in t_energy]
 
@@ -70,29 +70,22 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o')#, markersize=3, label=trend_label)
+	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', label=trend_label)
 
-#	grid = 50
-#	surf_x = np.linspace(xlim[0], xlim[1], grid)
-#	surf_y = np.linspace(ylim[0], ylim[1], grid)
-#	x, y = np.meshgrid(surf_x, surf_y)
-#	z = morse_3D([x, y], *popt)
-#
-	e_min = -1
-#	e_min = min([min(z[i]) for i in range(len(z))])
-#	for i in range(len(z)):
-#		for j in range(len(z[i])):
-#			if z[i, j] == e_min:
-#				x_text = x[i, j]
-#				y_text = y[i, j]
-#	ax.text(x_text, y_text, e_min*1.02, str("({:.3f},{:2.3f})".format(x_text, y_text)))
+	grid = 50
+	surf_x = np.linspace(xlim[0], xlim[1], grid)
+	surf_y = np.linspace(ylim[0], ylim[1], grid)
+	x, y = np.meshgrid(surf_x, surf_y)
+	z = morse_3D([x, y], *popt)
+
+	e_min = min([min(z[i]) for i in range(len(z))])
 
 # masking the data beyond zmax
-#	z_mask = ma.masked_greater_equal(z, zlim[1], copy=True)
-#	z = z_mask.filled(fill_value=0)
+	z_mask = ma.masked_greater_equal(z, 0.0, copy=True)
+	z = z_mask.filled(fill_value=0.0)
 
-#	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
-#	figure.colorbar(surface, shrink=0.25, aspect=10)
+	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
+	figure.colorbar(surface, shrink=0.25, aspect=10)
 #	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
 #	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
 #	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
@@ -108,12 +101,12 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 #	ax.set_yticks([])
 #	ax.set_zticks(np.linspace(0, 1, 5))
 #	plt.subplots_adjust(left=0.15, right=0.9, top=0.8, bottom=0.1)
-	#legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
+#	legend = ax1.legend(bbox_to_anchor=(0.5, 1.05), loc='upper center')
 	legend = ax.legend(loc="best")
-#	figure.tight_layout()
+	figure.tight_layout()
 	plt.grid(True)
 	plt.ion()
-	ax.view_init(azim=-135, elev=10)
+	ax.view_init(azim=-120, elev=10)
 	plt.show()
 	SaveFig()
 	plt.clf()
@@ -148,36 +141,28 @@ def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2, y_d_eq, y_r_eq):
 		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potentia
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
-	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0., 0.75], [50, 10, 5]))
+	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0., 0.75], [150, 100, 5]))
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a, b, c = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a, c, a, c)
-	plt.plot(np.linspace(xlim[0], xlim[1], 150), morse(np.linspace(xlim[0], xlim[1], 150), *popt), color=colour, linestyle=line)
+	x_line = np.linspace(xlim[0], xlim[1], 150)
+	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
+	plt.plot(x_line, y_line, color=colour, linestyle=line)
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	for i in range(len(y_line)):
+		if y_line[i] == min(y_line):
+			plt.plot([x_line[i], x_line[i]], [y_line[i]-0.05, -0.1], "k:")
 
 	return trend_label, popt, r2
 
 
 def trend_morse_3D(x, y, z):
-	data_length = len(z)
-	weights = [1 for i in range(len(z)-3)]
-	[weights.append(0.5) for i in range(3)]
 #			a1, a2, d_eq, r_eq, b1, b2, y_d_eq,  y_r_eq
-	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 10, 5, 10, 10, 50, 5])
-#	initial_guess = [2., 0.8, 2., 1.5, 3., 1.8]
-	popt, pcov = curve_fit(morse_3D, [x, y], z, sigma=weights, bounds=limits)
+	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 50, 5, 10, 5, 50, 5])
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 
-# Activate the following lines to add a 1/4 of points a z=0 around the minima forcing the function to increase faster
-#	r = np.linspace(popt[4]*1.75, popt[2]*1.75, 20)
-#	for i, angle in enumerate(np.arange(0, np.pi/2, np.pi/2/20)):
-#		x.append(min(x)*1.5 + r[i]*np.cos(angle))
-#		y.append(min(y)*1.5 + r[i]*np.sin(angle))
-#		z.append(0)
-#		weights.append(0.5)
-#	popt, pcov = curve_fit(morse_3D, [x, y], z, p0=popt)#, sigma=weights)#, bounds=limits)
-
-	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(data_length)])/sum(i*i for i in z))
+	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	standard_deviation = sum(np.sqrt(np.diag(pcov)/len(np.diag(pcov))))/len(np.diag(pcov))
 
 	return popt, r2, standard_deviation
@@ -188,7 +173,7 @@ def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	y = morse_3D(np.array([x0, y0]), *popt)
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
-			 label=str(ele) + "$^{c="+str(i_coord)+"$} \cdot \\tau \leq$ " + str(round(max_deviation, 1)))
+			 label=str(ele) + "$^{c="+str(i_coord)+"} \cdot \\tau \leq$ " + str(round(max_deviation, 1)) + " eV")
 	return max_deviation
 
 ########################################################################################################################
@@ -233,21 +218,30 @@ for n, sym in enumerate(symbol):
 														 icolour[n_colour], imarker[n_marker], iliner[n_liner])
 #	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))
 	title_label.append(str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym])))
-Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, title_label)
-
-exit()
+plt.plot(x_limits, [0, 0], "k:")
+Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
+distances = {}
+gcns = {}
+coh = {}
 for n, sym in enumerate(symbol):
-	trend_3D[sym], r2_3D[sym], stand_dev[sym] = trend_morse_3D(i_distances[sym], i_gcns[sym], e_coh[sym])
-	trend_label_3D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[sym])
-	e_min = Display3D(i_distances[sym], i_gcns[sym], e_coh[sym], trend_3D[sym],
-			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+str(i_coords[sym][0])+"}$ $(eV \cdot atom^{\minus 1})$",
+	if str(i_coords[sym]) not in distances:
+		distances[str(i_coords[sym])] = i_distances[sym]
+		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
+		coh[str(i_coords[sym])] = e_coh[sym]
+	else:
+		distances[str(i_coords[sym])] += i_distances[sym]
+		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
+		coh[str(i_coords[sym])] += e_coh[sym]
+for n, coord in enumerate(distances):
+	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[coord], gcns[coord], coh[coord])
+	trend_label_3D = str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[coord])
+	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 					  x_limits, y_limits, z_limits, trend_label_3D)
-
-exit()
 # --------------------------------------- Validation ---------------------------------------
-trend_file = open("Interpolation_Translation.txt", 'w+')
-for n, sym in enumerate(symbol):
+trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
+for n, coord in enumerate(coh):
 	n_marker = n
 	n_colour = n
 	if n >= 2*len(icolour):
@@ -257,19 +251,19 @@ for n, sym in enumerate(symbol):
 	if n >= len(imarker):
 		n_marker = n - len(imarker)
 
-	max_deviation = Validation_3D(sym, int(i_coords[sym][0]), i_distances[sym], i_gcns[sym], e_coh[sym], trend_3D[sym],
+	max_deviation = Validation_3D(coord, int(coord), distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 								  imarker[n], icolour[n])
-	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[sym]
+	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[coord]
 #	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
 	trend_file.write("# E_Coh (eV)\t\u03c3: Average Standard Deviation\t\u03C4:Maximum Absolute Error\n#"
 					 "\t3D Morse interpolation: A + B\n"
 					 "  A::\td_eq * ((exp(-2 * a1 * (A - r_eq)) - 2 * exp(-a2 * (A - r_eq * sin(isd_b/isd_a))))\n"
 					 "  B::\t\t(exp(-2 * b1 * (B - r_eq)) - 2 * exp(-b2 * (B - r_eq * sin(isd_b/isd_a)))))\n")
-	trend_file.write("{}\tA\td_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\n"
+	trend_file.write("Coordination={:d}\n\tA\td_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\n"
 					   "\tB\td_eq={:<5.5f}\tb1={:<5.5f}\tb2={:<5.5f}\tr_eq={:<5.5f}"
 					 "\tR\u00b2={:<1.2f}  \u03c3={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
-					 .format(sym, a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(r2_3D[sym], 2),
-							 round(stand_dev[sym], 2), np.abs(max_deviation)))
+					 .format(int(coord), a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(r2_3D[coord], 2),
+							 round(stand_dev[coord], 2), np.abs(max_deviation)))
 trend_file.close()
-plt.plot([z_min, 0], [z_min, 0], "k-", lw=1.5)
-Display("$E_{Coh}$ $(eV \cdot atom^{\minus 1})$", "Predicted $E_{Coh}$ $(eV \cdot atom^{\minus 1})$", [z_min, 0], [z_min, 0], "")
+plt.plot(z_limits, z_limits, "k-", lw=1.5)
+Display("$E_{Coh}$ $(eV \cdot atom^{\minus 1})$", "Predicted $E_{Coh}$ $(eV \cdot atom^{\minus 1})$", z_limits, z_limits, "")
