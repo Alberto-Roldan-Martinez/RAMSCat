@@ -213,7 +213,7 @@ for n, sym in enumerate(symbol):
 	if n >= len(iliner):
 		n_liner = n - len(iliner)
 
-	label = str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym]))
+	label = str("cc=" + str(i_coords[sym]) + " & gcn=" + str(round(i_gcns[sym], 2)))
 	trend_label, trend_2D[sym], r2_2D[sym] = trend_morse(i_distances[sym], e_coh[sym], label, x_limits,
 														 icolour[n_colour], imarker[n_marker], iliner[n_liner])
 #	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))

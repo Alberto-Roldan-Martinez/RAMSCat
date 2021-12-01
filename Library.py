@@ -36,7 +36,7 @@ def isolated_atoms(element):                     # energies of isolated atoms in
 
 def ecoh_bulk(element):                         # cohesion energies at bulk coordination (RPBE)
     if type(element) is list and len(element) == 1:
-        return importlib.import_module("Materials."+element).e_coh_bulk()
+        return importlib.import_module("Materials."+str(element[0])).e_coh_bulk()
     else:
         print(" --- Bulk alloys not implemented in the Library yet ---")
         exit()
@@ -63,7 +63,7 @@ def ecoh_bulk(element):                         # cohesion energies at bulk coor
 '''
 def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
     if type(element) is list and len(element) == 1:
-        return importlib.import_module("Materials."+element).e_coh_trend(cc)
+        return importlib.import_module("Materials."+str(element[0])).e_coh_trend(cc)
     else:
         print(" --- Bulk alloys not implemented in the Library yet ---")
         exit()
