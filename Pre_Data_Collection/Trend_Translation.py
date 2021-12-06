@@ -129,37 +129,45 @@ def cubic(x, a, b, c, d):
 	return a*x**3 + b*x**2 + c*x + d
 
 
-def morse(x, a, d_eq, r_eq):
+def morse(x, r_eq, a, d_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 
 #def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2,  y_r_eq):
 #	return d_eq * ((np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 #		    (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
-def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2, y_d_eq, y_r_eq):
+def morse_3D(x, r_eq, y_r_eq, a1, a2, d_eq, b1, b2, y_d_eq):
 	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
 		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potentia
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
-	popt, pcov = curve_fit(morse, x, y, bounds=([0, 0., 0.75], [150, 100, 5]))
+	weights = []
+	for i in range(len(x)):
+		if x[i] == max(x):
+			weights.append(0.1)
+		else:
+			weights.append(1)
+	popt, pcov = curve_fit(morse, x, y, bounds=([0.75, 0, 0.], [5, 150, 100]), sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
-	a, b, c = popt
+	c, a, b = popt
 	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a, c, a, c)
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line)
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	x_min = 0
 	for i in range(len(y_line)):
 		if y_line[i] == min(y_line):
+			x_min = x_line[i]
 			plt.plot([x_line[i], x_line[i]], [y_line[i]-0.05, -0.1], "k:")
 
-	return trend_label, popt, r2
+	return trend_label, popt, r2, x_min
 
 
 def trend_morse_3D(x, y, z):
-#			a1, a2, d_eq, r_eq, b1, b2, y_d_eq,  y_r_eq
-	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 50, 5, 10, 5, 50, 5])
+#		 r_eq, y_r_eq, a1, a2, d_eq,  b1, b2, y_d_eq
+	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 50, 10, 5, 50])
 	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
@@ -200,6 +208,7 @@ z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
 
 # ------------------------------------------- 2D Display ------------------------
 title_label = []
+e_min = []
 for n, sym in enumerate(symbol):
 	n_marker = n
 	n_colour = n
@@ -214,11 +223,15 @@ for n, sym in enumerate(symbol):
 		n_liner = n - len(iliner)
 
 	label = str("cc=" + str(i_coords[sym]) + " & gcn=" + str(round(i_gcns[sym], 2)))
-	trend_label, trend_2D[sym], r2_2D[sym] = trend_morse(i_distances[sym], e_coh[sym], label, x_limits,
+#	r_eq, a, d_eq
+	trend_label, trend_2D[sym], r2_2D[sym], x_min = trend_morse(i_distances[sym], e_coh[sym], label, x_limits,
 														 icolour[n_colour], imarker[n_marker], iliner[n_liner])
+	e_min.append(x_min)
 #	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))
 	title_label.append(str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym])))
 plt.plot(x_limits, [0, 0], "k:")
+#for i in range(len(e_min)):
+################## add arrow
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
@@ -253,7 +266,7 @@ for n, coord in enumerate(coh):
 
 	max_deviation = Validation_3D(coord, int(coord), distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 								  imarker[n], icolour[n])
-	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[coord]
+	a_r_eq, b_r_eq,	a1, a2, a_d_eq, b1, b2, b_d_eq = trend_3D[coord]
 #	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
 	trend_file.write("# E_Coh (eV)\t\u03c3: Average Standard Deviation\t\u03C4:Maximum Absolute Error\n#"
 					 "\t3D Morse interpolation: A + B\n"
