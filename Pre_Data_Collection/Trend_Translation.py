@@ -156,13 +156,9 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	plt.plot(x_line, y_line, color=colour, linestyle=line)
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-	x_min = 0
-	for i in range(len(y_line)):
-		if y_line[i] == min(y_line):
-			x_min = x_line[i]
-			plt.plot([x_line[i], x_line[i]], [y_line[i]-0.05, -0.1], "k:")
+	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
-	return trend_label, popt, r2, x_min
+	return trend_label, popt, r2, minima
 
 
 def trend_morse_3D(x, y, z):
@@ -224,14 +220,22 @@ for n, sym in enumerate(symbol):
 
 	label = str("cc=" + str(i_coords[sym]) + " & gcn=" + str(round(i_gcns[sym], 2)))
 #	r_eq, a, d_eq
-	trend_label, trend_2D[sym], r2_2D[sym], x_min = trend_morse(i_distances[sym], e_coh[sym], label, x_limits,
+	trend_label, trend_2D[sym], r2_2D[sym], minima = trend_morse(i_distances[sym], e_coh[sym], label, x_limits,
 														 icolour[n_colour], imarker[n_marker], iliner[n_liner])
-	e_min.append(x_min)
+	e_min.append(minima)
 #	trend_label_2D = str(sym) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_2D[sym]))
 	title_label.append(str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym])))
 plt.plot(x_limits, [0, 0], "k:")
-#for i in range(len(e_min)):
-################## add arrow
+# Add comments around minima
+plt.plot([e_min[0][0]-0.05, 5.5], [e_min[0][1], e_min[0][1]], "k--", lw=0.5)
+plt.plot([e_min[0][0], e_min[0][0]], [e_min[0][1]-0.05, -0.1], "k--", lw=0.5)
+for i in range(1, len(e_min)):
+	x0, y0 = e_min[i-1]
+	x, y = e_min[i]
+	plt.plot([x-0.05, 5.5], [y, y], "k--", lw=0.5)
+	plt.annotate("", xy=(5, y0), xytext=(5, y), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
+	plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
+	plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
