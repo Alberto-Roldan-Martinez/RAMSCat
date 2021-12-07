@@ -69,7 +69,7 @@ for d in displacements:
 	Rewrite(structure_file+".vasp", atom_index, d)
 	os.remove(structure_file+".vasp")
 
-# for i in -0.7 -0.5 -0.3 -0.2 -0.1 -0.05 0.05 0.1 0.2 0.3 0.4 0.5 1 1.5 2 3 5 ; do a=$(echo $i m$i |awk '{if ($1 < 0) print $2; else print $1}'); rm -rf $a; mkdir $a; cp INCAR KPOINTS run.sh $a; mv CONTCAR_i*_d$i\.vasp $a/POSCAR; cd $a; cp POSCAR POSCAR_0; sbatch run.sh; cd ..;  done;
+# for i in -0.7 -0.5 -0.3 -0.2 -0.1 -0.05 0.05 0.1 0.2 0.3 0.4 0.5 1 1.5 2 3 5 ; do a=$(echo $i m$i |awk '{if ($1 < 0) print $2; else print $1}'); mkdir $a; cp INCAR KPOINTS run.sh $a; mv CONTCAR_i*_d$i\.vasp $a/POSCAR; cd $a; cp POSCAR POSCAR_0; sbatch run.sh; cd ..;  done;
 
 
 
