@@ -133,27 +133,40 @@ def morse(x, r_eq, a, d_eq):
 	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
 
 
-#def morse_3D(x, a1, a2, d_eq, r_eq, b1, b2,  y_r_eq):
-#	return d_eq * ((np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
-#		    (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
 def morse_3D(x, r_eq, y_r_eq, a1, a2, d_eq, b1, b2, y_d_eq):
 	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
-		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potentia
+		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potential
+
+
+def lennard_jones(x, r_eq, a, d_eq):
+	return d_eq * ((r_eq/x)**(2*a) - 2*(r_eq/x)**a)     # Lennard-Jones potential
+
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	weights = []
 	for i in range(len(x)):
-		if x[i] == max(x):
+		if x[i] == max(x) or y[i] == min(y):
 			weights.append(0.1)
 		else:
 			weights.append(1)
-	popt, pcov = curve_fit(morse, x, y, bounds=([0.75, 0, 0.], [5, 150, 100]), sigma=weights)
+	popt, pcov = curve_fit(morse, x, y, bounds=([0.75, 0., 0.], [5, 10, 100]))#, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a, b = popt
-	trend_label = "Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a, c, a, c)
+	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a, c, a, c)
+	print(trend_label)
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line)
+
+	popt, pcov = curve_fit(lennard_jones, x, y, bounds=([0.75, 0., 0.], [5, 10, 100]))#, sigma=weights)
+#	r2 = 1-np.sqrt(sum([(y[i] - lennard_jones(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+	c, a, b = popt
+	trend_label = " Lennard-Jones: {:.2f} * (({:.2f}/d)**(2*{:.2f}) - 2*({:.2f}/d)**{:.2f}) ".format(b, c, a, c, a)
+	print(trend_label)
+	x_line = np.linspace(xlim[0], xlim[1], 150)
+	y_line = lennard_jones(np.linspace(xlim[0], xlim[1], 150), *popt)
+	plt.plot(x_line, y_line, color=colour, linestyle=line, lw=0.5)
+
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
 			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
@@ -227,15 +240,16 @@ for n, sym in enumerate(symbol):
 	title_label.append(str("cc=" + str(i_coords[sym]) + " & gcn=" + str(i_gcns[sym])))
 plt.plot(x_limits, [0, 0], "k:")
 # Add comments around minima
-plt.plot([e_min[0][0]-0.05, 5.5], [e_min[0][1], e_min[0][1]], "k--", lw=0.5)
-plt.plot([e_min[0][0], e_min[0][0]], [e_min[0][1]-0.05, -0.1], "k--", lw=0.5)
-for i in range(1, len(e_min)):
-	x0, y0 = e_min[i-1]
-	x, y = e_min[i]
-	plt.plot([x-0.05, 5.5], [y, y], "k--", lw=0.5)
-	plt.annotate("", xy=(5, y0), xytext=(5, y), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
-	plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
-	plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
+if len(e_min) > 1:
+	plt.plot([e_min[0][0]-0.05, 5.5], [e_min[0][1], e_min[0][1]], "k--", lw=0.5)
+	plt.plot([e_min[0][0], e_min[0][0]], [e_min[0][1]-0.05, -0.1], "k--", lw=0.5)
+	for i in range(1, len(e_min)):
+		x0, y0 = e_min[i-1]
+		x, y = e_min[i]
+		plt.plot([x-0.05, 5.5], [y, y], "k--", lw=0.5)
+		plt.annotate("", xy=(5, y0), xytext=(5, y), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
+		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
+		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
@@ -268,7 +282,7 @@ for n, coord in enumerate(coh):
 	if n >= len(imarker):
 		n_marker = n - len(imarker)
 
-	max_deviation = Validation_3D(coord, int(coord), distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+	max_deviation = Validation_3D(symbol[n], int(coord), distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 								  imarker[n], icolour[n])
 	a_r_eq, b_r_eq,	a1, a2, a_d_eq, b1, b2, b_d_eq = trend_3D[coord]
 #	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]

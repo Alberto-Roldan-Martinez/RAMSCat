@@ -17,11 +17,30 @@ def e_coh_bulk():                            # cohesion energies at bulk coordin
 
 
 # TO BE UPDATED!!!!!!!!!!!!
+#def e_coh_trend(cc):                         # cohesion energies trend parameter (a in logarithmic equations)
+#    a = 14.25097
+#    b_ecoh, b_coord = e_coh_bulk()
+#    return (np.log(a)/np.log(a/(a + b_coord)) - (1/np.log(a/(a + b_coord))*np.log(a+cc))) * b_ecoh
+def e_coh_trend(cc, gcn):
+    parameters = []
+    popts = {# coordination,
+        (2, ),
+        (3, ),
+        (4, ),
+        (5, ),
+        (6, ),
+        (7, ),
+        (8, ),
+        (9, ),
+        (10, )
+            }
+    for i, sys in enumerate(popts):
+        if sys[0] == cc:
+            parameters = sys[2:]
+    return parameters
 
-def e_coh_trend(cc):                         # cohesion energies trend parameter (a in logarithmic equations)
-    a = 14.25097
-    b_ecoh, b_coord = e_coh_bulk()
-    return (np.log(a)/np.log(a/(a + b_coord)) - (1/np.log(a/(a + b_coord))*np.log(a+cc))) * b_ecoh
+
+
 
 
 def surf_areas(coordination):                # Atomic areas trend using a ??? LORENTZIAN: a + b / (4 * ( x - c )**2 - d**2)
@@ -35,6 +54,7 @@ def surf_energies(coordination):            # Atomic Surface energies interpolat
 
 
 def opt_support_atom_distance(support, site):          # Defines the optimised ONE atom-support distance in Ansgtroms
+    optimum_distance = 0
     opt_distances = {
                     ('MgO', 'O',  2.3179),
                     ('MgO', 'Mg', 2.6857),
@@ -44,6 +64,7 @@ def opt_support_atom_distance(support, site):          # Defines the optimised O
             if sys[1] == site:
                 optimum_distance = sys[2]
     return optimum_distance
+
 
 def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhEnergy_Sites
     parameters = []
@@ -64,7 +85,6 @@ def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhE
         if sys[0] == support:
             if sys[2] == icc:
                 parameters = sys[2:]
-
     return parameters
 
 
