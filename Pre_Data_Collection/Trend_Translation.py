@@ -45,7 +45,7 @@ def get_data(data):
 				i_distance.append(d_e_min + d)
 	e_reference = [t_energy[i] for i in range(len(t_energy)) if i_distance[i] == max(i_distance)][0]
 	e_coh = [i-e_reference for i in t_energy]
-
+#	e_coh = [i for i in t_energy]
 
 	return i_atom, i_coord, i_gcn, i_distance, e_coh
 
@@ -129,8 +129,12 @@ def cubic(x, a, b, c, d):
 	return a*x**3 + b*x**2 + c*x + d
 
 
-def morse(x, r_eq, a, d_eq):
-	return d_eq * (np.exp(-2*a*(x - r_eq)) - 2 * np.exp(-a*(x - r_eq)))     # MORSE potential
+def morse(x, r_eq, a1, a2, d_eq):
+	return d_eq * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-a2*(x - r_eq)))     # MORSE potential
+
+
+def generalised_morse(x, r_eq, a1, a2, d_eq, m):
+	return d_eq/(2*m) * ((2*m - 1) * np.exp(-2*a1*(x/r_eq - 1)) - 2*m * np.exp(-a2*(x/r_eq - 1)))     # Generalised MORSE potential: https://doi.org/10.3390/en13133323
 
 
 def morse_3D(x, r_eq, y_r_eq, a1, a2, d_eq, b1, b2, y_d_eq):
@@ -144,25 +148,40 @@ def lennard_jones(x, r_eq, a, d_eq):
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	weights = []
+	r_min = min(x)
+	e_min = np.abs(min(y))
 	for i in range(len(x)):
-		if x[i] == max(x) or y[i] == min(y):
+#		if x[i] == max(x) or y[i] == min(y):
+		if y[i] == min(y):
 			weights.append(0.1)
+			r_min = x[i]
+			e_min = np.abs(y[i])
 		else:
 			weights.append(1)
-	popt, pcov = curve_fit(morse, x, y, bounds=([0.75, 0., 0.], [5, 10, 100]))#, sigma=weights)
+
+	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 10., 10., e_min*1.1]))#, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
-	c, a, b = popt
-	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a, c, a, c)
-	print(trend_label)
+	c, a1, a2, b = popt
+	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
+	print(trend_label, r2)
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line)
 
+	popt, pcov = curve_fit(generalised_morse, x, y, bounds=([0.75, 0., 0., 0., 1], [5., 10., 10., 100, 6]))#, sigma=weights)
+	r2 = 1-np.sqrt(sum([(y[i] - generalised_morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+	c, a1, a2, b, m = popt
+	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
+	print(trend_label, r2, m)
+	x_line = np.linspace(xlim[0], xlim[1], 150)
+	y_line = generalised_morse(np.linspace(xlim[0], xlim[1], 150), *popt)
+	plt.plot(x_line, y_line, color=colour, linestyle=":")
+
 	popt, pcov = curve_fit(lennard_jones, x, y, bounds=([0.75, 0., 0.], [5, 10, 100]))#, sigma=weights)
-#	r2 = 1-np.sqrt(sum([(y[i] - lennard_jones(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
+	r2 = 1-np.sqrt(sum([(y[i] - lennard_jones(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a, b = popt
 	trend_label = " Lennard-Jones: {:.2f} * (({:.2f}/d)**(2*{:.2f}) - 2*({:.2f}/d)**{:.2f}) ".format(b, c, a, c, a)
-	print(trend_label)
+	print(trend_label, r2)
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = lennard_jones(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line, lw=0.5)
