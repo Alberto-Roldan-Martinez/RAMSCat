@@ -95,7 +95,6 @@ def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhE
 '''
 -   add the equation to return the energy instead of the paremeters so ALSO the forces per atom can be returned --> see E-coh
 '''
-
     return parameters
 
 
