@@ -84,7 +84,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	z_mask = ma.masked_greater_equal(z, 0.0, copy=True)
 	z = z_mask.filled(fill_value=0.0)
 
-	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.4, vmin=zlim[0], vmax=0)
+	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.8, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
 #	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
 #	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
@@ -166,8 +166,10 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	print(trend_label, r2)
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
-	plt.plot(x_line, y_line, color=colour, linestyle=line)
+	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+#				label="$R^{2}$= "+str(round(r2, 2)))
 
+	'''
 	popt, pcov = curve_fit(generalised_morse, x, y, bounds=([0.75, 0., 0., 0., 1], [5., 10., 10., 100, 6]))#, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - generalised_morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a1, a2, b, m = popt
@@ -185,9 +187,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = lennard_jones(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line, lw=0.5)
-
-	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None",
-			 label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	'''
+	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
 	return trend_label, popt, r2, minima
@@ -270,6 +271,7 @@ if len(e_min) > 1:
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+#Display("$distance$ $(\\AA)$", "$E^{\\alpha}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
@@ -285,10 +287,14 @@ for n, sym in enumerate(symbol):
 		coh[str(i_coords[sym])] += e_coh[sym]
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[coord], gcns[coord], coh[coord])
-	trend_label_3D = str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[coord])
+	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[coord])
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 					  x_limits, y_limits, z_limits, trend_label_3D)
+#	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+#			  "$distance$ $(\\AA)$", "$\\beta$", "$E_{Coh}^{\\alpha}$ $(eV \cdot atom^{\minus 1})$",
+#					  x_limits, y_limits, z_limits, trend_label_3D)
+
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
 for n, coord in enumerate(coh):
