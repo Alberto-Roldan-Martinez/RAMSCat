@@ -22,29 +22,30 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 
 def get_data(data):
 #	data.sort(key=lambda x: x[3])
-	t_energy = [float(data[i][7]) for i in range(len(data)) if float(data[i][7]) < 0]		# contains the system's energy
+	temp_energy = [float(data[i][7]) for i in range(len(data)) if float(data[i][7]) < 0]		# contains the system's energy
 	i_distance = []						# contains the atom's distance to the closest neighbour
 	i_atom = 0							# contains the atom index of interest
 	i_coord = 0							# contains the atom's coordination
 	i_gcn = 0 							# contains the atom's site generalised coordination number (the closest point)
 	for i in range(len(data)):
-		if float(data[i][7]) < 0:
-			if t_energy[i] == min(t_energy):
+		if float(data[i][7]) <= 0:
+			if temp_energy[i] == min(temp_energy):
 				i_atom = int(data[i][0])
 				i_coord = int(float(data[i][1]))
 				i_gcn = float(data[i][2])
 				d_e_min = float(data[i][3])
 				xyz_reference = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])])
 	for i in range(len(data)):
-		if float(data[i][7]) < 0:
-			if int(float(data[i][1])) == i_coord or float(data[i][2]) == i_gcn:
+		if float(data[i][7]) <= 0:
+			if int(float(data[i][1])) == i_coord:
 				i_distance.append(float(data[i][3]))
 			else:
 				vector = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])]) - xyz_reference
 				d = np.sqrt(vector.dot(vector))
 				i_distance.append(d_e_min + d)
-	e_reference = [t_energy[i] for i in range(len(t_energy)) if i_distance[i] == max(i_distance)][0]
-	e_coh = [i-e_reference for i in t_energy]
+	print("distance array: ", i_distance)
+	e_reference = [temp_energy[i] for i in range(len(temp_energy)) if i_distance[i] == max(i_distance)][0]
+	e_coh = [i-e_reference for i in temp_energy]
 #	e_coh = [i for i in t_energy]
 
 	return i_atom, i_coord, i_gcn, i_distance, e_coh
@@ -138,8 +139,8 @@ def generalised_morse(x, r_eq, a1, a2, d_eq, m):
 
 
 def morse_3D(x, r_eq, y_r_eq, a1, a2, d_eq, b1, b2, y_d_eq):
-	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-a2*(x[0] - r_eq*np.sin(x[1]/x[0])))) +\
-		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-b2*(x[1] - y_r_eq*np.sin(x[1]/x[0]))))					# MORSE potential
+	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - r_eq*np.sin(x[1]/x[0]))))) +\
+		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
 
 
 def lennard_jones(x, r_eq, a, d_eq):
@@ -159,7 +160,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 		else:
 			weights.append(1)
 
-	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 10., 10., e_min*1.1]))#, sigma=weights)
+	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 10., 10., e_min*1.1]), sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a1, a2, b = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
@@ -195,8 +196,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-#		 r_eq, y_r_eq, a1, a2, d_eq,  b1, b2, y_d_eq
-	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 50, 10, 5, 50])
+#			  r_eq, y_r_eq, a1, a2, d_eq,  b1, b2, y_d_eq
+	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 50, 10, 10, 50])
 	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
@@ -271,7 +272,7 @@ if len(e_min) > 1:
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
-#Display("$distance$ $(\\AA)$", "$E^{\\alpha}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+##Display("$distance$ $(\\AA)$", "$E^{\\alpha}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
@@ -291,13 +292,14 @@ for n, coord in enumerate(distances):
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 					  x_limits, y_limits, z_limits, trend_label_3D)
-#	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-#			  "$distance$ $(\\AA)$", "$\\beta$", "$E_{Coh}^{\\alpha}$ $(eV \cdot atom^{\minus 1})$",
-#					  x_limits, y_limits, z_limits, trend_label_3D)
+##	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+##			  "$distance$ $(\\AA)$", "$\\beta$", "$E_{Coh}^{\\alpha}$ $(eV \cdot atom^{\minus 1})$",
+##					  x_limits, y_limits, z_limits, trend_label_3D)
 
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
-for n, coord in enumerate(coh):
+max_deviation = []
+for n, sym in enumerate(symbol):
 	n_marker = n
 	n_colour = n
 	if n >= 2*len(icolour):
@@ -307,19 +309,23 @@ for n, coord in enumerate(coh):
 	if n >= len(imarker):
 		n_marker = n - len(imarker)
 
-	max_deviation = Validation_3D(symbol[n], int(coord), distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-								  imarker[n], icolour[n])
-	a_r_eq, b_r_eq,	a1, a2, a_d_eq, b1, b2, b_d_eq = trend_3D[coord]
+	print("n:",n, "lenght:",e_coh[sym])
+
+	deviation = Validation_3D(symbol[n], int(i_coords[sym]), i_distances[sym],
+						  [i_gcns[sym] for i in range(len(i_distances[sym]))], e_coh[sym], trend_3D[str(i_coords[sym])],
+						  imarker[n_marker], icolour[n_colour])
+	max_deviation.append(deviation)
+a_r_eq, b_r_eq,	a1, a2, a_d_eq, b1, b2, b_d_eq = trend_3D[str(i_coords[sym])]
 #	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
-	trend_file.write("# E_Coh (eV)\t\u03c3: Average Standard Deviation\t\u03C4:Maximum Absolute Error\n#"
-					 "\t3D Morse interpolation: A + B\n"
-					 "  A::\td_eq * ((exp(-2 * a1 * (A - r_eq)) - 2 * exp(-a2 * (A - r_eq * sin(isd_b/isd_a))))\n"
-					 "  B::\t\t(exp(-2 * b1 * (B - r_eq)) - 2 * exp(-b2 * (B - r_eq * sin(isd_b/isd_a)))))\n")
-	trend_file.write("Coordination={:d}\n\tA\td_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\n"
-					   "\tB\td_eq={:<5.5f}\tb1={:<5.5f}\tb2={:<5.5f}\tr_eq={:<5.5f}"
-					 "\tR\u00b2={:<1.2f}  \u03c3={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
-					 .format(int(coord), a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(r2_3D[coord], 2),
-							 round(stand_dev[coord], 2), np.abs(max_deviation)))
+trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
+				 "\t3D Morse interpolation: A + B\n"
+				 "  A::\td_x_eq * ((exp(-2 * a1 * (x - r_eq)) - 2 * exp(- abs(a2 * (x - r_eq * sin(isd_b/isd_a)))))\n"
+				 "  B::\td_y_eq * ((exp(-2 * b1 * (y - r_eq)) - 2 * exp(- abs(b2 * (y - r_eq * sin(isd_b/isd_a))))))\n")
+trend_file.write("Coordination={:d}\n\tA\td_x_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\n"
+				   "\tB\td_y_eq={:<5.5f}\tb1={:<5.5f}\tb2={:<5.5f}\tr_eq={:<5.5f}"
+				 "\tR\u00b2={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
+				 .format(int(coord), a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(r2_3D[coord], 2),
+						 np.abs(max(max_deviation))))
 trend_file.close()
 plt.plot(z_limits, z_limits, "k-", lw=1.5)
 Display("$E_{Coh}$ $(eV \cdot atom^{\minus 1})$", "Predicted $E_{Coh}$ $(eV \cdot atom^{\minus 1})$", z_limits, z_limits, "")

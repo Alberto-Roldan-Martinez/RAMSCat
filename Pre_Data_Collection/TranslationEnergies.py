@@ -55,7 +55,7 @@ if len(coordinating[str(i_atom)]) > 0:
 # the average distance between the atom of interest and first neighbours
 if len(coordinating[str(i_atom)]) > 0:
 	distance = sum([d[n] for n in range(len(a)) if a[n] == i_atom])/len(coordinating[str(i_atom)])
-	print(coordinating[str(i_atom)], len(coordinating[str(i_atom)]))
+#	print(coordinating[str(i_atom)], len(coordinating[str(i_atom)]))
 else:
 	distance = 0
 

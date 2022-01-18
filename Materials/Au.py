@@ -37,7 +37,7 @@ def e_coh_trend(cc, gcn):
     for i, sys in enumerate(popts):
         if sys[0] == cc:
             parameters = sys[2:]
-
+    return parameter
 '''
 - include forces with d(Morse) -->    scipy.misc.derivative(func, x0) x0=[cc, gcn]??
     2 variables: scipy.misc.derivative for multiple argument function -->stackoverflow
@@ -48,7 +48,6 @@ def e_coh_trend(cc, gcn):
 - amend Predicting to recheck coordination every X optimisation steps if convergence hasn't been reached. x=5?? 
 '''
 
-    return parameters
 
 def surf_areas(coordination):                # Atomic areas trend using a ??? LORENTZIAN: a + b / (4 * ( x - c )**2 - d**2)
     a, b, c, d, r2 = [17.4706, 91.61526, 1.94987, 16.54962, 0.94]   # a,b,c,d and R^2 of interpolation
@@ -92,9 +91,9 @@ def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhE
         if sys[0] == support:
             if sys[2] == icc:
                 parameters = sys[2:]
+    return parameters
 '''
 -   add the equation to return the energy instead of the paremeters so ALSO the forces per atom can be returned --> see E-coh
 '''
-    return parameters
 
 
