@@ -43,7 +43,6 @@ def get_data(data):
 				vector = np.array([float(data[i][4]), float(data[i][5]), float(data[i][6])]) - xyz_reference
 				d = np.sqrt(vector.dot(vector))
 				i_distance.append(d_e_min + d)
-	print("distance array: ", i_distance)
 	e_reference = [temp_energy[i] for i in range(len(temp_energy)) if i_distance[i] == max(i_distance)][0]
 	e_coh = [i-e_reference for i in temp_energy]
 #	e_coh = [i for i in t_energy]
@@ -160,7 +159,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 		else:
 			weights.append(1)
 
-	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 10., 10., e_min*1.1]), sigma=weights)
+	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 20., 20., e_min*1.1]), sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a1, a2, b = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
@@ -197,8 +196,15 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 def trend_morse_3D(x, y, z):
 #			  r_eq, y_r_eq, a1, a2, d_eq,  b1, b2, y_d_eq
-	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 50, 10, 10, 50])
-	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
+	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 20, 10, 10, 20])
+	weights = []
+#	for i in range(len(x)):
+#		if x[i] == max(x) or y[i] == min(y):
+#		if y[i] < max(y)*0.99:
+#			weights.append(0.1)
+#		else:
+#			weights.append(1)
+	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)#, sigma=weights)
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	standard_deviation = sum(np.sqrt(np.diag(pcov)/len(np.diag(pcov))))/len(np.diag(pcov))
@@ -287,7 +293,7 @@ for n, sym in enumerate(symbol):
 		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] += e_coh[sym]
 for n, coord in enumerate(distances):
-	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[coord], gcns[coord], coh[coord])
+	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
 	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[coord])
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
@@ -296,6 +302,18 @@ for n, coord in enumerate(distances):
 ##			  "$distance$ $(\\AA)$", "$\\beta$", "$E_{Coh}^{\\alpha}$ $(eV \cdot atom^{\minus 1})$",
 ##					  x_limits, y_limits, z_limits, trend_label_3D)
 
+# ---------------------- Clean and get the data ----------------------------------------------
+symbol = []
+i_atoms = {}
+i_coords = {}
+i_gcns = {}
+i_distances = {}
+e_coh = {}
+for n in range(1, len(sys.argv)):
+	ifile = open(sys.argv[n]).readlines()
+	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
+	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
+	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]] = get_data(data)
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
 max_deviation = []
@@ -309,7 +327,8 @@ for n, sym in enumerate(symbol):
 	if n >= len(imarker):
 		n_marker = n - len(imarker)
 
-	print("n:",n, "lenght:",e_coh[sym])
+	print("n:", n, "\tidentifier:", sym, "\tlenght:", len(e_coh[sym]))
+	print(sorted([round(i, 4) for i in i_distances[sym]]))
 
 	deviation = Validation_3D(symbol[n], int(i_coords[sym]), i_distances[sym],
 						  [i_gcns[sym] for i in range(len(i_distances[sym]))], e_coh[sym], trend_3D[str(i_coords[sym])],
