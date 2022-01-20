@@ -6,7 +6,7 @@
 """
 
 import numpy as np
-
+from scipy.misc import derivative
 
 def e_isolated_atom():                      # energies of isolated atoms in vaccuo (RPBE)
     return -0.1921
@@ -21,9 +21,18 @@ def e_coh_bulk():                            # cohesion energies at bulk coordin
 #    a = 14.25097
 #    b_ecoh, b_coord = e_coh_bulk()
 #    return (np.log(a)/np.log(a/(a + b_coord)) - (1/np.log(a/(a + b_coord))*np.log(a+cc))) * b_ecoh
-def e_coh_trend(cc, gcn):
+
+def e_coh_trend(cc, distance, gcn): ### distance as a vector to get vector forces
     parameters = []
-    popts = {# coordination,
+    def morse_3D(x, popt):
+        a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = popt
+        return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - a_r_eq*np.sin(x[1]/x[0]))))) +\
+               b_d_eq * (np.exp(-2*b1*(x[1] - b_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - b_r_eq*np.sin(x[1]/x[0]))))
+    coh_e = 0
+    coh_f = []
+
+    popts = {# coordination, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
+        (1, 1.70957, 1.20651, 36.31478, 1.57119, 0.42592, 0.0, 0.47197, 0.9226),
         (2, ),
         (3, ),
         (4, ),
@@ -33,10 +42,14 @@ def e_coh_trend(cc, gcn):
         (8, ),
         (9, ),
         (10, )
-            }
+        }
     for i, sys in enumerate(popts):
         if sys[0] == cc:
-            parameters = sys[2:]
+            coh_e = morse_3D([distance, gcn], sys[1:])
+            coh_f = derivative(morse_3D([distance, gcn], sys[1:]),
+#derivative(f, 1.0, dx=1e-6)
+
+
     return parameter
 '''
 - include forces with d(Morse) -->    scipy.misc.derivative(func, x0) x0=[cc, gcn]??

@@ -47,7 +47,7 @@ def get_data(data):
 	e_coh = [i-e_reference for i in temp_energy]
 #	e_coh = [i for i in t_energy]
 
-	return i_atom, i_coord, i_gcn, i_distance, e_coh
+	return i_atom, i_coord, i_gcn, i_distance, e_coh, e_reference
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
@@ -136,10 +136,9 @@ def morse(x, r_eq, a1, a2, d_eq):
 def generalised_morse(x, r_eq, a1, a2, d_eq, m):
 	return d_eq/(2*m) * ((2*m - 1) * np.exp(-2*a1*(x/r_eq - 1)) - 2*m * np.exp(-a2*(x/r_eq - 1)))     # Generalised MORSE potential: https://doi.org/10.3390/en13133323
 
-
-def morse_3D(x, r_eq, y_r_eq, a1, a2, d_eq, b1, b2, y_d_eq):
-	return d_eq * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - r_eq*np.sin(x[1]/x[0]))))) +\
-		   y_d_eq * (np.exp(-2*b1*(x[1] - y_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - y_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
+def morse_3D(x, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq):
+	return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - a_r_eq*np.sin(x[1]/x[0]))))) +\
+		   b_d_eq * (np.exp(-2*b1*(x[1] - b_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - b_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
 
 
 def lennard_jones(x, r_eq, a, d_eq):
@@ -195,8 +194,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-#			  r_eq, y_r_eq, a1, a2, d_eq,  b1, b2, y_d_eq
-	limits = ([0.75, 0.75, 0., 0., 0., 0., 0., 0.], [5, 5, 10, 10, 20, 10, 10, 20])
+#			  a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
+	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 50, 5, 10, 10, 50, 5])
 	weights = []
 #	for i in range(len(x)):
 #		if x[i] == max(x) or y[i] == min(y):
@@ -227,6 +226,7 @@ i_coords = {}
 i_gcns = {}
 i_distances = {}
 e_coh = {}
+e_reference = {}
 
 trend_2D = {}
 r2_2D = {}
@@ -237,7 +237,8 @@ for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
-	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]] = get_data(data)
+	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
+		e_reference[symbol[-1]] = get_data(data)
 x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, max([max(i_distances[sym]) for sym in symbol])*1.1]
 y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
 z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
@@ -309,11 +310,13 @@ i_coords = {}
 i_gcns = {}
 i_distances = {}
 e_coh = {}
+e_reference = {}
 for n in range(1, len(sys.argv)):
 	ifile = open(sys.argv[n]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if ifile[i].startswith("#") is False and len(ifile[i].split()) > 0]
 	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
-	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]] = get_data(data)
+	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
+		e_reference[symbol[-1]] = get_data(data)
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
 max_deviation = []
@@ -328,14 +331,15 @@ for n, sym in enumerate(symbol):
 		n_marker = n - len(imarker)
 
 	print("n:", n, "\tidentifier:", sym, "\tlenght:", len(e_coh[sym]))
-	print(sorted([round(i, 4) for i in i_distances[sym]]))
+#	print(sorted([round(i, 4) for i in i_distances[sym]]))
 
 	deviation = Validation_3D(symbol[n], int(i_coords[sym]), i_distances[sym],
 						  [i_gcns[sym] for i in range(len(i_distances[sym]))], e_coh[sym], trend_3D[str(i_coords[sym])],
 						  imarker[n_marker], icolour[n_colour])
 	max_deviation.append(deviation)
-a_r_eq, b_r_eq,	a1, a2, a_d_eq, b1, b2, b_d_eq = trend_3D[str(i_coords[sym])]
-#	a1, a2, d_eq, a_r_eq, b1, b2, b_r_eq = trend_3D[sym]
+a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = trend_3D[str(i_coords[sym])]
+print("Trend: ", [round(i, 5) for i in trend_3D[str(i_coords[sym])]])
+
 trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
 				 "\t3D Morse interpolation: A + B\n"
 				 "  A::\td_x_eq * ((exp(-2 * a1 * (x - r_eq)) - 2 * exp(- abs(a2 * (x - r_eq * sin(isd_b/isd_a)))))\n"
