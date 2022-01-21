@@ -61,9 +61,11 @@ def ecoh_bulk(element):                         # cohesion energies at bulk coor
 
     return b_ecoh
 '''
-def ecoh_trend(element, cc):                         # cohesion energies trend parameter (a in logarithmic equations)
+def ecoh_trend(element, cc, distance, vector_distance, gcn):                         # cohesion energies trend parameter (a in logarithmic equations)
     if type(element) is list and len(element) == 1:
-        return importlib.import_module("Materials."+str(element[0])).e_coh_trend(cc)
+        coh_e, coh_f = importlib.import_module("Materials."+str(element[0])).e_coh_trend(cc, distance,
+                                                                                         vector_distance, gcn)
+        return coh_e
     else:
         print(" --- Bulk alloys not implemented in the Library yet ---")
         exit()
@@ -157,12 +159,10 @@ def opt_atom_distance(support, site, element):          # Defines the optimised 
 '''
 
 
-def e_adh_energies(support, element, icc, x, y):
-    parameters = importlib.import_module("Materials."+element).e_adh_energies(support, icc)
-    a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min = parameters
-    adh_e = (a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-a2*(x - a_r_eq*np.sin(y/x)))) +
-             b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-b2*(y - b_r_eq*np.sin(y/x))))) + e_reference
-
-    return adh_e, e_reference, e_min, [a2, b2]
+def e_adh_energies(support, element, icc, x, y, v_x, v_y):
+    adh_e, adh_f, e_reference, e_min, widths = importlib.import_module("Materials."+element).e_adh_energies(support,
+                                                                                                            icc, x, y,
+                                                                                                            v_x, v_y)
+    return adh_e, e_reference, e_min, widths
 
 

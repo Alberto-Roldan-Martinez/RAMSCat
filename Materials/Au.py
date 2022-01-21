@@ -16,22 +16,12 @@ def e_coh_bulk():                            # cohesion energies at bulk coordin
     return [-3.5650, 12]
 
 
-# TO BE UPDATED!!!!!!!!!!!!
-#def e_coh_trend(cc):                         # cohesion energies trend parameter (a in logarithmic equations)
-#    a = 14.25097
-#    b_ecoh, b_coord = e_coh_bulk()
-#    return (np.log(a)/np.log(a/(a + b_coord)) - (1/np.log(a/(a + b_coord))*np.log(a+cc))) * b_ecoh
-
-def e_coh_trend(cc, distance, gcn): ### distance as a vector to get vector forces
-    parameters = []
-    def morse_3D(x, popt):
-        a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq = popt
-        return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - a_r_eq*np.sin(x[1]/x[0]))))) +\
-               b_d_eq * (np.exp(-2*b1*(x[1] - b_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - b_r_eq*np.sin(x[1]/x[0]))))
-    coh_e = 0
-    coh_f = []
-
+def e_coh_trend(cc, distance, vector_distance, gcn):
+    def morse_3D(x, y, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq):
+        return a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x - a_r_eq*np.sin(y/x))))) +\
+               b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-np.abs(b2*(y - b_r_eq*np.sin(y/x)))))
     popts = {# coordination, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
+        (0, 0., 0., 0., 0., 0., 0., 0., 0.),
         (1, 1.70957, 1.20651, 36.31478, 1.57119, 0.42592, 0.0, 0.47197, 0.9226),
         (2, ),
         (3, ),
@@ -45,12 +35,11 @@ def e_coh_trend(cc, distance, gcn): ### distance as a vector to get vector force
         }
     for i, sys in enumerate(popts):
         if sys[0] == cc:
-            coh_e = morse_3D([distance, gcn], sys[1:])
-            coh_f = derivative(morse_3D([distance, gcn], sys[1:]),
-#derivative(f, 1.0, dx=1e-6)
+            arg = (gcn, ) + tuple(sys[1:])
+    coh_e = morse_3D(distance, *arg)
+    coh_f = vector_distance * derivative(morse_3D, distance, args=arg, dx=1e-9)
 
-
-    return parameter
+    return coh_e, coh_f
 '''
 - include forces with d(Morse) -->    scipy.misc.derivative(func, x0) x0=[cc, gcn]??
     2 variables: scipy.misc.derivative for multiple argument function -->stackoverflow
@@ -85,9 +74,18 @@ def opt_support_atom_distance(support, site):          # Defines the optimised O
     return optimum_distance
 
 
-def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhEnergy_Sites
-    parameters = []
-    popts = {# support, metal, n-1	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min
+def e_adh_energies(support, icc, distance_a, distance_b, vector_distance_a, vector_distance_b):
+    def morse_3D(x, y, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference):
+        return (a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-a2*(x - a_r_eq*np.sin(y/x)))) +
+                b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-b2*(y - b_r_eq*np.sin(y/x))))) + e_reference
+    def partial_derivative(func, var=0, point=[]):
+        args = point[:]
+        def wraps(x):
+            args[var] = x
+            return func(*args)
+        return derivative(wraps, point[var], dx=1e-9)
+
+    popts = {# support,gg coordination	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min
         ('MgO',  0, 1.24123, 1.64706, 0.59456, 2.97495, 1.67188, 1.91902,  8.47915, 1.82317, -0.1787, -1.27773),
         ('MgO',  1, 1.92146, 1.72757, 1.21384, 2.18831, 2.08383, 2.17571,  0.84201, 2.25829, -0.6396, -1.35581),
         ('MgO',  2, 1.18296, 1.57988, 0.94593, 2.88265, 1.42953, 1.96775, 13.43070, 1.60617, -0.3442, -1.65847),
@@ -103,8 +101,17 @@ def e_adh_energies(support, icc):        # popt and reference_e using Trend_AdhE
     for i, sys in enumerate(popts):
         if sys[0] == support:
             if sys[2] == icc:
-                parameters = sys[2:]
-    return parameters
+                arguments = sys[2:-1]
+                e_min = sys[-1]
+    e_reference = arguments[-1]
+    width = [arguments[1], arguments[5]]
+    point = [distance_a, distance_b] + arguments
+    e_reference = arguments[-1]
+    adh_e = morse_3D(*point)
+    adh_f = vector_distance_a * partial_derivative(morse_3D, 0, point=point) +\
+            vector_distance_a * partial_derivative(morse_3D, 1, point=point)
+
+    return adh_e, adh_f, e_reference, e_min, width
 '''
 -   add the equation to return the energy instead of the paremeters so ALSO the forces per atom can be returned --> see E-coh
 '''
