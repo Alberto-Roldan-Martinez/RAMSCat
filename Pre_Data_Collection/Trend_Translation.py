@@ -120,6 +120,9 @@ def SaveFig():
 		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
+def lineal(x, a, b):
+	return a*x + b
+
 
 def logarithm(x, a, b, c, d):
 	return d/np.log(a/(a+b)) * (np.log(a) - c * np.log(a+x))
@@ -137,8 +140,8 @@ def generalised_morse(x, r_eq, a1, a2, d_eq, m):
 	return d_eq/(2*m) * ((2*m - 1) * np.exp(-2*a1*(x/r_eq - 1)) - 2*m * np.exp(-a2*(x/r_eq - 1)))     # Generalised MORSE potential: https://doi.org/10.3390/en13133323
 
 def morse_3D(x, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq):
-	return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - a_r_eq*np.sin(x[1]/x[0]))))) +\
-		   b_d_eq * (np.exp(-2*b1*(x[1] - b_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - b_r_eq*np.sin(x[1]/x[0])))))					# MORSE potential
+	return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x[0] - a_r_eq*np.sin(x[0]/x[1]))))) +\
+		   b_d_eq * (np.exp(-2*b1*(x[1] - b_r_eq)) - 2 * np.exp(-np.abs(b2*(x[1] - b_r_eq*np.sin(x[0]/x[1])))))					# MORSE potential
 
 
 def lennard_jones(x, r_eq, a, d_eq):
@@ -150,7 +153,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	r_min = min(x)
 	e_min = np.abs(min(y))
 	for i in range(len(x)):
-#		if x[i] == max(x) or y[i] == min(y):
+#		if x[i] == max(x):
+#			weights.append(0.1)
 		if y[i] == min(y):
 			weights.append(0.1)
 			r_min = x[i]
@@ -193,23 +197,24 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	return trend_label, popt, r2, minima
 
 
-def trend_morse_3D(x, y, z):
+def trend_morse_3D(x, y, z, e_min):
+	weights = []
 	for i in range(len(x)):
+		if x[i] >= max(x)-1:
+			weights.append(0.1)
+		elif z[i] in e_min:
+			weights.append(0.1)
+		else:
+			weights.append(1)
 		if z[i] == min(z):
-			r = x[i]*0.85
-	d = np.abs(min(z)*1.2)
+			r = x[i]*0.8
+	d = np.abs(min(z)*0.8)
 	if len(set(y)) > 1:
 #			  a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
-		limits = ([0., 0., d, r, 0., 0., d, r], [10, 10, 50, 5, 10, 10, 50, 5])
+		limits = ([0., 0., d, r, 0., 0., 0., r], [10, 10, d*2, r*2, 50, 50, d*2, r*2])
 	else:
-		limits = ([0., 0., d, r, 0., 0., 0, 0.1], [10, 10, 50, 5, 10, 10, 1E-5, 5])
-	weights = []
-#	for i in range(len(x)):
-#		if x[i] == max(x) or y[i] == min(y):
-#		if y[i] < max(y)*0.99:
-#			weights.append(0.1)
-#		else:
-#			weights.append(1)
+		limits = ([0., 0., d, r, 0., 0., 0., 0.1], [10, 10, d*2, r*2, 10, 10, 50, 5])
+
 	popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)#, sigma=weights)
 
 	r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
@@ -291,17 +296,27 @@ Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$",
 distances = {}
 gcns = {}
 coh = {}
+e_mins = []
+n_points = 150
 for n, sym in enumerate(symbol):
+	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
-		distances[str(i_coords[sym])] = i_distances[sym]
-		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
-		coh[str(i_coords[sym])] = e_coh[sym]
+#		distances[str(i_coords[sym])] = i_distances[sym]
+		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points))
+		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
+#		coh[str(i_coords[sym])] = e_coh[sym]
+		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
-		distances[str(i_coords[sym])] += i_distances[sym]
-		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
-		coh[str(i_coords[sym])] += e_coh[sym]
+#		distances[str(i_coords[sym])] += i_distances[sym]
+		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points))
+#		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
+		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
+#		coh[str(i_coords[sym])] += e_coh[sym]
+		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points),
+											  *trend_2D[sym]))
 for n, coord in enumerate(distances):
-	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
+	print(len(distances[str(coord)]), len(gcns[coord]), len(coh[coord]))
+	trend_3D[coord], r2_3D[coord], stand_dev[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord], e_mins)
 	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(r2_3D[coord])
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 			  "$distance$ $(\\AA)$", "$gcn$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
