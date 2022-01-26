@@ -194,8 +194,15 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
+	for i in range(len(x)):
+		if z[i] == min(z):
+			r = x[i]*0.85
+	d = np.abs(min(z)*1.2)
+	if len(set(y)) > 1:
 #			  a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
-	limits = ([0., 0., 0., 0.75, 0., 0., 0., 0.75], [10, 10, 50, 5, 10, 10, 50, 5])
+		limits = ([0., 0., d, r, 0., 0., d, r], [10, 10, 50, 5, 10, 10, 50, 5])
+	else:
+		limits = ([0., 0., d, r, 0., 0., 0, 0.1], [10, 10, 50, 5, 10, 10, 1E-5, 5])
 	weights = []
 #	for i in range(len(x)):
 #		if x[i] == max(x) or y[i] == min(y):
