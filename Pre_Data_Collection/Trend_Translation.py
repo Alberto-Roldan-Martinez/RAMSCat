@@ -70,7 +70,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-#	ax.scatter3D(x0, y0, z0, s=7, c='k', marker='o', label=trend_label)
+	ax.scatter3D(x0, y0, z0, s=0, c='k', marker='o', label=trend_label)
 
 	grid = 50
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -79,7 +79,8 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	if len(set(y0)) > 1:
 		z = morse_3D([x, y], *popt)
 	else:
-		z = morse(x, *popt[:4])
+		popt = [popt[4], popt[0], popt[1], popt[3]]
+		z = morse(x, *popt)
 
 	e_min = min([min(z[i]) for i in range(len(z))])
 
@@ -193,7 +194,8 @@ def trend_morse_3D(x, y, z):
 		limits = ([r, 0., 0., d], [r*2, 20., 20., d*2])
 		popt, pcov = curve_fit(morse, x, z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
-		popt = list(popt) + [0., 0., 0., 0., 0., 0.]
+		r_eq, a1, a2, d_eq = popt
+		popt = [a1, a2, 0., d_eq, r_eq, 0., 0., 0., 0., 0.]
 
 	return popt, r2
 
@@ -203,7 +205,8 @@ def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	if popt[-2] > 0.:
 		y = morse_3D(np.array([x0, y0]), *popt)
 	else:
-		y = morse(np.array(x0), *popt[:4])
+		popt = [popt[4], popt[0], popt[1], popt[3]]
+		y = morse(np.array(x0), *popt)
 
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
@@ -356,8 +359,7 @@ else:
 				 "  \td_x_eq * ((exp(-2 * a1 * (x - r_eq)) - 2 * exp(- abs(a2 * (x - r_eq))))\n")
 	trend_file.write("Coordination={:d}\n\tA\td_x_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}"
 				 "\tR\u00b2={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
-				 .format(int(coord), a_d_eq, a1, a2, a_r_eq, b_d_eq, b1, b2, b_r_eq, round(float(r2_3D[coord]), 2),
-						 np.abs(max(max_deviation))))
+				 .format(int(coord), a_d_eq, a1, a2, a_r_eq, round(float(r2_3D[coord]), 2), np.abs(max(max_deviation))))
 trend_file.close()
 plt.plot(z_limits, z_limits, "k-", lw=1.5)
 Display("$E_{Coh}$ $(eV \cdot atom^{\minus 1})$", "Predicted $E_{Coh}$ $(eV \cdot atom^{\minus 1})$",

@@ -17,13 +17,13 @@ def e_coh_bulk():                            # cohesion energies at bulk coordin
 
 
 def e_coh_trend(cc, distance, vector_distance, gcn):
-    def morse_3D(x, y, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq):
-        return a_d_eq * (np.exp(-2*a1*(x - a_r_eq)) - 2 * np.exp(-np.abs(a2*(x - a_r_eq*np.sin(y/x))))) +\
-               b_d_eq * (np.exp(-2*b1*(y - b_r_eq)) - 2 * np.exp(-np.abs(b2*(y - b_r_eq*np.sin(y/x)))))
-    popts = {# coordination, a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq
-        (0, 0., 0., 0., 0., 0., 0., 0., 0.),
-        (1, 1.70957, 1.20651, 36.31478, 1.57119, 0.42592, 0.0, 0.47197, 0.9226),
-        (2, ),
+    def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
+        return a_d_eq * (np.exp(-2 * a1 * (x[0] - a_r_eq)) - 2 * np.exp(-(a2 * (x[0] - (a_r_eq + a3 / x[1]))))) + \
+               b_d_eq * (np.exp(-2 * b1 * (x[0] - b_r_eq)) - 2 * np.exp(-(b2 * (x[0] - (b_r_eq + b3 / x[1])))))  # MORSE potentia
+    popts = {# coordination
+        (0, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.),
+        (1, 1.48786, 1.38405, 0.0, 2.26218, 2.51430, 0.0, 0.0, 0.0, 0.0, 0.0),
+        (2, 1.96145, 1.85823, 0.0, 1.63728, 2.59604, 0.0, 0.0, 0.0, 0.0, 0.0),
         (3, ),
         (4, ),
         (5, ),
