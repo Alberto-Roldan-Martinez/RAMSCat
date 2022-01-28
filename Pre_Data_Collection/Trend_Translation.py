@@ -178,7 +178,6 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	return trend_label, popt, r2, minima
 
 
-
 def trend_morse_3D(x, y, z):
 	for i in range(len(x)):
 		if z[i] == min(z):
