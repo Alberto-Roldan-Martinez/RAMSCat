@@ -30,7 +30,7 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
         (6, ),
         (7, ),
         (8, ),
-        (9, ),
+        (9, 1.86894, 0.92558, -2.4651, 4.91622, 2.70885, 35.73166, 7.62903, -2.9595, 8.42474, 2.82502),
         (10, )
         }
     for i, sys in enumerate(popts):
