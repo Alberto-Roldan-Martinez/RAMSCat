@@ -173,6 +173,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	x_line = np.linspace(xlim[0], xlim[1], 150)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+#	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
@@ -273,7 +274,7 @@ if len(e_min) > 1:
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
-##Display("$distance$ $(\\AA)$", "$E^{\\alpha}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+##Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
