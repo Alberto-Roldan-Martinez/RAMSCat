@@ -11,7 +11,6 @@ from ase.io import read, write
 
 
 displacements = [-0.7, -0.5, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1, 1.5, 2, 3, 5, 7]		# list of displacements along Z
-#displacements = [3, 5, 7]
 structure_file = sys.argv[1] 		# file with the structure
 atom_index = int(sys.argv[2])			# atom index to translate
 try:

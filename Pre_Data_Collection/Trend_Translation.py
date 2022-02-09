@@ -55,7 +55,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	plt.ylabel(str(ylabel), fontsize=14)
 	plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
 #	plt.xticks(np.arange(int(xlim[0]), int(xlim[1]), 1))   # Xmin,Xmax,Xstep
-	plt.xlim(xlim)
+	plt.xlim([xlim[0], 6])
 	plt.ylim(ylim)
 	if trend_label != "":
 		plt.title(trend_label)
@@ -113,7 +113,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	ax.view_init(azim=-120, elev=10)
 	plt.show()
 	SaveFig()
-	plt.clf()
+#	plt.clf()
 
 	return e_min
 
@@ -123,6 +123,17 @@ def SaveFig():
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
 		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 										bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
+
+
+def Extract_numeric_data(label_0, label_1, x, y, max_error):
+	data_out_name = "./deviation_numeric_data"
+	data_out = open(data_out_name + ".dat", "a+")
+	data_out.write("# system: {} \tcoordination: {} \tmax_deviation: {:<.1} eV\n" .format(label_0, label_1, max_error))
+	data_out.write("# $E_{DFT}$ $(eV \cdot atom^{\minus 1})$\t $Predicted$ $E$ $(eV \cdot atom^{\minus 1})$\n")
+	for i in range(len(x)):
+		data_out.write(" {:<5.5f}\t{:<5.5f}\n" .format(x[i], y[i]))
+	data_out.write("\n")
+	data_out.close()
 
 def lineal(x, a, b):
 	return a*x + b
@@ -170,11 +181,11 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	c, a1, a2, b = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
 	print(trend_label, r2)
-	x_line = np.linspace(xlim[0], xlim[1], 150)
-	y_line = morse(np.linspace(xlim[0], xlim[1], 150), *popt)
-	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-#	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
-	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
+	x_line = np.linspace(xlim[0], xlim[1], 500)
+	y_line = morse(np.linspace(xlim[0], xlim[1], 500), *popt)
+#	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
+#	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
 	return trend_label, popt, r2, minima
@@ -212,7 +223,7 @@ def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
 	plt.plot(x, y,  marker=imarker, color=icolour, linestyle="None", markersize=3,
 			 label=str(ele) + "$^{c="+str(i_coord)+"} \cdot \\tau \leq$ " + str(round(max_deviation, 1)) + " eV")
-	return max_deviation
+	return max_deviation, x, list(y)
 
 ########################################################################################################################
 symbol = []
@@ -273,8 +284,8 @@ if len(e_min) > 1:
 		plt.annotate("", xy=(5, y0), xytext=(5, y), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
-Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
-##Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+#Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
@@ -325,6 +336,8 @@ for n in range(1, len(sys.argv)):
 # --------------------------------------- Validation ---------------------------------------
 trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
 max_deviation = []
+x = {}
+y = {}
 for n, sym in enumerate(symbol):
 	n_marker = n
 	n_colour = n
@@ -334,10 +347,9 @@ for n, sym in enumerate(symbol):
 		n_colour = n - len(icolour)
 	if n >= len(imarker):
 		n_marker = n - len(imarker)
-
 #	print("n:", n, "\tidentifier:", sym, "\tlenght:", len(e_coh[sym]))
 
-	deviation = Validation_3D(symbol[n], int(i_coords[sym]), i_distances[sym],
+	deviation, x[sym], y[sym] = Validation_3D(symbol[n], int(i_coords[sym]), i_distances[sym],
 						  [i_gcns[sym] for i in range(len(i_distances[sym]))], e_coh[sym], trend_3D[str(i_coords[sym])],
 						  imarker[n_marker], icolour[n_colour])
 	max_deviation.append(deviation)
@@ -365,3 +377,7 @@ trend_file.close()
 plt.plot(z_limits, z_limits, "k-", lw=1.5)
 Display("$E_{Coh}$ $(eV \cdot atom^{\minus 1})$", "Predicted $E_{Coh}$ $(eV \cdot atom^{\minus 1})$",
 		z_limits, z_limits, "")
+answer = str(input("Would you like to extract numeric data from the previous plot (y/n)?\n"))
+if answer == "y":
+	for n, sym in enumerate(symbol):
+		Extract_numeric_data(sym, int(i_coords[sym]), x[sym], y[sym], max_deviation[n])
