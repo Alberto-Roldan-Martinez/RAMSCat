@@ -26,6 +26,7 @@ def SaveFig():
 ifile = open(sys.argv[1]).readlines()
 x = {}
 y = {}
+n_samples = 0
 for i in range(len(ifile)):
     line = ifile[i].split()
     if len(line) > 0:
@@ -35,6 +36,7 @@ for i in range(len(ifile)):
             x_label = str(line[1] + " " + line[2] + " " + line[3] + " " + line[4] + " " + line[5])
             y_label = str(line[6] + " " + line[7] + " " + line[8] + " " + line[9] + " " + line[10] + " " + line[11])
         else:
+            n_samples += 1
             if label in x:
                 x[label].append(float(line[0]))
                 y[label].append(float(line[1]))
@@ -51,19 +53,21 @@ for n, label in enumerate(x):
         n_colour = n - len(icolour)
     if n >= len(imarker):
         n_marker = n - len(imarker)
-    plt.plot(x[label], y[label], linestyle="None", marker=imarker[n], color=icolour[n], markersize=3, label=label)
+    plt.plot(x[label], y[label], linestyle="None", marker=imarker[n_marker], color=icolour[n_colour], markersize=3,
+             label=label)
 
 x_lim = [min([min([i for i in x[j]]) for j in x])*1.1, max([max([i for i in x[j]]) for j in x])*1.1]
 y_lim = [min([min([i for i in y[j]]) for j in y])*1.1, max([max([i for i in y[j]]) for j in y])*1.1]
 
 plt.plot(x_lim, x_lim, "k-", lw=1.5)
+plt.annotate("{} Samples" .format(n_samples), xy=(-2, -2), xycoords="data", xytext=(0.3, 0.95), size=14, textcoords="axes fraction")
 
 plt.xlabel(x_label, fontsize=14)
 plt.ylabel(y_label, fontsize=14)
 plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
 plt.xlim(x_lim)
 plt.ylim(y_lim)
-plt.legend(loc='best')
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 plt.tight_layout()
 #plt.ion()
 plt.show()
