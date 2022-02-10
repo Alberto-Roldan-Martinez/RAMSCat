@@ -55,7 +55,7 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 	plt.ylabel(str(ylabel), fontsize=14)
 	plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
 #	plt.xticks(np.arange(int(xlim[0]), int(xlim[1]), 1))   # Xmin,Xmax,Xstep
-	plt.xlim([xlim[0], 6])
+	plt.xlim(xlim)
 	plt.ylim(ylim)
 	if trend_label != "":
 		plt.title(trend_label)
@@ -113,7 +113,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	ax.view_init(azim=-120, elev=10)
 	plt.show()
 	SaveFig()
-#	plt.clf()
+	plt.clf()
 
 	return e_min
 
@@ -183,9 +183,9 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	print(trend_label, r2)
 	x_line = np.linspace(xlim[0], xlim[1], 500)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 500), *popt)
-#	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
-#	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
+	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
+#	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
+	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
 	return trend_label, popt, r2, minima
