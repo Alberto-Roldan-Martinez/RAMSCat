@@ -246,7 +246,10 @@ for n in range(1, len(sys.argv)):
 	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
 		e_reference[symbol[-1]] = get_data(data)
 x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, max([max(i_distances[sym]) for sym in symbol])*1.1]
-y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
+if max([i_gcns[sym] for sym in symbol])*1.1 <= 12.:
+	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
+else:
+	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, 12]
 z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
 
 # ------------------------------------------- 2D Display ------------------------
