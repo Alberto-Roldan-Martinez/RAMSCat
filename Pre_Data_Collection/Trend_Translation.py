@@ -315,9 +315,9 @@ for n, coord in enumerate(distances):
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
 			  "$distance$ $(\\AA)$", "$gc$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 					  x_limits, y_limits, z_limits, trend_label_3D)
-##	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-##			  "$distance$ $(\\AA)$", "$\\beta$", "$E_{Coh}^{\\alpha}$ $(eV \cdot atom^{\minus 1})$",
-##					  x_limits, y_limits, z_limits, trend_label_3D)
+#	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+#			  "$distance$ $(\\AA)$", "$gc$", "$E^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
+#					  x_limits, y_limits, z_limits, trend_label_3D)
 
 # ---------------------- Clean and get the data ----------------------------------------------
 symbol = []
