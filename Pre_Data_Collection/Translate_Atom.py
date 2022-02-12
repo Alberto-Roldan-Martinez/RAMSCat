@@ -10,9 +10,9 @@ import sys
 from ase.io import read, write
 
 
-#displacements = [-0.7, -0.5, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1, 1.5, 2, 3, 5, 7]		# lt of displacements along Z
+displacements = [-0.7, -0.5, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1, 1.5, 2, 3, 5, 7]		# lt of displacements along Z
 #displacements = [-0.1, -0.08, -0.07, -0.05, -0.04, -0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.07, 0.08, 0.1, 10]
-displacements = [-0.4, -0.5, -0.3, -0.2, -0.15, 0.15, 0.2, 0.3, 0.4, 0.5]
+#displacements = [-0.4, -0.5, -0.3, -0.2, -0.15, 0.15, 0.2, 0.3, 0.4, 0.5]
 structure_file = sys.argv[1] 		# file with the structure
 atom_index = int(sys.argv[2])			# atom index to translate
 try:
