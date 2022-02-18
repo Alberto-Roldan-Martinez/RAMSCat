@@ -181,11 +181,12 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	c, a1, a2, b = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
 	print(trend_label, r2)
-	x_line = np.linspace(xlim[0], xlim[1], 500)
-	y_line = morse(np.linspace(xlim[0], xlim[1], 500), *popt)
+	x_line = np.linspace(xlim[0], xlim[1], 1500)
+	y_line = morse(np.linspace(xlim[0], xlim[1], 1500), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 #	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
+#	for i in range(len(x)):	plt.annotate(str(round(x[i],4)), xy=(x[i]+0.001, y[i]), xytext=(x[i], y[i]))
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
 	return trend_label, popt, r2, minima
