@@ -176,7 +176,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 		else:
 			weights.append(1)
 
-	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 20., 20., e_min*1.1]), sigma=weights)
+	popt, pcov = curve_fit(morse, x, y, bounds=([r_min*0.8, 0., 0., e_min*0.8], [r_min*1.1, 20., 20., e_min*1.2]))#, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	c, a1, a2, b = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
@@ -186,7 +186,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
 #	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
-#	for i in range(len(x)):	plt.annotate(str(round(x[i],4)), xy=(x[i]+0.001, y[i]), xytext=(x[i], y[i]))
+#	for i in range(len(x)):	plt.annotate(str(round(x[i], 4)), xy=(x[i]+0.001, y[i]), xytext=(x[i], y[i]))
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
 	return trend_label, popt, r2, minima
