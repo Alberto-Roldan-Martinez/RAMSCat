@@ -200,7 +200,7 @@ def trend_morse_3D(x, y, z):
 
 	if len(set(y)) > 1:
 #			  a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq
-		limits = ([0., 0., -r, d*0.8, r*0.8, 0., 0., -r, d*0.8, r*0.8], [50, 50, r, d*2, r*1.2, 50, 50, r, d*2, r*1.2])
+		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8], [50, 50, r*1.2, d*2, r, 50, 50, r, d*2, r*1.2])
 		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
@@ -295,10 +295,11 @@ distances = {}
 gcns = {}
 coh = {}
 e_mins = []
-n_points = 150
+n_points = 50
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
+# Swap commented to use the 2D trends as entering points for the 3D; each with n_points
 		distances[str(i_coords[sym])] = i_distances[sym]
 		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] = e_coh[sym]
@@ -306,13 +307,13 @@ for n, sym in enumerate(symbol):
 #		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
 #		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
+# Swap commented to use the 2D trends as entering points for the 3D; each with n_points
 		distances[str(i_coords[sym])] += i_distances[sym]
 		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] += e_coh[sym]
 #		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points))
 #		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
-#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points),
-#											  *trend_2D[sym]))
+#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym]), n_points), *trend_2D[sym]))
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
 	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_3D[coord]))
