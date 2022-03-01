@@ -85,8 +85,10 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	e_min = min([min(z[i]) for i in range(len(z))])
 
 # masking the data beyond zmax
-	z_mask = ma.masked_greater_equal(z, 0.0, copy=True)
-	z = z_mask.filled(fill_value=0.0)
+	z_mask_max = ma.masked_greater_equal(z, 0.0, copy=True)
+	z = z_mask_max.filled(fill_value=0.0)
+	z_mask_min = ma.masked_less(z, min(z0)*1.2, copy=True)
+	z = z_mask_min.filled(fill_value=min(z0))
 
 	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.8, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
@@ -202,6 +204,7 @@ def trend_morse_3D(x, y, z):
 #			  a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq
 		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8], [50, 50, r*1.2, d*2, r, 50, 50, r, d*2, r*1.2])
 		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
+
 		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
 		limits = ([r, 0., 0., d], [r*2, 20., 20., d*2])
@@ -246,9 +249,9 @@ for n in range(1, len(sys.argv)):
 	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
 	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
 		e_reference[symbol[-1]] = get_data(data)
-x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, max([max(i_distances[sym]) for sym in symbol])*1.1]
+x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, 6] #max([max(i_distances[sym]) for sym in symbol])*0.8]
 if max([i_gcns[sym] for sym in symbol])*1.1 <= 12.:
-	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
+	y_limits = [min([i_gcns[sym] for sym in symbol])*0.75, max([i_gcns[sym] for sym in symbol])*1.1]
 else:
 	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, 12]
 z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
@@ -279,13 +282,15 @@ for n, sym in enumerate(symbol):
 plt.plot(x_limits, [0, 0], "k:")
 # Add comments around minima
 if len(e_min) > 1:
-	plt.plot([e_min[0][0]-0.05, 5.5], [e_min[0][1], e_min[0][1]], "k--", lw=0.5)
+	x_position = 4
+	plt.plot([e_min[0][0]-0.05, x_position*1.01], [e_min[0][1], e_min[0][1]], "k--", lw=0.5)
 	plt.plot([e_min[0][0], e_min[0][0]], [e_min[0][1]-0.05, -0.1], "k--", lw=0.5)
 	for i in range(1, len(e_min)):
 		x0, y0 = e_min[i-1]
 		x, y = e_min[i]
-		plt.plot([x-0.05, 5.5], [y, y], "k--", lw=0.5)
-		plt.annotate("", xy=(5, y0), xytext=(5, y), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
+		plt.plot([x-0.05, x_position*1.01], [y, y], "k--", lw=0.5)
+		plt.annotate("", xy=(x_position, y0), xytext=(x_position, y),
+					 arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 #Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
@@ -375,7 +380,7 @@ else:
 	trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
 				 "\tMorse interpolation:\n"
 				 "  \td_x_eq * ((exp(-2 * a1 * (x - r_eq)) - 2 * exp(- abs(a2 * (x - r_eq))))\n")
-	trend_file.write("Coordination={:d}\n\tA\td_x_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}"
+	trend_file.write("Coordination= {:d}\n\tA\td_x_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}"
 				 "\tR\u00b2={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
 				 .format(int(coord), a_d_eq, a1, a2, a_r_eq, round(float(r2_3D[coord]), 2), np.abs(max(max_deviation))))
 trend_file.close()
