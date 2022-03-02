@@ -70,7 +70,10 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x0, y0, z0, s=5, c='k', marker='o', label=trend_label)
+	ax.scatter3D([x0[i] for i in range(len(x0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 [y0[i] for i in range(len(y0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 [z0[i] for i in range(len(z0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 s=5, c='k', marker='o', label=trend_label)
 
 	grid = 50
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -201,8 +204,9 @@ def trend_morse_3D(x, y, z):
 	d = np.abs(min(z))
 
 	if len(set(y)) > 1:
-#			  a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq
-		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8], [50, 50, r*1.2, d*2, r, 50, 50, r, d*2, r*1.2])
+#			       a1, a2,   a3,  a_d_eq, a_r_eq, b1, b2,  b3,   b_d_eq, b_r_eq
+		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8],
+				  [50, 50,  r*1.2,  d*2,  r*1.2, 50, 50,  r*1.2,  d*2,  r*1.2])
 		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 
 		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
@@ -249,9 +253,10 @@ for n in range(1, len(sys.argv)):
 	symbol.append(str("$" + str(data[0][-2]) + "$"))					# contains the list of systems' name
 	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
 		e_reference[symbol[-1]] = get_data(data)
+
 x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, 6] #max([max(i_distances[sym]) for sym in symbol])*0.8]
 if max([i_gcns[sym] for sym in symbol])*1.1 <= 12.:
-	y_limits = [min([i_gcns[sym] for sym in symbol])*0.75, max([i_gcns[sym] for sym in symbol])*1.1]
+	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
 else:
 	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, 12]
 z_limits = [min([min(e_coh[sym]) for sym in symbol])*1.1, 0.1]
