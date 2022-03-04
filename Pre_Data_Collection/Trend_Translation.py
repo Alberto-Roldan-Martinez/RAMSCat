@@ -122,6 +122,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 
 	return e_min
 
+
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
@@ -139,6 +140,7 @@ def Extract_numeric_data(label_0, label_1, x, y, max_error):
 		data_out.write(" {:<5.5f}\t{:<5.5f}\n" .format(x[i], y[i]))
 	data_out.write("\n")
 	data_out.close()
+
 
 def lineal(x, a, b):
 	return a*x + b
@@ -159,9 +161,11 @@ def morse(x, r_eq, a1, a2, d_eq):
 def generalised_morse(x, r_eq, a1, a2, d_eq, m):
 	return d_eq/(2*m) * ((2*m - 1) * np.exp(-2*a1*(x/r_eq - 1)) - 2*m * np.exp(-a2*(x/r_eq - 1)))     # Generalised MORSE potential: https://doi.org/10.3390/en13133323
 
+
 def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
 	return a_d_eq * (np.exp(-2*a1*(x[0] - a_r_eq)) - 2 * np.exp(-(a2*(x[0] - (a_r_eq + a3/x[1]))))) +\
-		   b_d_eq * (np.exp(-2*b1*(x[0] - b_r_eq))- 2 * np.exp(-(b2*(x[0] - (b_r_eq + b3/x[1])))))					# MORSE potential
+		   b_d_eq * (np.exp(-2*b1*(x[0] - b_r_eq)) - 2 * np.exp(-(b2*(x[0] - (b_r_eq + b3/x[1])))))					# MORSE potential
+
 
 def lennard_jones(x, r_eq, a, d_eq):
 	return d_eq * ((r_eq/x)**(2*a) - 2*(r_eq/x)**a)     # Lennard-Jones potential
@@ -206,7 +210,7 @@ def trend_morse_3D(x, y, z):
 	if len(set(y)) > 1:
 #			       a1, a2,   a3,  a_d_eq, a_r_eq, b1, b2,  b3,   b_d_eq, b_r_eq
 		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8],
-				  [50, 50,  r*1.5,  d*2,  r*1.2, 50, 50,  r*1.5,  d*2,  r*1.2])
+				  [50, 50,  r*1.2,  d*2,  r*1.2, 50, 50,  r*1.2,  d*2,  r*1.2])
 		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
 
 		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
@@ -375,7 +379,7 @@ if b_d_eq > 0.:
 	trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
 				 "\t3D Morse interpolation: A + B\n"
 				 "  A::\td_x_eq * ((exp(-2 * a1 * (x - r_eq)) - 2 * exp(- (a2 * (x - (r_eq + a3/y)))))\n"
-				 "  B::\td_y_eq * ((exp(-2 * b1 * (y - r_eq)) - 2 * exp(- (b2 * (y - (r_eq + b3/y)))))\n")
+				 "  B::\td_y_eq * ((exp(-2 * b1 * (x - r_eq)) - 2 * exp(- (b2 * (x - (r_eq + b3/y)))))\n")
 	trend_file.write("Coordination={:d}\n\tA\td_x_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\ta3={:<5.5f}\tr_eq={:<5.5f}\n"
 				   "\tB\td_y_eq={:<5.5f}\tb1={:<5.5f}\tb2={:<5.5f}\tb3={:<5.5f}\tr_eq={:<5.5f}"
 				 "\tR\u00b2={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
