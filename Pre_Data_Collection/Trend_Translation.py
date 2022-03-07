@@ -22,7 +22,7 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 
 def get_data(data):
 #	data.sort(key=lambda x: x[3])
-	temp_energy = [float(data[i][7]) for i in range(len(data)) if float(data[i][7]) < 0]		# contains the system's energy
+	temp_energy = [float(data[i][7]) for i in range(len(data)) if float(data[i][7]) <= 0]		# contains the system's energy
 	i_distance = []						# contains the atom's distance to the closest neighbour
 	i_atom = 0							# contains the atom index of interest
 	i_coord = 0							# contains the atom's coordination
