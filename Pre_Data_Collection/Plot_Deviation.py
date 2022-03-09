@@ -67,7 +67,7 @@ plt.ylabel(y_label, fontsize=14)
 plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
 plt.xlim(x_lim)
 plt.ylim(y_lim)
-plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+#plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 plt.tight_layout()
 plt.ion()
 plt.show()
