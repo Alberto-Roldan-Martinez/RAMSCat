@@ -35,11 +35,12 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
         (10, 16.75903,  1.11835, -1.47258, 8.79836, 2.82925,  0.84077,  9.59585, -3.58576, 8.79836, 2.93104),
         (11,  3.28838,  2.91733,  1.43159, 3.55550, 2.89450,  1.06432,  1.72575, -3.53556, 4.87552, 3.53556),
         (12,  1.35971,  2.14678, -3.45516, 2.69334, 3.37922, 34.45588,  2.02619,  3.45516, 3.01030, 2.44951)}
-    for i, sys in enumerate(popts):
+    for sys in popts:
         if sys[0] == cc:
-            arg = (gcn, ) + tuple(sys[1:])
-    coh_e = morse_3D(distance, *arg)
-    coh_f = vector_distance * derivative(morse_3D, distance, args=arg, dx=1e-9)
+            arg = sys[1:]
+    coh_e = morse_3D([distance, gcn], *arg)
+    coh_f = [0, 0, 0]
+#    coh_f = vector_distance * derivative(morse_3D, distance, args=arg, dx=1e-9)
 
     return coh_e, coh_f
 '''
@@ -86,8 +87,7 @@ def e_adh_energies(support, icc, distance_a, distance_b, vector_distance_a, vect
             args[var] = x
             return func(*args)
         return derivative(wraps, point[var], dx=1e-9)
-
-    popts = {# support,gg coordination	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min
+    popts = {# support, coordination	a1, a2, a_d_eq, a_r_eq, b1, b2, b_d_eq, b_r_eq, e_reference, e_min
         ('MgO',  0, 1.24123, 1.64706, 0.59456, 2.97495, 1.67188, 1.91902,  8.47915, 1.82317, -0.1787, -1.27773),
         ('MgO',  1, 1.92146, 1.72757, 1.21384, 2.18831, 2.08383, 2.17571,  0.84201, 2.25829, -0.6396, -1.35581),
         ('MgO',  2, 1.18296, 1.57988, 0.94593, 2.88265, 1.42953, 1.96775, 13.43070, 1.60617, -0.3442, -1.65847),
@@ -100,18 +100,18 @@ def e_adh_energies(support, icc, distance_a, distance_b, vector_distance_a, vect
         ('MgO',  9, 1.36951, 1.78969, 1.37531, 2.56345, 2.69254, 1.59514,  5.53220, 1.83200, -1.0898, -2.83989),
         ('MgO', 10, 1.27326, 1.80154, 1.17582, 2.85178, 1.78804, 2.07628, 23.30049, 1.51652, -1.2182, -2.69864)
             }
-    for i, sys in enumerate(popts):
-        if sys[0] == support:
-            if sys[2] == icc:
-                arguments = sys[2:-1]
+    for sys in popts:
+        if str(sys[0]) == str(support):
+            if int(sys[1]) == int(icc):
+                arguments = [i for i in sys[2:-1]]
                 e_min = sys[-1]
-    e_reference = arguments[-1]
     width = [arguments[1], arguments[5]]
     point = [distance_a, distance_b] + arguments
     e_reference = arguments[-1]
     adh_e = morse_3D(*point)
-    adh_f = vector_distance_a * partial_derivative(morse_3D, 0, point=point) +\
-            vector_distance_a * partial_derivative(morse_3D, 1, point=point)
+    adh_f = [0, 0, 0]
+#    adh_f = vector_distance_a * partial_derivative(morse_3D, 0, point=point) +\
+#            vector_distance_a * partial_derivative(morse_3D, 1, point=point)
 
     return adh_e, adh_f, e_reference, e_min, width
 '''

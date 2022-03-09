@@ -19,7 +19,7 @@ from ase.io import read
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
-from Library import isolated_atoms, surf_energies, ecoh_trend, morse_3D_energies
+from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies
 
 
 class Energies:
@@ -73,12 +73,16 @@ class Energy_prediction:
         e_slab = slab.get_total_energy()
 # c_coord = dictionary with the indexes of coordinating atoms within the cluster
 # interface_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y
+# interface_indexes = dictionary with surface neighbours with cluster interface atoms
         coordination = Coordination(inputfile, cluster_elements, support)
         c_coord = coordination.cluster_coordinating
         interface_distances = coordination.cluster_support_distances
+        interface_indexes = coordination.support_coordinating
 
+# gcn_i = dictionary with the generalised coordination number per atom
 # c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
         gcn = Generalised_coodination(inputfile, cluster_elements, support)
+        gcn_i = gcn.gcn
         c_surf = gcn.cluster_surface_index
 
 # c_surf_area = area exposed to the vacuum according to interpolated area/atom in the Library
@@ -92,19 +96,27 @@ class Energy_prediction:
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
-        self.e_coh, e_atom = self.e_cohesion(system, c_coord)
-        self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord)
+        self.e_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
+        self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
         self.e_total = self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh
         self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
-    def e_cohesion(self, system, c_coord):
+    def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
         e_coh = 0
         e_atom = 0
         average_coordination = 0
         for i in c_coord:
-            e_coh += ecoh_trend([system[int(i)].symbol], len(c_coord[i]))/len(c_coord)
+            e_coh_i = 0
+            for j in c_coord[i]:
+#                                element, cc, distance, distance, vector, gcn
+                e_coh_i += ecoh_trend([system[int(i)].symbol],
+                                    len(c_coord[i]),
+                                    system.get_distance(int(i), int(j), mic=True),
+                                    system.get_distance(int(i), int(j), mic=True, vector=True),
+                                    gcn_i[int(i)])/len(c_coord[i])
+            e_coh += e_coh_i/len(c_coord)
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 #            if system[int(i)].symbol not in cluster_elements:
@@ -113,11 +125,22 @@ class Energy_prediction:
 
         return e_coh, e_atom
 
-    def e_adhesion(self, interface_distances, system, support, c_coord):
+    def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
         for i in interface_distances:
-            adh_e, reference_e, e_min, distances_opt = morse_3D_energies(support, system[int(i)].symbol,
-                                            len(c_coord[str(i)]), interface_distances[i][0], interface_distances[i][1])
+            v_x = [0, 0, 0]
+            v_y = [0, 0, 0]
+            for j in interface_indexes[i]:
+                if interface_distances[i][0] == system.get_distance(int(i), int(j), mic=True):
+                    v_x = system.get_distance(int(i), int(j), mic=True, vector=True)
+                if interface_distances[i][1] == system.get_distance(int(i), int(j), mic=True):
+                    v_y = system.get_distance(int(i), int(j), mic=True, vector=True)
+#                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
+            adh_e, reference_e, e_min, distances_opt = e_adh_energies(support,
+                                                                      system[int(i)].symbol,
+                                                                      len(c_coord[str(i)]),
+                                                                      interface_distances[i][0],
+                                                                      interface_distances[i][1], v_x, v_y)
             interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5),
                                     round(interface_distances[i][0]/distances_opt[0], 3),
                                     round(interface_distances[i][1]/distances_opt[1], 3)])
