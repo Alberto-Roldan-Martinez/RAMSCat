@@ -107,7 +107,7 @@ class Energy_prediction:
         e_coh = 0
         e_atom = 0
         average_coordination = 0
-        for i in c_coord:
+        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
             average_distance = 0
             average_distance_vector = np.zeros(3)
             for j in c_coord[i]:
