@@ -108,15 +108,14 @@ class Energy_prediction:
         e_atom = 0
         average_coordination = 0
         for i in c_coord:
-            e_coh_i = 0
+            average_distance = 0
+            average_distance_vector = np.zeros(3)
             for j in c_coord[i]:
-#                                element, cc, distance, distance, vector, gcn
-                e_coh_i += ecoh_trend([system[int(i)].symbol],
-                                    len(c_coord[i]),
-                                    system.get_distance(int(i), int(j), mic=True),
-                                    system.get_distance(int(i), int(j), mic=True, vector=True),
-                                    gcn_i[int(i)])/len(c_coord[i])
-            e_coh += e_coh_i/len(c_coord)
+                average_distance += system.get_distance(int(i), int(j), mic=True)/len(c_coord[i])
+                average_distance_vector += np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
+#                           element, cc, distance, distance, vector, gcn
+            e_coh += ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
+                                  average_distance, list(average_distance_vector), gcn_i[int(i)])/len(c_coord)
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 #            if system[int(i)].symbol not in cluster_elements:
