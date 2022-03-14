@@ -19,7 +19,7 @@ from ase.io import read
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
-from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies
+from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies, supports
 
 
 class Energies:
@@ -67,10 +67,10 @@ def surface_energy(system, c_coord, c_surf, c_surf_area):
 
 
 class Energy_prediction:
-    def __init__(self, inputfile, isolated_support, cluster_elements, support):
+    def __init__(self, inputfile, cluster_elements, support, support_size):
         system = read(inputfile)
-        slab = read(isolated_support)
-        e_slab = slab.get_total_energy()
+        e_slab = supports(support, support_size)
+
 # c_coord = dictionary with the indexes of coordinating atoms within the cluster
 # interface_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y
 # interface_indexes = dictionary with surface neighbours with cluster interface atoms

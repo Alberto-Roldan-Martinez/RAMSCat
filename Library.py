@@ -165,4 +165,6 @@ def e_adh_energies(support, element, icc, x, y, v_x, v_y):
                                                                                                             v_x, v_y)
     return adh_e, e_reference, e_min, widths
 
-
+def supports(support, size):
+#   assuming that the energy of a surface is scalable with its size
+    return importlib.import_module("Materials.Supports").e_support(support, size)

@@ -23,7 +23,7 @@ boxAdd = 15.0
 surfGA = True                                           # is it a supported cluster?
 support = "MgO"
 structure_file = "POSCAR"
-isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+#isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
 surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
 #surface = Graphene(x=8,y=8,z=1,vac=15,clusHeight=2.5)  # how is the support's surface
 
@@ -42,8 +42,9 @@ eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
+support_size = int(vars(surface)['x']) *  int(vars(surface)['y']) * int(vars(surface)['z'])
 subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
-			 "-".join(eleNames), support, structure_file, isolated_support])      # package to calculate the Energy
+			 "-".join(eleNames), structure_file, support, support_size])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)

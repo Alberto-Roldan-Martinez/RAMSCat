@@ -16,9 +16,9 @@ from WriteData import Write_labels, write_results, write_out
 
 #####################################################################################################
 cluster_elements = [i for i in sys.argv[1].split("-")]                      # Elements in the Cluster
-support = sys.argv[2]                                                       # Surface name
-structurefile = sys.argv[3] 												# file name, e.g. POSCAR
-isolated_support = sys.argv[4] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+structurefile = sys.argv[2] 												# file name, e.g. POSCAR
+support = sys.argv[3]                                                       # Surface name
+support_size = sys.argv[4] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
 ####################################################################################################
 
 path = os.getcwd()
@@ -28,7 +28,7 @@ coordination = Coordination(structurefile, cluster_elements, support)
 gcn = Generalised_coodination(structurefile, cluster_elements, support)
 area = Areas(structurefile, cluster_elements, support)
 z_distance = Cluster_surface_distance(structurefile, cluster_elements, support)
-energies = Energy_prediction(structurefile, isolated_support, cluster_elements, support)
+energies = Energy_prediction(structurefile, cluster_elements, support, support_size)
 
 labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coordination.cluster_coord_labels,
 				coordination.support_cluster_min_distance_labels, "cs_height", z_distance.zlabels, "GCN", "c_i_area",
