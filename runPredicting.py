@@ -14,11 +14,21 @@ from GA.NewPoolGA import poolGA                         # generates:  pool.dat a
                                                         # reads:      OUTCAR for final energy and structure
 start_time = time.time()
 
+
+""" --------------------------- MODEL ---------------------------"""
 eleNames = ["Au"]                                       # elements in the cluster
 eleNums = [10]                                          # number of atoms in the cluster
 boxAdd = 15.0
-nPool = 15                                              # number of structures in the pool file
-# --- algorithm to generate structures
+""" SURFACE """
+surfGA = True                                           # is it a supported cluster?
+support = "MgO"
+structure_file = "POSCAR"
+isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
+#surface = Graphene(x=8,y=8,z=1,vac=15,clusHeight=2.5)  # how is the support's surface
+
+""" --------------------------- ALGORITHM to generate structures ---------------------------"""
+nPool = 15
 cross = "random"                                        #
 #cross = "weighted"                                     # determined by fitness of the two clusters selected for crossover.
 # --- algorithm to generate mutants
@@ -31,11 +41,9 @@ r_ij = 2.8                                              # distance between atoms
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
-surfGA = True                                           # is it a supported cluster?
-#surface = Graphene(x=8,y=8,z=1,vac=15,clusHeight=2.5)  # how is the support's surface
-surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
-
-subString = "/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py"     # package to calculate the Energy
+""" --------------------------- CALCULATION ---------------------------"""
+subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
+			 "-".join(eleNames), support, structure_file, isolated_support])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)

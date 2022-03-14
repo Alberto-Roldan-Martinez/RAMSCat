@@ -6,7 +6,7 @@
 #
 #"""
 
-import os
+import os, sys
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
@@ -15,10 +15,10 @@ from Energies import Energy_prediction
 from WriteData import Write_labels, write_results, write_out
 
 #####################################################################################################
-cluster_elements = ["Au"]                                                   # Elements in the Cluster
-support = "MgO"                                                     # Surface name
-structurefile = "POSCAR"
-isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+cluster_elements = [i for i in sys.argv[1].split("-")]                      # Elements in the Cluster
+support = sys.argv[2]                                                       # Surface name
+structurefile = sys.argv[3] 												# file name, e.g. POSCAR
+isolated_support = sys.argv[4] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
 ####################################################################################################
 
 path = os.getcwd()
