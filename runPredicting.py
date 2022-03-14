@@ -15,18 +15,15 @@ from GA.NewPoolGA import poolGA                         # generates:  pool.dat a
 start_time = time.time()
 
 
-""" --------------------------- MODEL ---------------------------"""
+""" --------------------------- CLUSTER MODEL ---------------------------"""
 eleNames = ["Au"]                                       # elements in the cluster
 eleNums = [10]                                          # number of atoms in the cluster
 boxAdd = 15.0
-""" SURFACE """
+""" --------------------------- SURFACE MODEL---------------------------"""
 surfGA = True                                           # is it a supported cluster?
 support = "MgO"
 structure_file = "POSCAR"
-#isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
 surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
-#surface = Graphene(x=8,y=8,z=1,vac=15,clusHeight=2.5)  # how is the support's surface
-
 """ --------------------------- ALGORITHM to generate structures ---------------------------"""
 nPool = 15
 cross = "random"                                        #
