@@ -14,8 +14,7 @@ def e_support(support, size):                      # energies calculated with RP
     supports = {("MgO", 2, 2, 4, -368.4459, "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface")}
 
     for sys in supports:
-        if sys[0] == support:
-            e_slab = sys[4] / (sys[1] * sys[2] * sys[3])
-            print(sys[4], e_slab, e_slab*int(size))
-    return e_slab * int(size)
+        if sys[0] == support and sys[3] == int(size[-1]):
+            e_slab = sys[4]/(sys[1]*sys[2]) * (int(size[0])*int(size[1]))
+    return e_slab
 

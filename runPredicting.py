@@ -11,9 +11,10 @@ import GA.Input as In
 #from GA.Graphene import Graphene                        # to generate the surface
 from GA.MgO import MgO
 from GA.NewPoolGA import poolGA                         # generates:  pool.dat and POSCARs
-                                                        # reads:      OUTCAR for final energy and structure
-start_time = time.time()
+from ase.build import bulk
 
+
+start_time = time.time()
 
 """ --------------------------- CLUSTER MODEL ---------------------------"""
 eleNames = ["Au"]                                       # elements in the cluster
@@ -23,7 +24,7 @@ boxAdd = 15.0
 surfGA = True                                           # is it a supported cluster?
 support = "MgO"
 structure_file = "POSCAR"
-surface = MgO(x=8, y=8, z=4, vac=8, clusHeight=2.3)     # how is the support's surface
+surface = MgO(x=8, y=8, z=2, vac=8, clusHeight=2.3)     # how is the support's surface
 """ --------------------------- ALGORITHM to generate structures ---------------------------"""
 nPool = 15
 cross = "random"                                        #
@@ -34,14 +35,13 @@ mutType = "move"                                        # selected from the pool
 #mutType = "homotop"                                    # (only bimetallics) two atoms have their atom types swapped
 #mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
 mutate = 0.1                                            # mutation ratio
-r_ij = 2.8                                              # distance between atoms in the cluster? e.g. 3rd row -> 2.5
+r_ij = sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames) / 2
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
-support_size = int(vars(surface)['x']) *  int(vars(surface)['y']) * int(vars(surface)['z'])
 subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
-			 "-".join(eleNames), structure_file, support, support_size])      # package to calculate the Energy
+			 "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z']])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
