@@ -51,9 +51,9 @@ def get_data(data):
 
 
 def Display(xlabel, ylabel, xlim, ylim, trend_label):
-	plt.xlabel(str(xlabel), fontsize=14)
-	plt.ylabel(str(ylabel), fontsize=14)
-	plt.tick_params(axis='both', labelrotation=0, labelsize=12)               # custimise tick labels
+	plt.xlabel(str(xlabel), fontsize=16)
+	plt.ylabel(str(ylabel), fontsize=16)
+	plt.tick_params(axis='both', labelrotation=0, labelsize=14)               # custimise tick labels
 #	plt.xticks(np.arange(int(xlim[0]), int(xlim[1]), 1))   # Xmin,Xmax,Xstep
 	plt.xlim(xlim)
 	plt.ylim(ylim)
@@ -80,7 +80,7 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
 	if len(set(y0)) > 1:
-		z = morse_3D([x, y], *popt)
+		z = generalised_morse_3D([x, y], *popt)
 	else:
 		popt = [popt[4], popt[0], popt[1], popt[3]]
 		z = morse(x, *popt)
@@ -158,8 +158,10 @@ def morse(x, r_eq, a1, a2, d_eq):
 	return d_eq * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-a2*(x - r_eq)))     # MORSE potential
 
 
-def generalised_morse(x, r_eq, a1, a2, d_eq, m):
-	return d_eq/(2*m) * ((2*m - 1) * np.exp(-2*a1*(x/r_eq - 1)) - 2*m * np.exp(-a2*(x/r_eq - 1)))     # Generalised MORSE potential: https://doi.org/10.3390/en13133323
+def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2):  # Generalised MORSE potential: https://doi.org/10.3390/en13133323
+	r_eq = r1 + r2*(y_max - x[1])/y_max
+	sigmoidal = (-d1/(1 + np.exp(-a4*x[1] + a3))) - d2
+	return sigmoidal * (np.exp(-2*a1*(x[0]/r_eq - 1)) - 2 * np.exp(-a2*(x[0]/r_eq - 1)))
 
 
 def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
@@ -193,8 +195,8 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	x_line = np.linspace(xlim[0], xlim[1], 1500)
 	y_line = morse(np.linspace(xlim[0], xlim[1], 1500), *popt)
 	plt.plot(x_line, y_line, color=colour, linestyle=line, label=str(symbol) + "$\cdot R^{2}$= "+str(round(r2, 2)))
-#	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
 	plt.plot(x, y, marker=marker, color=colour, markersize=3, linestyle="None")
+#	plt.plot(x_line, y_line, color=colour, linestyle=line, label="$R^{2}$= "+str(round(r2, 2)))
 #	for i in range(len(x)):	plt.annotate(str(round(x[i], 4)), xy=(x[i]+0.001, y[i]), xytext=(x[i], y[i]))
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
@@ -202,18 +204,17 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
-	for i in range(len(x)):
-		if z[i] == min(z):
-			r = x[i]
-	d = np.abs(min(z))
+	r1 = [x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == max(y)])][0]
+	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1)
+	d1 = np.abs(min([z[i] for i in range(len(x)) if y[i] == max(y)]))
+	d2 = np.abs(min([z[i] for i in range(len(x)) if y[i] == min(y)]) - d1)
 
 	if len(set(y)) > 1:
-#			       a1, a2,   a3,  a_d_eq, a_r_eq, b1, b2,  b3,   b_d_eq, b_r_eq
-		limits = ([0., 0., -r*1.2, d*0.8, r*0.8, 0., 0., -r*1.2, d*0.8, r*0.8],
-				  [50, 50,  r*1.2,  d*2,  r*1.2, 50, 50,  r*1.2,  d*2,  r*1.2])
-		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
-
-		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
+#				   ymax, 		a1, a2,   a3,   a4,   d1,     d2,     r1,     r2
+		limits = ([max(y)*0.99, 0., 0., min(y), 0.1,  d1*0.9, d2*0.9, r1*0.9, -r2],
+				  [max(y)*1.01, 50, 50, max(y), 5.0,  d1*1.1, d2*1.1, r1*1.1, r2])
+		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
+		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
 		limits = ([r, 0., 0., d], [r*2, 20., 20., d*2])
 		popt, pcov = curve_fit(morse, x, z, bounds=limits)
@@ -227,7 +228,7 @@ def trend_morse_3D(x, y, z):
 def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	x = z0
 	if popt[-2] > 0.:
-		y = morse_3D(np.array([x0, y0]), *popt)
+		y = generalised_morse_3D(np.array([x0, y0]), *popt)
 	else:
 		popt = [popt[4], popt[0], popt[1], popt[3]]
 		y = morse(np.array(x0), *popt)
@@ -302,8 +303,8 @@ if len(e_min) > 1:
 					 arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
-#Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
-Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+#Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
