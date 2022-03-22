@@ -70,10 +70,10 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-#	ax.scatter3D([x0[i] for i in range(len(x0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-#				 [y0[i] for i in range(len(y0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-#				 [z0[i] for i in range(len(z0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-#				 s=5, c='k', marker='o', label=trend_label)
+	ax.scatter3D([x0[i] for i in range(len(x0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 [y0[i] for i in range(len(y0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 [z0[i] for i in range(len(z0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+				 s=5, c='k', marker='o', label=trend_label)
 
 	grid = 50
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -233,7 +233,7 @@ def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	if popt[-4] > 0.:
 		y = generalised_morse_3D(np.array([x0, y0]), *popt)
 	else:
-		popt = [popt[0], popt[1], popt[4], popt[6]] ##################
+		popt = [popt[0], popt[1], popt[4], popt[6]]
 		y = morse(np.array(x0), *popt)
 
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
@@ -335,12 +335,12 @@ for n, sym in enumerate(symbol):
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
 	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_3D[coord]))
-#	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-#			  "$distance$ $(\\AA)$", "$gc$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
-#					  x_limits, y_limits, z_limits, trend_label_3D)
 	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-			  "$distance$ $(\\AA)$", "$gc$", "$E^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
+			  "$distance$ $(\\AA)$", "$gc$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 					  x_limits, y_limits, z_limits, trend_label_3D)
+#	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+#			  "$distance$ $(\\AA)$", "$gc$", "$E^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
+#					  x_limits, y_limits, z_limits, trend_label_3D)
 
 # ---------------------- Clean and get the data ----------------------------------------------
 symbol = []
