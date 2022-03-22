@@ -70,10 +70,10 @@ def Display(xlabel, ylabel, xlim, ylim, trend_label):
 def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_label):
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D([x0[i] for i in range(len(x0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-				 [y0[i] for i in range(len(y0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-				 [z0[i] for i in range(len(z0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
-				 s=5, c='k', marker='o', label=trend_label)
+#	ax.scatter3D([x0[i] for i in range(len(x0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+#				 [y0[i] for i in range(len(y0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+#				 [z0[i] for i in range(len(z0)) if xlim[0] <= x0[i] <= xlim[1] and ylim[0] <= y0[i] <= ylim[1]],
+#				 s=5, c='k', marker='o', label=trend_label)
 
 	grid = 50
 	surf_x = np.linspace(xlim[0], xlim[1], grid)
@@ -93,14 +93,16 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	z_mask_min = ma.masked_less(z, min(z0)*1.2, copy=True)
 	z = z_mask_min.filled(fill_value=min(z0))
 
-	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.8, vmin=zlim[0], vmax=0)
+	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.7, vmin=zlim[0], vmax=0)
 	figure.colorbar(surface, shrink=0.25, aspect=10)
+#	ax.contour3D(x, y, z, 100, cmap=binary')
+#	ax.plot_wireframe(x, y, z, color='black')
 #	cset = ax.contour(x, y, z, zdir='x', offset=max(x[-1]), cmap='viridis', alpha=0.3)
 #	cset = ax.contour(x, y, z, zdir='y', offset=max(y[-1]), cmap='viridis', alpha=0.3)
 #	cset = ax.contour(x, y, z, zdir='z', offset=zlim[0], cmap='viridis')
 
-	ax.set_xlabel(xlabel, fontsize=14)
-	ax.set_ylabel(ylabel, fontsize=14)
+	ax.set_xlabel(xlabel, fontsize=16)
+	ax.set_ylabel(ylabel, fontsize=16)
 	ax.set_zlabel(zlabel, fontsize=16, labelpad=10)
 	ax.set_xlim3d(xlim[0], xlim[1])
 	ax.set_ylim3d(ylim[0], ylim[1])
@@ -162,8 +164,7 @@ def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Genera
 	r_eq = r1 + r2*(y_max - x[1])/y_max
 	k = m*(y_max - x[1])/y_max
 	sigmoidal = (-d1/(1 + np.exp(-a4*x[1] + a3))) - d2
-
-	return sigmoidal * (np.exp(-(2*a1+k)*(x[0]/r_eq - 1)) - 2*(1-k) * np.exp(-a2*(x[0]/r_eq - 1)))
+	return sigmoidal * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+k)*(x[0] - r_eq)))
 
 
 def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
@@ -210,11 +211,11 @@ def trend_morse_3D(x, y, z):
 	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1)
 	d1 = np.abs(min([z[i] for i in range(len(x)) if y[i] == max(y)]))
 	d2 = np.abs(min([z[i] for i in range(len(x)) if y[i] == min(y)]) - d1)
-
+	e = 0.0001
 	if len(set(y)) > 1:
-#				   ymax, 		a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)*0.99, 0., 0., min(y), 0.1,  d1*0.9, d2*0.9, r1*0.9, -r2, -10],
-				  [max(y)*1.01, 50, 50, max(y), 5.0,  d1*1.1, d2*1.1, r1*1.1,  r2,  10])
+#				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
+		limits = ([max(y)-e, 0., 0., min(y), 0.1,  d1*0.9, d2*0.9, r1*0.9, -r2, -10],
+				  [max(y)+e, 50, 50, max(y), 5.0,  d1*1.1, d2*1.1, r1*1.1,  r2,  10])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
@@ -311,7 +312,7 @@ distances = {}
 gcns = {}
 coh = {}
 e_mins = []
-n_points = 50
+n_points = 30
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
@@ -319,7 +320,7 @@ for n, sym in enumerate(symbol):
 		distances[str(i_coords[sym])] = i_distances[sym]
 		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] = e_coh[sym]
-#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.4, n_points))
+#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points))
 #		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
 #		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
@@ -327,19 +328,19 @@ for n, sym in enumerate(symbol):
 		distances[str(i_coords[sym])] += i_distances[sym]
 		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] += e_coh[sym]
-#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.4, n_points))
+#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points))
 #		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
-#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.4, n_points), *trend_2D[sym]))
+#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points), *trend_2D[sym]))
 #	print(distances[str(i_coords[sym])],gcns[str(i_coords[sym])],coh[str(i_coords[sym])])
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
 	trend_label_3D = "c=" + str(coord) + "$\cdot R^{2}$= "+"{:<1.2f}".format(float(r2_3D[coord]))
-	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-			  "$distance$ $(\\AA)$", "$gc$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
-					  x_limits, y_limits, z_limits, trend_label_3D)
 #	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
-#			  "$distance$ $(\\AA)$", "$gc$", "$E^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
+#			  "$distance$ $(\\AA)$", "$gc$", "$E_{Coh}^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
 #					  x_limits, y_limits, z_limits, trend_label_3D)
+	e_min = Display3D(distances[coord], gcns[coord], coh[coord], trend_3D[coord],
+			  "$distance$ $(\\AA)$", "$gc$", "$E^{c="+coord+"}$ $(eV \cdot atom^{\minus 1})$",
+					  x_limits, y_limits, z_limits, trend_label_3D)
 
 # ---------------------- Clean and get the data ----------------------------------------------
 symbol = []
@@ -382,7 +383,7 @@ if d2 > 0.:
 				"\t Generalised Morse 3D interpolation: A + B\n"
 				"\t\tr_eq = r1 + r2*(y_max - y)/y_max\n\t\tk = m*(y_max - y)/y_max\n"
 				"\t\tsigmoidal = (-d1/(1 + np.exp(-a4*y + a3))) - d2\n"
-				"sigmoidal * (np.exp(-(2*a1+k)*(x/r_eq - 1)) - 2*(1-k) * np.exp(-a2*(x/r_eq - 1)))\n")
+				"sigmoidal * (np.exp(-2*a1*(x - r_eq )) - 2 * np.exp(-a2*(x - r_eq)))\n")
 	trend_file.write("Coordination={:d}\n\t\ty_max={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\ta3={:<5.5f}\ta4={:<5.5f}\n"
 				"\t\td1={:<5.5f}\td2={:<5.5f}\tr1={:<5.5f}\tr2={:<5.5f}\tm={:<5.5f}"
 				"\tR\u00b2={:<1.2f}  \u03C4\u2264{:<1.2f} eV\n"
