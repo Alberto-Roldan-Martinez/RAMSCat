@@ -80,9 +80,9 @@ def Display3D(x0, y0, z0, popt, xlabel, ylabel, zlabel, xlim, ylim, zlim, trend_
 	surf_y = np.linspace(ylim[0], ylim[1], grid)
 	x, y = np.meshgrid(surf_x, surf_y)
 	if len(set(y0)) > 1:
-		z = generalised_morse_3D([x, y], *popt)
+		z = generalised_morse_3D([x, y], *popt)			# popt = y_max, a1, a2, a3, a4, d1, d2, r1, r2, m
 	else:
-		popt = [popt[4], popt[0], popt[1], popt[3]]
+		popt = [popt[1], popt[2], popt[5], popt[7]]
 		z = morse(x, *popt)
 
 	e_min = min([min(z[i]) for i in range(len(z))])
@@ -157,14 +157,11 @@ def cubic(x, a, b, c, d):
 
 
 def morse(x, a1, a2, d_eq, r_eq):
-	return d_eq * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-a2*(x - r_eq)))     # MORSE potential
+	return np.abs(d_eq) * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-a2*(x - r_eq)))     # MORSE potential
 
 
-def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Generalised MORSE potential: https://doi.org/10.3390/en13133323
-	r_eq = r1 + r2*(y_max - x[1])/y_max
-	k = m*(y_max - x[1])/y_max
-	sigmoidal = (-d1/(1 + np.exp(-a4*x[1] + a3))) - d2
-	return sigmoidal * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+k)*(x[0] - r_eq)))
+def lennard_jones(x, r_eq, a, d_eq):
+	return d_eq * ((r_eq/x)**(2*a) - 2*(r_eq/x)**a)     # Lennard-Jones potential
 
 
 def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
@@ -172,14 +169,22 @@ def morse_3D(x, a1, a2, a3, a_d_eq, a_r_eq, b1, b2, b3, b_d_eq, b_r_eq):
 		   b_d_eq * (np.exp(-2*b1*(x[0] - b_r_eq)) - 2 * np.exp(-(b2*(x[0] - (b_r_eq + b3/x[1])))))					# MORSE potential
 
 
-def lennard_jones(x, r_eq, a, d_eq):
-	return d_eq * ((r_eq/x)**(2*a) - 2*(r_eq/x)**a)     # Lennard-Jones potential
+def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Generalised MORSE potential: https://doi.org/10.3390/en13133323
+	r_eq = r1 + r2*(y_max - x[1])/y_max
+	w = m*(y_max - x[1])/y_max
+	if d1 < d2:
+		e_dissociation = (d2/(1 + np.exp(-a4*x[1] + a3))) + d1 		# Sigmoidal curve <<< OK
+		print("d1<d2")
+	else:
+		e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) + d2 		# Sigmoidal curve
+	return e_dissociation * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+w)*(x[0] - r_eq)))
 
 
 def trend_morse(x, y, symbol, xlim, colour, marker, line):
 	weights = []
 	r_min = min(x)
-	e_min = np.abs(min(y))
+	e_min = min(y)
+	e = 0.0001
 	for i in range(len(x)):
 #		if x[i] == max(x):
 #			weights.append(0.1)
@@ -190,7 +195,7 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 		else:
 			weights.append(1)
 
-	popt, pcov = curve_fit(morse, x, y, bounds=([ 0., 0., e_min*0.8, r_min*0.8], [20., 20., e_min*1.2, r_min*1.1]))#, sigma=weights)
+	popt, pcov = curve_fit(morse, x, y, bounds=([ 0., 0., e_min-e, r_min*0.8], [20., 20., e_min+e, r_min*1.2]))#, sigma=weights)
 	r2 = 1-np.sqrt(sum([(y[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in y))
 	a1, a2, b, c = popt
 	trend_label = " Morse: {:.2f} * (exp(-2*{:.2f}*(d - {:.2f})) - 2 * exp(-{:.2f}*(d - {:.2f})))".format(b, a1, c, a2, c)
@@ -209,31 +214,33 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 def trend_morse_3D(x, y, z):
 	r1 = [x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == max(y)])][0]
 	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1)
-	d1 = np.abs(min([z[i] for i in range(len(x)) if y[i] == max(y)]))
-	d2 = np.abs(min([z[i] for i in range(len(x)) if y[i] == min(y)]) - d1)
+	d1 = min([z[i] for i in range(len(x)) if y[i] == max(y)])
+	d2 = min([z[i] for i in range(len(x)) if y[i] == min(y)])
 	e = 0.0001
+	print(d1, d2, r1, r2, max(y))
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)-e, 0., 0., min(y), 0.1,  d1*0.9, d2*0.9, r1*0.9, -r2, -10],
-				  [max(y)+e, 50, 50, max(y), 5.0,  d1*1.1, d2*1.1, r1*1.1,  r2,  10])
+		limits = ([max(y)-e, 0., 0., min(y), 0.1, d1*1.1, d2*1.1, r1*0.8, -r2, -10],
+				  [max(y)+e, 10, 10, max(y), 5.,  d1*0.9, d2*0.9, r1*1.2,  r2,  10])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
-		limits = ([0., 0., d1, r1], [20., 20., d1*2, r1*2])
+		print("popi")
+		limits = ([0., 0., d1-e, r1*0.8], [20., 20., d1+e, r1*1.2])
 		popt, pcov = curve_fit(morse, x, z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 		a1, a2, d_eq, r_eq = popt
-		popt = [a1, a2, 0., 0., d_eq, 0., r_eq, 0., 0.]
+		popt = [max(y), a1, a2, 0., 0., d_eq, 0., r_eq, 0., 0.]
 
 	return popt, r2
 
 
 def Validation_3D(ele, i_coord, x0, y0, z0, popt, imarker, icolour):
 	x = z0
-	if popt[-4] > 0.:
+	if popt[-4] != 0.:
 		y = generalised_morse_3D(np.array([x0, y0]), *popt)
 	else:
-		popt = [popt[0], popt[1], popt[4], popt[6]]
+		popt = [popt[1], popt[2], popt[5], popt[7]]
 		y = morse(np.array(x0), *popt)
 
 	max_deviation = max([np.abs(y[i] - x[i]) for i in range(len(x))])
@@ -378,7 +385,7 @@ for n, sym in enumerate(symbol):
 ymax, a1, a2, a3, a4, d1, d2, r1, r2, m = trend_3D[str(i_coords[sym])]
 print("Trend: ", [round(i, 5) for i in trend_3D[str(i_coords[sym])]])
 
-if d2 > 0.:
+if d2 != 0.:
 	trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
 				"\t Generalised Morse 3D interpolation: A + B\n"
 				"\t\tr_eq = r1 + r2*(y_max - y)/y_max\n\t\tk = m*(y_max - y)/y_max\n"
