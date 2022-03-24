@@ -174,7 +174,6 @@ def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Genera
 	w = m*(y_max - x[1])/y_max
 	if d1 < d2:
 		e_dissociation = (d2/(1 + np.exp(-a4*x[1] + a3))) + d1 		# Sigmoidal curve <<< OK
-		print("d1<d2")
 	else:
 		e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) + d2 		# Sigmoidal curve
 	return e_dissociation * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+w)*(x[0] - r_eq)))
@@ -217,16 +216,16 @@ def trend_morse_3D(x, y, z):
 	d1 = min([z[i] for i in range(len(x)) if y[i] == max(y)])
 	d2 = min([z[i] for i in range(len(x)) if y[i] == min(y)])
 	e = 0.0001
-	print(d1, d2, r1, r2, max(y))
+	print(d2/d1, d1, d2, r1, r2, max(y))
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)-e, 0., 0., min(y), 0.1, d1*1.1, d2*1.1, r1*0.8, -r2, -10],
-				  [max(y)+e, 10, 10, max(y), 5.,  d1*0.9, d2*0.9, r1*1.2,  r2,  10])
+		limits = ([max(y)-e, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.2, -10],
+				  [max(y)+e, 10, 20, max(y), 5.,  d1*0.9, d2*0.9, r1*1.1,  r2*1.2,  10])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
 		print("popi")
-		limits = ([0., 0., d1-e, r1*0.8], [20., 20., d1+e, r1*1.2])
+		limits = ([0., 0., d1*1.1, r1*0.8], [20., 20., d1*0.9, r1*1.2])
 		popt, pcov = curve_fit(morse, x, z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - morse(x[i], *popt))**2 for i in range(len(x))])/sum(i*i for i in z))
 		a1, a2, d_eq, r_eq = popt
@@ -319,7 +318,7 @@ distances = {}
 gcns = {}
 coh = {}
 e_mins = []
-n_points = 30
+n_points = 40
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
@@ -327,7 +326,7 @@ for n, sym in enumerate(symbol):
 		distances[str(i_coords[sym])] = i_distances[sym]
 		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] = e_coh[sym]
-#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points))
+#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points))
 #		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
 #		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
@@ -335,9 +334,9 @@ for n, sym in enumerate(symbol):
 		distances[str(i_coords[sym])] += i_distances[sym]
 		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
 		coh[str(i_coords[sym])] += e_coh[sym]
-#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points))
+#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points))
 #		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
-#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.6, n_points), *trend_2D[sym]))
+#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points), *trend_2D[sym]))
 #	print(distances[str(i_coords[sym])],gcns[str(i_coords[sym])],coh[str(i_coords[sym])])
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
