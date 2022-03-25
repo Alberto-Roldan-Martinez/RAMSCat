@@ -173,9 +173,9 @@ def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Genera
 	r_eq = r1 + r2*(y_max - x[1])/y_max
 	w = m*(y_max - x[1])/y_max
 	if d1 < d2:
-		e_dissociation = (d2/(1 + np.exp(-a4*x[1] + a3))) + d1 		# Sigmoidal curve <<< OK
+		e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) + d2 		# Sigmoidal curve <<< OK
 	else:
-		e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) + d2 		# Sigmoidal curve
+		e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) - d2		# Sigmoidal curve <<< OK
 	return e_dissociation * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+w)*(x[0] - r_eq)))
 
 
@@ -216,11 +216,11 @@ def trend_morse_3D(x, y, z):
 	d1 = min([z[i] for i in range(len(x)) if y[i] == max(y)])
 	d2 = min([z[i] for i in range(len(x)) if y[i] == min(y)])
 	e = 0.0001
-	print(d2/d1, d1, d2, r1, r2, max(y))
+	print(max(y), d1, d2, r1, r2)
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)-e, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.2, -10],
-				  [max(y)+e, 10, 20, max(y), 5.,  d1*0.9, d2*0.9, r1*1.1,  r2*1.2,  10])
+		limits = ([max(y)*0.95, 0., 0., min(y), 0.01, d1*1.05, d2*1.1, r1*0.9, -r2*1.2, -15],
+				  [max(y)*1.05, 10, 20, max(y), 5.,   d1*0.95, d2*0.9, r1*1.1,  r2*1.2,  15])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 	else:
