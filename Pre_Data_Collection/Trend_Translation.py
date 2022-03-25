@@ -211,8 +211,9 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 
 
 def trend_morse_3D(x, y, z):
+	e = 0.00001
 	r1 = [x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == max(y)])][0]
-	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1)
+	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1) + e
 	d1 = min([z[i] for i in range(len(x)) if y[i] == max(y)])
 	d2 = min([z[i] for i in range(len(x)) if y[i] == min(y)])
 # artificially adding points
