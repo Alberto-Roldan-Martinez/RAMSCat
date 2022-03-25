@@ -224,8 +224,8 @@ def trend_morse_3D(x, y, z):
 #		z.append(0.)
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)*0.9, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.8, -r2*1.2, -20],
-				  [max(y)*1.1, 10, 30, max(y), 5.,   d1*0.9, d2*0.9, r1*1.2,  r2*1.2,  20])
+		limits = ([max(y)*0.9, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.1, -20],
+				  [max(y)*1.1, 10, 30, max(y), 5.,   d1*0.9, d2*0.9, r1*1.1,  r2*1.1,  20])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 #		print(popt, r2)
@@ -333,7 +333,7 @@ gcns = {}
 coh = {}
 e_mins = []
 n_points = 50
-min_distance = 2.7
+min_distance = 2.85
 max_distance = 4.5
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
