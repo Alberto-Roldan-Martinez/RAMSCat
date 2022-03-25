@@ -215,14 +215,27 @@ def trend_morse_3D(x, y, z):
 	r2 = np.abs([x[i] for i in range(len(x)) if z[i] == min([z[j] for j in range(len(x)) if y[j] == min(y)])][0] - r1)
 	d1 = min([z[i] for i in range(len(x)) if y[i] == max(y)])
 	d2 = min([z[i] for i in range(len(x)) if y[i] == min(y)])
-	e = 0.0001
-	print(max(y), d1, d2, r1, r2)
+# artificially adding points
+#	n = 10
+#	for i in range(n):
+#		x.append(6.)
+#		y.append(min(y) + i*(max(y)-min(y))/(n+1))
+#		z.append(0.)
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)*0.95, 0., 0., min(y), 0.01, d1*1.05, d2*1.1, r1*0.9, -r2*1.2, -15],
-				  [max(y)*1.05, 10, 20, max(y), 5.,   d1*0.95, d2*0.9, r1*1.1,  r2*1.2,  15])
+		limits = ([max(y)*0.9, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.8, -r2*1.2, -20],
+				  [max(y)*1.1, 10, 30, max(y), 5.,   d1*0.9, d2*0.9, r1*1.2,  r2*1.2,  20])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
+#		print(popt, r2)
+#		print("cac==============================", np.abs(d1), np.abs(d2), r1, (r2+r1))
+##				   a1, a2, a3, a_d_eq,  a_r_eq, b1, b2, b3, b_d_eq, b_r_eq
+#		limits = ([0., 0., 0., np.abs(d1)*0.95, r1*0.9, 0., 0., 0., np.abs(d2)*0.9, (r2+r1)*0.9],
+#				  [10, 20, 20, np.abs(d1)*1.05, r1*1.1, 10, 20, 20, np.abs(d2)*1.1, (r2+r1)*1.1])
+#		popt, pcov = curve_fit(morse_3D, [x, y], z, bounds=limits)
+#		r2 = 1-np.sqrt(sum([(z[i] - morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
+#		print(popt, r2)
+#		exit()
 	else:
 		print("popi")
 		limits = ([0., 0., d1*1.1, r1*0.8], [20., 20., d1*0.9, r1*1.2])
@@ -311,32 +324,34 @@ if len(e_min) > 1:
 					 arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
-Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+#Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 #Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
 gcns = {}
 coh = {}
 e_mins = []
-n_points = 40
+n_points = 50
+min_distance = 2.7
+max_distance = 4.5
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
 # Swap commented to use the 2D trends as entering points for the 3D; each with n_points
-		distances[str(i_coords[sym])] = i_distances[sym]
-		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
-		coh[str(i_coords[sym])] = e_coh[sym]
-#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points))
-#		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
-#		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
+#		distances[str(i_coords[sym])] = i_distances[sym]
+#		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
+#		coh[str(i_coords[sym])] = e_coh[sym]
+		distances[str(i_coords[sym])] = list(np.linspace(min_distance, max_distance, n_points))
+		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
+		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
 # Swap commented to use the 2D trends as entering points for the 3D; each with n_points
-		distances[str(i_coords[sym])] += i_distances[sym]
-		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
-		coh[str(i_coords[sym])] += e_coh[sym]
-#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points))
-#		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
-#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym]), max(i_distances[sym])*0.65, n_points), *trend_2D[sym]))
+#		distances[str(i_coords[sym])] += i_distances[sym]
+#		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
+#		coh[str(i_coords[sym])] += e_coh[sym]
+		distances[str(i_coords[sym])] += list(np.linspace(min_distance, max_distance, n_points))
+		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
+		coh[str(i_coords[sym])] += list(morse(np.linspace(min_distance, max_distance, n_points), *trend_2D[sym]))
 #	print(distances[str(i_coords[sym])],gcns[str(i_coords[sym])],coh[str(i_coords[sym])])
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
@@ -383,7 +398,7 @@ for n, sym in enumerate(symbol):
 	max_deviation.append(deviation)
 ymax, a1, a2, a3, a4, d1, d2, r1, r2, m = trend_3D[str(i_coords[sym])]
 print("Trend: ", [round(i, 5) for i in trend_3D[str(i_coords[sym])]])
-
+'''
 if d2 != 0.:
 	trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
 				"\t Generalised Morse 3D interpolation: A + B\n"
@@ -410,3 +425,4 @@ answer = str(input("Would you like to extract numeric data from the previous plo
 if answer == "y":
 	for n, sym in enumerate(symbol):
 		Extract_numeric_data(sym, int(i_coords[sym]), x[sym], y[sym], max_deviation[n])
+'''
