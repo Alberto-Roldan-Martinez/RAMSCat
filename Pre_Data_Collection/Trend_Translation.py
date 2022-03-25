@@ -333,7 +333,7 @@ gcns = {}
 coh = {}
 e_mins = []
 n_points = 50
-min_distance = 2.85
+min_distance = 2.75
 max_distance = 4.5
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
