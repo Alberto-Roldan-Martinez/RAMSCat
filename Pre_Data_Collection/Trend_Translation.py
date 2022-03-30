@@ -207,6 +207,13 @@ def trend_morse(x, y, symbol, xlim, colour, marker, line):
 #	for i in range(len(x)):	plt.annotate(str(round(x[i], 4)), xy=(x[i]+0.001, y[i]), xytext=(x[i], y[i]))
 	minima = [[x_line[i], y_line[i]] for i in range(len(y_line)) if y_line[i] == min(y_line)][0]
 
+	trend_file = open("Interpolation_CohesionEnergy.txt", 'a+')
+	trend_file.write("# E_Coh (eV)\n#" #\t\u03c3: Average Standard Deviation
+				 "\tMorse interpolation:\n\t\td_eq * (exp(-2 * a1 * (x - r_eq)) - 2 * exp(-a2 * (x - r_eq)))\n")
+	trend_file.write("Label= {:s}\n\t\td_eq={:<5.5f}\ta1={:<5.5f}\ta2={:<5.5f}\tr_eq={:<5.5f}\t\tR\u00b2={:<1.2f}\n"
+				 .format(str(symbol), b, a1, a2, c, round(float(r2), 2)))
+	trend_file.close()
+
 	return trend_label, popt, r2, minima
 
 
@@ -224,8 +231,8 @@ def trend_morse_3D(x, y, z):
 #		z.append(0.)
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
-		limits = ([max(y)*0.9, 0., 0., min(y), 0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.1, -20],
-				  [max(y)*1.1, 10, 30, max(y), 5.,   d1*0.9, d2*0.9, r1*1.1,  r2*1.1,  20])
+		limits = ([max(y)*0.9, 0., 0., 0., 0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.1, -20],
+				  [max(y)*1.1, 10, 50, max(y), 5.,   d1*0.9, d2*0.9, r1*1.1,  r2*1.1,  20])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 #		print(popt, r2)
@@ -282,7 +289,7 @@ for n in range(1, len(sys.argv)):
 	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
 		e_reference[symbol[-1]] = get_data(data)
 
-x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, 6] #max([max(i_distances[sym]) for sym in symbol])*0.8]
+x_limits = [min([min(i_distances[sym]) for sym in symbol])*0.9, 4] #6] #max([max(i_distances[sym]) for sym in symbol])*0.8]
 if max([i_gcns[sym] for sym in symbol])*1.1 <= 12.:
 	y_limits = [min([i_gcns[sym] for sym in symbol])*0.9, max([i_gcns[sym] for sym in symbol])*1.1]
 else:
@@ -325,7 +332,7 @@ if len(e_min) > 1:
 					 arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
 		plt.plot([x, x], [y-0.05, -0.1], "k--", lw=0.5)
 		plt.annotate("", xy=(x0, -0.5), xytext=(x, -0.5), arrowprops=dict(arrowstyle="<->", color="k", lw=0.5))
-#Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
+Display("$distance$ $(\\AA)$", "$E_{Coh}^{c_{i}}$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 #Display("$distance$ $(\\AA)$", "$E$ $(eV \cdot atom^{\minus 1})$", x_limits, z_limits, "")
 # ------------------------------------------- 3D Display ------------------------
 distances = {}
@@ -333,26 +340,27 @@ gcns = {}
 coh = {}
 e_mins = []
 n_points = 50
-min_distance = 2.75
-max_distance = 4.5
+min_distance = 2.83
+min_distance_factor = 0.98
+max_distance = 4
 for n, sym in enumerate(symbol):
 	e_mins.append(min(e_coh[sym]))
 	if str(i_coords[sym]) not in distances:
 # Swap commented to use the 2D trends as entering points for the 3D; each with n_points
-#		distances[str(i_coords[sym])] = i_distances[sym]
-#		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
-#		coh[str(i_coords[sym])] = e_coh[sym]
-		distances[str(i_coords[sym])] = list(np.linspace(min_distance, max_distance, n_points))
-		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
-		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
+		distances[str(i_coords[sym])] = i_distances[sym]
+		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(len(i_distances[sym]))]
+		coh[str(i_coords[sym])] = e_coh[sym]
+#		distances[str(i_coords[sym])] = list(np.linspace(min(i_distances[sym])*min_distance_factor, max_distance, n_points))
+#		gcns[str(i_coords[sym])] = [i_gcns[sym] for i in range(n_points)]
+#		coh[str(i_coords[sym])] = list(morse(distances[str(i_coords[sym])], *trend_2D[sym]))
 	else:
 # Swap commented to use the 2D trends as entering points for the 3D; each with n_points
-#		distances[str(i_coords[sym])] += i_distances[sym]
-#		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
-#		coh[str(i_coords[sym])] += e_coh[sym]
-		distances[str(i_coords[sym])] += list(np.linspace(min_distance, max_distance, n_points))
-		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
-		coh[str(i_coords[sym])] += list(morse(np.linspace(min_distance, max_distance, n_points), *trend_2D[sym]))
+		distances[str(i_coords[sym])] += i_distances[sym]
+		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(len(i_distances[sym]))]
+		coh[str(i_coords[sym])] += e_coh[sym]
+#		distances[str(i_coords[sym])] += list(np.linspace(min(i_distances[sym])*min_distance_factor, max_distance, n_points))
+#		gcns[str(i_coords[sym])] += [i_gcns[sym] for i in range(n_points)]
+#		coh[str(i_coords[sym])] += list(morse(np.linspace(min(i_distances[sym])*min_distance_factor, max_distance, n_points), *trend_2D[sym]))
 #	print(distances[str(i_coords[sym])],gcns[str(i_coords[sym])],coh[str(i_coords[sym])])
 for n, coord in enumerate(distances):
 	trend_3D[coord], r2_3D[coord] = trend_morse_3D(distances[str(coord)], gcns[coord], coh[coord])
@@ -379,7 +387,7 @@ for n in range(1, len(sys.argv)):
 	i_atoms[symbol[-1]], i_coords[symbol[-1]], i_gcns[symbol[-1]], i_distances[symbol[-1]], e_coh[symbol[-1]],\
 		e_reference[symbol[-1]] = get_data(data)
 # --------------------------------------- Validation ---------------------------------------
-trend_file = open("Interpolation_CohesionEnergy.txt", 'w+')
+trend_file = open("Interpolation_CohesionEnergy.txt", 'a+')
 max_deviation = []
 x = {}
 y = {}
@@ -399,10 +407,10 @@ for n, sym in enumerate(symbol):
 	max_deviation.append(deviation)
 ymax, a1, a2, a3, a4, d1, d2, r1, r2, m = trend_3D[str(i_coords[sym])]
 print("Trend: ", [round(i, 5) for i in trend_3D[str(i_coords[sym])]])
-'''
+
 if d2 != 0.:
-	trend_file.write("# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
-				"\t Generalised Morse 3D interpolation: A + B\n"
+	trend_file.write("\n# E_Coh (eV)\t\u03C4:Maximum Absolute Error\n#" #\t\u03c3: Average Standard Deviation
+				"\t Generalised Morse 3D interpolation:\n"
 				"\t\tr_eq = r1 + r2*(y_max - y)/y_max\n\t\tk = m*(y_max - y)/y_max\n"
 				"\t\tsigmoidal = (-d1/(1 + np.exp(-a4*y + a3))) - d2\n"
 				"sigmoidal * (np.exp(-2*a1*(x - r_eq )) - 2 * np.exp(-a2*(x - r_eq)))\n")
@@ -426,4 +434,3 @@ answer = str(input("Would you like to extract numeric data from the previous plo
 if answer == "y":
 	for n, sym in enumerate(symbol):
 		Extract_numeric_data(sym, int(i_coords[sym]), x[sym], y[sym], max_deviation[n])
-'''
