@@ -232,7 +232,7 @@ def trend_morse_3D(x, y, z):
 	if len(set(y)) > 1:
 #				   ymax, 	 a1, a2,   a3,   a4,   d1,     d2,     r1,     r2,   m
 		limits = ([max(y)*0.9, 0., 0., 0.,     0.01, d1*1.1, d2*1.1, r1*0.9, -r2*1.1, -20],
-				  [max(y)*1.1, 10, 20, max(y), 5.,   d1*0.9, d2*0.9, r1*1.1,  r2*1.1,  20])
+				  [max(y)*1.1, 10, 25, max(y), 5.,   d1*0.9, d2*0.9, r1*1.1,  r2*1.1,  20])
 		popt, pcov = curve_fit(generalised_morse_3D, [x, y], z, bounds=limits)
 		r2 = 1-np.sqrt(sum([(z[i] - generalised_morse_3D([x[i], y[i]], *popt))**2 for i in range(len(z))])/sum(i*i for i in z))
 #		print(popt, r2)
