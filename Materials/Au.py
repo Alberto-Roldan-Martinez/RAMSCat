@@ -7,7 +7,7 @@
 
 import numpy as np
 from scipy.misc import derivative
-#from sympy import symbols, diff
+from sympy import symbols, diff
 
 def e_isolated_atom():                      # energies of isolated atoms in vaccuo (RPBE)
     return -0.1921
@@ -50,8 +50,12 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
     coh_f = [0, 0, 0]
 ##    coh_f = vector_distance * derivative(generalised_morse_3D, distance, args=arg, dx=1e-9)
 ##from sympy import symbols, diff
-#>>> x, y = symbols('x y', real=True)
-#>>> diff( x**2 + y**3, y)
+    x, y = symbols('x y', real=True)
+#    func = generalised_morse_3D('x', 'y', *arg)
+#    print(func)
+#    exit()
+    print(diff(generalised_morse_3D, x))
+    exit()
 #3*y**2
 #>>> diff( x**2 + y**3, y).subs({x:3, y:1})
 #3
