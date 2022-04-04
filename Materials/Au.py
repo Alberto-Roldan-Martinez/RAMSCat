@@ -7,6 +7,7 @@
 
 import numpy as np
 from scipy.misc import derivative
+#from sympy import symbols, diff
 
 def e_isolated_atom():                      # energies of isolated atoms in vaccuo (RPBE)
     return -0.1921
@@ -17,14 +18,14 @@ def e_coh_bulk():                            # cohesion energies at bulk coordin
 
 
 def e_coh_trend(cc, distance, vector_distance, gcn):
-    def generalised_morse_3D(x, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Generalised MORSE potential: https://doi.org/10.3390/en13133323
-    r_eq = r1 + r2*(y_max - x[1])/y_max
-    w = m*(y_max - x[1])/y_max
-    if d1 < d2:
-        e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) + d2 		# Sigmoidal curve <<< OK
-    else:
-        e_dissociation = (d1/(1 + np.exp(-a4*x[1] + a3))) - d2		# Sigmoidal curve <<< OK
-    return e_dissociation * (np.exp(-2*a1*(x[0] - r_eq)) - 2 * np.exp(-(a2+w)*(x[0] - r_eq))
+    def generalised_morse_3D(x, y, y_max, a1, a2, a3, a4, d1, d2, r1, r2, m):  # Generalised MORSE potential: https://doi.org/10.3390/en13133323
+        r_eq = r1 + r2*(y_max - y)/y_max
+        w = m*(y_max - y)/y_max
+        if d1 < d2:
+            e_dissociation = (d1/(1 + np.exp(-a4*y + a3))) + d2 		# Sigmoidal curve <<< OK
+        else:
+            e_dissociation = (d1/(1 + np.exp(-a4*y + a3))) - d2		# Sigmoidal curve <<< OK
+        return e_dissociation * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-(a2+w)*(x - r_eq)))
 
     popts = {(0, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.),
 # coordination ymax,      a1,      a2,       a3,     a4,     d1,       d2,       r1,    r2,         m
@@ -41,12 +42,26 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
         (10, 7.94997, 0.68273, 12.05387, 4.33330, 5.00000, -4.02759, -2.31701, 2.68622,  0.02000, -12.12850),
         (11, 9.15003, 1.78498, 25.98537, 4.25000, 5.00000, -3.99958, -3.10658, 2.80806, -0.13959,  -6.23279),
         (12, 10.8000, 1.41918, 21.83402, 2.41176, 0.35369, -5.10972, -3.70384, 2.78977, -0.07272,   6.71450)}
+
     for sys in popts:
         if sys[0] == cc:
             arg = sys[1:]
-    coh_e = generalised_morse_3D([distance, gcn], *arg)
+    coh_e = generalised_morse_3D(distance, gcn, *arg)
     coh_f = [0, 0, 0]
-#    coh_f = vector_distance * derivative(morse_3D, distance, args=arg, dx=1e-9)
+##    coh_f = vector_distance * derivative(generalised_morse_3D, distance, args=arg, dx=1e-9)
+##from sympy import symbols, diff
+#>>> x, y = symbols('x y', real=True)
+#>>> diff( x**2 + y**3, y)
+#3*y**2
+#>>> diff( x**2 + y**3, y).subs({x:3, y:1})
+#3
+
+
+
+
+
+
+
 
     return coh_e, coh_f
 '''
