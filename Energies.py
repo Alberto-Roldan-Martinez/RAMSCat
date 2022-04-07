@@ -98,16 +98,37 @@ class Energy_prediction:
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
-        self.e_coh, self.f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
-        self.e_adh, self.f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
+        self.e_coh, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
+        self.e_adh, f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
         self.e_total = self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh
         self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
+        forces = []
+        for i in range(len(system)):
+            f = np.zeros(3,)
+            if str(system[i].index) in f_coh:
+                f += [i for i in f_coh[str(i)]]
+
+            if str(system[i].index) in f_adh:
+                f += [i for i in f_adh[str(i)]]
+            forces.append(f)
+
+        self.results = {'energy': self.e_total,
+                        'forces': np.array(forces),
+                        'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
+                        'magmom': 0.0, 'magmoms': np.zeros(len(system))}
+
+        print(self.results['forces'][0], self.results['forces'](0))
+        exit()
+        setattr(self, 'get_potential_energy', self.results['energy'])
+        setattr(self, 'get_forces', self.results['forces'])
+
+
     def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
         e_coh = 0
-        f_coh = 0
+        f_coh = {}
         e_atom = 0
         average_coordination = 0
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
@@ -120,7 +141,7 @@ class Energy_prediction:
             e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
                               average_distance, list(average_distance_vector), gcn_i[int(i)])
             e_coh += e/len(c_coord)
-            f_coh += f
+            f_coh[str(i)] = f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 #            if system[int(i)].symbol not in cluster_elements:
@@ -131,7 +152,7 @@ class Energy_prediction:
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
-        adh_f = 0
+        adh_f = {}
         for i in interface_distances:
             v_x = [0, 0, 0]
             v_y = [0, 0, 0]
@@ -146,7 +167,7 @@ class Energy_prediction:
                                                                       len(c_coord[str(i)]),
                                                                       interface_distances[i][0],
                                                                       interface_distances[i][1], v_x, v_y)
-            adh_f += f_adh
+            adh_f[str(i)] = f_adh
             interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
                                     round(interface_distances[i][0]/distances_opt[0], 3),
                                     round(interface_distances[i][1]/distances_opt[1], 3)])
@@ -183,4 +204,5 @@ class Energy_prediction:
                 adh_e += interface_adh_e[n][1]/len(secondary_sites)
 
         return adh_e, adh_f
+
 

@@ -7,6 +7,8 @@
 #"""
 
 import os, sys
+from ase.io import read, write
+from ase.optimize import BFGS
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
@@ -24,12 +26,25 @@ support_size = [sys.argv[4], sys.argv[5], sys.argv[6]] #"/home/alberto/RESEARCH/
 path = os.getcwd()
 name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
 
+''' --------------- Structure Optimisation ---------------------'''
+atoms = read(structurefile)
+calculator = Energy_prediction(structurefile, cluster_elements, support, support_size)
+atoms.calc = calculator
+
+#print("--------------", calculator.energy)
+
+dyn = BFGS(atoms, trajectory=structurefile + '.traj')
+dyn.run(fmax=0.5)
+
+#write("Optimised.vasp", atoms)
+#structurefile = "Optimised.vasp"
+''' ------------------------------------------------------------'''
+
 coordination = Coordination(structurefile, cluster_elements, support)
 gcn = Generalised_coodination(structurefile, cluster_elements, support)
 area = Areas(structurefile, cluster_elements, support)
 z_distance = Cluster_surface_distance(structurefile, cluster_elements, support)
 energies = Energy_prediction(structurefile, cluster_elements, support, support_size)
-
 
 labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coordination.cluster_coord_labels,
 				coordination.support_cluster_min_distance_labels, "cs_height", z_distance.zlabels, "GCN", "c_i_area",
@@ -39,7 +54,6 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 		  z_distance.interface_height, z_distance.cluster_cm_surface_distance, float(gcn.gcn_average),
 		  area.cluster_interface_area, area.cluster_surface_area, energies.e_cluster_surface, energies.e_coh/coordination.cluster_size,
 		  energies.e_adh, energies.e_binding/coordination.cluster_size, energies.e_total, name]
-
 
 Write_labels("Predicted.txt", labels)
 write_results("Predicted.dat", values)
