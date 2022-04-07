@@ -90,14 +90,16 @@ class Energy_prediction:
         c_surf_area = area.cluster_surface_area
 
 # e_coh = predicted cohesion energy in eV/atom of the whole cluster
+# f_coh = predicted force in the direction between the cluster atom in question and the averaged cluster neighbours
 # e_atom = sum of all the atomic energies in eV in the cluster
 # e_adh = adhesion energy in eV as a function of the distance to the sites and the coordination within the cluster
+# f_adh = predicted force in the direction between the cluster atom in question and the surface neighbours
 # e_total = total energy in eV
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
         self.e_coh, self.f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
-        self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
+        self.e_adh, self.f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
         self.e_total = self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh
         self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
@@ -112,12 +114,12 @@ class Energy_prediction:
             average_distance = 0
             average_distance_vector = np.zeros(3)
             for j in c_coord[i]:
-                average_distance += system.get_distance(int(i), int(j), mic=True)/len(c_coord[i])
+                average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
                 average_distance_vector += np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
 #                           element, cc, distance, distance, vector, gcn
             e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
-                                  average_distance, list(average_distance_vector), gcn_i[int(i)])/len(c_coord)
-            e_coh += e
+                              average_distance, list(average_distance_vector), gcn_i[int(i)])
+            e_coh += e/len(c_coord)
             f_coh += f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)

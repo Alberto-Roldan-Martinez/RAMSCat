@@ -19,5 +19,6 @@ def e_support(support, size):                      # energies calculated with RP
     for sys in supports:
         if sys[0] == support and sys[3] == int(size[-1]):
             e_slab = sys[4]/(sys[1]*sys[2]) * (int(size[0])*int(size[1]))
+
     return e_slab
 

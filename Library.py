@@ -65,7 +65,7 @@ def ecoh_trend(element, cc, distance, vector_distance, gcn):                    
     if type(element) is list and len(element) == 1:
         coh_e, coh_f = importlib.import_module("Materials."+str(element[0])).e_coh_trend(cc, distance,
                                                                                          vector_distance, gcn)
-        return coh_e
+        return coh_e, coh_f
     else:
         print(" --- Bulk alloys not implemented in the Library yet ---")
         exit()
@@ -163,7 +163,7 @@ def e_adh_energies(support, element, icc, x, y, v_x, v_y):
     adh_e, adh_f, e_reference, e_min, widths = importlib.import_module("Materials."+element).e_adh_energies(support,
                                                                                                             icc, x, y,
                                                                                                             v_x, v_y)
-    return adh_e, e_reference, e_min, widths
+    return adh_e, adh_f, e_reference, e_min, widths
 
 def supports(support, size):
 #   assuming that the energy of a surface is scalable with its size

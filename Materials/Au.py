@@ -110,8 +110,7 @@ def e_adh_energies(support, icc, distance_a, distance_b, vector_distance_a, vect
     point = [distance_a, distance_b] + arguments
     e_reference = arguments[-1]
     adh_e = morse_3D(*point)
-    adh_f = vector_distance_a * nd.Gradient(morse_3D)([distance_a, distance_b], arguments)[0] +\
-            vector_distance_b * nd.Gradient(morse_3D)([distance_a, distance_b], arguments)[1]
+    adh_f = np.add(vector_distance_a, vector_distance_b) * nd.Gradient(morse_3D)(distance_a, distance_b, *arguments)
 
     return adh_e, adh_f, e_reference, e_min, width
 
