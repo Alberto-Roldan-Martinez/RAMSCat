@@ -52,8 +52,8 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
     return coh_e, coh_f
 '''
 - include forces with d(Morse) -->    scipy.misc.derivative(func, x0) x0=[cc, gcn]??
-    2 variables: scipy.misc.derivative for multiple argument function -->stackoverflow
-        forces = [ atom1, atom2, ...]
+done    2 variables: scipy.misc.derivative for multiple argument function -->stackoverflow 
+done        forces = [ atom1, atom2, ...]
         forces of constrained atoms = 0
 - implement geometry optimisation through ASE
         combine forces from cohesion and adhesion

@@ -30,6 +30,7 @@ area = Areas(structurefile, cluster_elements, support)
 z_distance = Cluster_surface_distance(structurefile, cluster_elements, support)
 energies = Energy_prediction(structurefile, cluster_elements, support, support_size)
 
+
 labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coordination.cluster_coord_labels,
 				coordination.support_cluster_min_distance_labels, "cs_height", z_distance.zlabels, "GCN", "c_i_area",
 				"c_s_area", "Esurf", "Ecoh", "Eadh", "Eb", "Etotal", "  structure_path"]
