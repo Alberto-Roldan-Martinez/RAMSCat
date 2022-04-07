@@ -96,7 +96,7 @@ class Energy_prediction:
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
-        self.e_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
+        self.e_coh, self.f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
         self.e_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
         self.e_total = self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh
         self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
@@ -105,6 +105,7 @@ class Energy_prediction:
     def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
         e_coh = 0
+        f_coh = 0
         e_atom = 0
         average_coordination = 0
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
@@ -114,18 +115,21 @@ class Energy_prediction:
                 average_distance += system.get_distance(int(i), int(j), mic=True)/len(c_coord[i])
                 average_distance_vector += np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
 #                           element, cc, distance, distance, vector, gcn
-            e_coh += ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
+            e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
                                   average_distance, list(average_distance_vector), gcn_i[int(i)])/len(c_coord)
+            e_coh += e
+            f_coh += f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 #            if system[int(i)].symbol not in cluster_elements:
 #                cluster_elements.append(system[int(i)].symbol)
 #        e_coh = ecoh_trend(cluster_elements, average_coordination)
 
-        return e_coh, e_atom
+        return e_coh, f_coh, e_atom
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
+        adh_f = 0
         for i in interface_distances:
             v_x = [0, 0, 0]
             v_y = [0, 0, 0]
@@ -135,12 +139,13 @@ class Energy_prediction:
                 if interface_distances[i][1] == system.get_distance(int(i), int(j), mic=True):
                     v_y = system.get_distance(int(i), int(j), mic=True, vector=True)
 #                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
-            adh_e, reference_e, e_min, distances_opt = e_adh_energies(support,
+            e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
                                                                       system[int(i)].symbol,
                                                                       len(c_coord[str(i)]),
                                                                       interface_distances[i][0],
                                                                       interface_distances[i][1], v_x, v_y)
-            interface_adh_e.append([i, round(adh_e, 5), round(e_min, 5),
+            adh_f += f_adh
+            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
                                     round(interface_distances[i][0]/distances_opt[0], 3),
                                     round(interface_distances[i][1]/distances_opt[1], 3)])
 # Adhesion Energy Prediction RULES
@@ -167,13 +172,13 @@ class Energy_prediction:
         secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
                                interface_adh_e[i][0] not in primary_sites])
 
-# Predict Adhesion energy
-        e_adh = 0
+# Predict Adhesion energy & forces
+        adh_e = 0
         for n in range(len(interface_adh_e)):
             if interface_adh_e[n][0] in primary_sites:
-                e_adh += interface_adh_e[n][1]/len(primary_sites)
+                adh_e += interface_adh_e[n][1]/len(primary_sites)
             elif interface_adh_e[n][0] in secondary_sites:
-                e_adh += interface_adh_e[n][1]/len(secondary_sites)
+                adh_e += interface_adh_e[n][1]/len(secondary_sites)
 
-        return e_adh
+        return adh_e, adh_f
 
