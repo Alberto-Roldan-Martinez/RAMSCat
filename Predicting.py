@@ -31,11 +31,11 @@ atoms = read(structurefile)
 calculator = Energy_prediction(structurefile, cluster_elements, support, support_size)
 atoms.calc = calculator
 
-#print("--------------", calculator.energy)
+#print("--------------", atoms.calc.get_forces(calculator))
 
-dyn = BFGS(atoms, trajectory=structurefile + '.traj')
-dyn.run(fmax=0.5)
-
+dyn = BFGS(atoms, logfile='output.txt', trajectory=structurefile + '.traj', restart='qn.pckl')
+dyn.run(fmax=5)
+exit()
 #write("Optimised.vasp", atoms)
 #structurefile = "Optimised.vasp"
 ''' ------------------------------------------------------------'''

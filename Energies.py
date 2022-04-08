@@ -108,10 +108,10 @@ class Energy_prediction:
         for i in range(len(system)):
             f = np.zeros(3,)
             if str(system[i].index) in f_coh:
-                f += [i for i in f_coh[str(i)]]
+                f += [i*0.001 for i in f_coh[str(i)]]
 
             if str(system[i].index) in f_adh:
-                f += [i for i in f_adh[str(i)]]
+                f += [i*0.001 for i in f_adh[str(i)]]
             forces.append(f)
 
         self.results = {'energy': self.e_total,
@@ -119,11 +119,27 @@ class Energy_prediction:
                         'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
                         'magmom': 0.0, 'magmoms': np.zeros(len(system))}
 
-        print(self.results['forces'][0], self.results['forces'](0))
-        exit()
-        setattr(self, 'get_potential_energy', self.results['energy'])
-        setattr(self, 'get_forces', self.results['forces'])
+    def get_potential_energy(self, results):
+        return self.results['energy']
 
+    def get_forces(self, results):
+        return self.results['forces']
+
+    def get_stress(self, results):
+        return self.results['stress']
+#        raise NotImplementedError
+
+    def get_dipole(self, results):
+        return self.results['dipole']
+
+    def get_charges(self, results):
+        return self.results['charges']
+
+    def get_magmom(self, results):
+        return self.results['magmom']
+
+    def get_magmoms(self, results):
+        return self.results['magmoms']
 
     def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
