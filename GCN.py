@@ -12,10 +12,11 @@ from Library import ecoh_bulk
 
 
 class Generalised_coodination:
-    def __init__(self, inputfile, cluster_elements, support):
-        system = read(inputfile)
+#    def __init__(self, inputfile, cluster_elements, support):
+#        system = read(inputfile)
+    def __init__(self, system, cluster_elements, support):
 # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        coordination = Coordination(inputfile, cluster_elements, support)
+        coordination = Coordination(system, cluster_elements, support)
         c_coord = coordination.cluster_coordinating
 
 # gcn_average = average generalised coordination number among the atoms in the cluster

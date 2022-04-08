@@ -10,8 +10,9 @@ from Coordination import Coordination
 
 
 class Cluster_surface_distance:
-    def __init__(self, inputfile, cluster_elements, support):
-        system = read(inputfile)
+#    def __init__(self, inputfile, cluster_elements, support):
+#        system = read(inputfile)
+    def __init__(self, system, cluster_elements, support):
         cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
         support_index = [system[i].index for i in range(len(system)) if system[i].symbol in sites(support)]
 

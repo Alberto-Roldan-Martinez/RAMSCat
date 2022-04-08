@@ -67,26 +67,26 @@ def surface_energy(system, c_coord, c_surf, c_surf_area):
 
 
 class Energy_prediction:
-    def __init__(self, inputfile, cluster_elements, support, support_size):
-        system = read(inputfile)
+#    def __init__(self, inputfile, cluster_elements, support, support_size):
+#        system = read(inputfile)
+    def __init__(self, system, cluster_elements, support, support_size):
         e_slab = supports(support, support_size)
-
 # c_coord = dictionary with the indexes of coordinating atoms within the cluster
 # interface_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y
 # interface_indexes = dictionary with surface neighbours with cluster interface atoms
-        coordination = Coordination(inputfile, cluster_elements, support)
+        coordination = Coordination(system, cluster_elements, support)
         c_coord = coordination.cluster_coordinating
         interface_distances = coordination.cluster_support_distances
         interface_indexes = coordination.support_coordinating
 
 # gcn_i = dictionary with the generalised coordination number per atom
 # c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
-        gcn = Generalised_coodination(inputfile, cluster_elements, support)
+        gcn = Generalised_coodination(system, cluster_elements, support)
         gcn_i = gcn.gcn
         c_surf = gcn.cluster_surface_index
 
 # c_surf_area = area exposed to the vacuum according to interpolated area/atom in the Library
-        area = Areas(inputfile, cluster_elements, support)
+        area = Areas(system, cluster_elements, support)
         c_surf_area = area.cluster_surface_area
 
 # e_coh = predicted cohesion energy in eV/atom of the whole cluster
@@ -118,6 +118,8 @@ class Energy_prediction:
                         'forces': np.array(forces),
                         'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
                         'magmom': 0.0, 'magmoms': np.zeros(len(system))}
+
+#        print("E=", self.e_total, "F=", forces[0:11])
 
     def get_potential_energy(self, results):
         return self.results['energy']

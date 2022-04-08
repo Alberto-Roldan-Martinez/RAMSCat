@@ -28,23 +28,24 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 
 ''' --------------- Structure Optimisation ---------------------'''
 atoms = read(structurefile)
-calculator = Energy_prediction(structurefile, cluster_elements, support, support_size)
+calculator = Energy_prediction(atoms, cluster_elements, support, support_size)
 atoms.calc = calculator
 
-#print("--------------", atoms.calc.get_forces(calculator))
+#print("--------------", atoms)
 
-dyn = BFGS(atoms, logfile='output.txt', trajectory=structurefile + '.traj', restart='qn.pckl')
-dyn.run(fmax=5)
-exit()
-#write("Optimised.vasp", atoms)
-#structurefile = "Optimised.vasp"
+dyn = BFGS(atoms, logfile='-', trajectory='trajectory.traj')
+atoms.calc = calculator
+dyn.run(fmax=0.5, steps=100)
+
+
+write("Optimised.vasp", atoms)
 ''' ------------------------------------------------------------'''
 
-coordination = Coordination(structurefile, cluster_elements, support)
-gcn = Generalised_coodination(structurefile, cluster_elements, support)
-area = Areas(structurefile, cluster_elements, support)
-z_distance = Cluster_surface_distance(structurefile, cluster_elements, support)
-energies = Energy_prediction(structurefile, cluster_elements, support, support_size)
+coordination = Coordination(atoms, cluster_elements, support)
+gcn = Generalised_coodination(atoms, cluster_elements, support)
+area = Areas(atoms, cluster_elements, support)
+z_distance = Cluster_surface_distance(atoms, cluster_elements, support)
+energies = Energy_prediction(atoms, cluster_elements, support, support_size)
 
 labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coordination.cluster_coord_labels,
 				coordination.support_cluster_min_distance_labels, "cs_height", z_distance.zlabels, "GCN", "c_i_area",

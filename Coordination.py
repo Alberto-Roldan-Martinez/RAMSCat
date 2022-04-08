@@ -16,9 +16,9 @@ from Library import opt_atom_distance, sites
 
 
 class Coordination:
-    def __init__(self, inputfile, cluster_elements, support):
-        system = read(inputfile)
-
+#    def __init__(self, inputfile, cluster_elements, support):
+#        system = read(inputfile)
+    def __init__(self, system, cluster_elements, support):
 # cluster_size "N" = Total number of atoms forming the cluster
 # cluster_ave_coordination "cc" = Average atomic coordination within the cluster
 # cluster_coordinating = dictionary with the indexes of coordinating atoms within the cluster
@@ -117,10 +117,11 @@ class Coordination:
                     cluster_support_distances[n] = [min(distances)]
                 else:
                     cluster_support_distances[n].append(min(distances))
-            if len(distances) > 1:
+            if len(distances) > 0:
                 cs_distance[site] = float(sum(distances)/len(distances))
-            else:
-                cs_distance[site] = float(min(distances))
+# Alberto 08/04/2022
+#            else:
+#                cs_distance[site] = float(distances)
             site_cluster_coordination[site] = int(len(coordinating))
 
         return cs_distance, coordinating, s_sites, interface_cluster_index, interface_support_index, \
