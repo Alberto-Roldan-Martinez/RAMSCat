@@ -25,7 +25,7 @@ class Cluster_surface_distance:
                                            /len(sites_index))
         self.zlabels = str("Zdist")
 
-        coordination = Coordination(inputfile, cluster_elements, support)
+        coordination = Coordination(system, cluster_elements, support)
         c_interface = coordination.interface_cluster_index
         if len(c_interface) > 0:
             c_height_average = sum([system[i].position[2] for i in c_interface])/len(c_interface)

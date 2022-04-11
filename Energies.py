@@ -104,14 +104,15 @@ class Energy_prediction:
         self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
+# forces = array of atomic forces in the 3 directions [[x1, y1, z1], [x2,...],...]
         forces = []
         for i in range(len(system)):
             f = np.zeros(3,)
             if str(system[i].index) in f_coh:
-                f += [i*0.001 for i in f_coh[str(i)]]
+                f += [i for i in f_coh[str(i)]]
 
             if str(system[i].index) in f_adh:
-                f += [i*0.001 for i in f_adh[str(i)]]
+                f += [i for i in f_adh[str(i)]]
             forces.append(f)
 
         self.results = {'energy': self.e_total,
@@ -119,7 +120,17 @@ class Energy_prediction:
                         'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
                         'magmom': 0.0, 'magmoms': np.zeros(len(system))}
 
+        setattr(self, 'energy', self.results['energy'])
+        setattr(self, 'forces', self.results['forces'])
+        self.implemented_properties = ['energy', 'forces']
 #        print("E=", self.e_total, "F=", forces[0:11])
+#        print(self.results['energy'])
+#        Calculator.__init__(self, restart=None, atoms=None)
+#        print(Calculator, atoms[0])
+
+
+    def get_property(self):
+        return ['energy', 'forces']
 
     def get_potential_energy(self, results):
         return self.results['energy']
@@ -128,20 +139,20 @@ class Energy_prediction:
         return self.results['forces']
 
     def get_stress(self, results):
-        return self.results['stress']
-#        raise NotImplementedError
+        raise NotImplementedError
 
     def get_dipole(self, results):
-        return self.results['dipole']
+        raise NotImplementedError
 
     def get_charges(self, results):
-        return self.results['charges']
+        raise NotImplementedError
 
     def get_magmom(self, results):
-        return self.results['magmom']
+        raise NotImplementedError
 
     def get_magmoms(self, results):
-        return self.results['magmoms']
+        raise NotImplementedError
+
 
     def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
