@@ -4,7 +4,6 @@ This module defines an ASE interface to RAMSCat.
 
 """
 
-import numpy as np
 from ase.calculators.calculator import (Calculator, PropertyNotImplementedError)
 from Energies import Energy_prediction as energies
 
