@@ -9,7 +9,7 @@
 import os, sys
 from ase.io import read, write
 from ase.optimize import BFGS
-from ase.calculators.calculator import Calculator
+from RAMSCat import RAMSCat
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
@@ -29,14 +29,10 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 
 ''' --------------- Structure Optimisation ---------------------'''
 atoms = read(structurefile)
-command = Energy_prediction(atoms, cluster_elements, support, support_size)
-atoms.calc = Calculator(restart=None, ignore_bad_restart=True, label=None, atoms=None, command=command)
-print(atoms)
-dyn = BFGS(atoms, logfile='-', trajectory='trajectory.traj')
-dyn.calculate()
-#print(atoms.get_potential_energy())
-dyn.run(fmax=0.5, steps=10)
-print("------------", atoms)
+atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
+
+dyn = BFGS(atoms, logfile='RAMSCat.opt', trajectory='trajectory.traj')
+dyn.run(fmax=0.5, steps=100)
 
 write("Optimised.vasp", atoms)
 exit()
