@@ -35,7 +35,7 @@ mutType = "move"                                        # selected from the pool
 #mutType = "homotop"                                    # (only bimetallics) two atoms have their atom types swapped
 #mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
 mutate = 0.1                                            # mutation ratio
-r_ij = sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames) / 2
+r_ij = sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames)
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
