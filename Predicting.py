@@ -7,8 +7,9 @@
 #"""
 
 import os, sys
-from ase.io import read, write
-from ase.optimize import BFGS, LBFGSLineSearch
+from ase.io import read
+import ase.io.vasp
+from ase.optimize import BFGS
 from RAMSCat import RAMSCat
 from Coordination import Coordination
 from GCN import Generalised_coodination
@@ -22,6 +23,7 @@ cluster_elements = [i for i in sys.argv[1].split("-")]                      # El
 structurefile = sys.argv[2] 												# file name, e.g. POSCAR
 support = sys.argv[3]                                                       # Surface name
 support_size = [sys.argv[4], sys.argv[5], sys.argv[6]] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
+fmax = sys.argv[7]
 ####################################################################################################
 
 path = os.getcwd()
@@ -31,13 +33,11 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
-dyn = LBFGSLineSearch(atoms, logfile='-', trajectory='trajectory.traj')
-dyn.run(fmax=0.5, steps=100)
+dyn = BFGS(atoms, logfile='Optimisation.txt', trajectory='trajectory.traj')
+dyn.run(fmax=fmax) #5, steps=150)
+ase.io.vasp.write_vasp("Optimised.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
-write("Optimised.vasp", atoms)
-exit()
-''' ------------------------------------------------------------'''
-
+''' ---------------- Get and Print Results ---------------------'''
 coordination = Coordination(atoms, cluster_elements, support)
 gcn = Generalised_coodination(atoms, cluster_elements, support)
 area = Areas(atoms, cluster_elements, support)
