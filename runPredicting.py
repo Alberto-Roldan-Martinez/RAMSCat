@@ -48,7 +48,7 @@ subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwor
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 
-time_out = open("RAMSCat_Summary.txt", 'w+')
+time_out = open("RAMSCat_Summary.txt", 'a+')
 time_out.write("Time used to execute GA: {:>.3f} hours". format((time.time() - start_time)/3600))
 time_out.write("\nThe 5 most stable structures:\n")
 time_out.close()
