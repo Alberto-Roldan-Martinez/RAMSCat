@@ -62,42 +62,45 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 	SaveFig()
 
 
-def Display3D(labels, x1, x2, y, y_label):
+def Display3D(labels, x, y, z, z_label):
 	def plane(x, a, b, c, d, e):
 		return a*np.exp(-b*x[0]) + c*np.exp(-d*x[1]) + e
 
-	popt, pcov = curve_fit(plane, [x1, x2], y)#, bounds=limits)
-	r2 = 1-np.sqrt(sum([(y[i] - plane([x1[i], x2[i]], *popt))**2 for i in range(len(y))])/sum(i*i for i in y))
-	print(popt, "\n", r2)
+#	popt, pcov = curve_fit(plane, [x, y], z)#, bounds=limits)
+#	r2 = 1-np.sqrt(sum([(z[i] - plane([x, y], *popt))**2 for i in range(len(y))])/sum(i*i for i in y))
+#	print(popt, "\n", r2)
 
 	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
 	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
-	ax.scatter3D(x1, x2, y, s=5, c='k', marker='o', label="$R^{2}=$ " + str(round(r2, 2)))
-	z_lim = [min(y), max(y)]
+	ax.scatter3D(x, y, z, s=5, c='k', marker='o') #, label="$R^{2}=$ " + str(round(r2, 2)))
+	z_lim = [min(z), max(z)]
+# add labels
+	for i in range(len(x)):
+		ax.text(x[i]+0.02, y[i]+0.02, z[i]+0.02, str(labels[i]), color="black", fontsize=14)
 #	spline = sp.interpolate.Rbf(x1, x2, y, function='thin_plate', smooth=5, episilon=1)
 
-	grid = 50
-	surf_x = np.linspace(0, max(x1)*1.1, grid)
-	surf_y = np.linspace(0, max(x2)*1.1, grid)
-	x, y = np.meshgrid(surf_x, surf_y)
+#	grid = 50
+#	surf_x = np.linspace(0, max(x)*1.1, grid)
+#	surf_y = np.linspace(0, max(y)*1.1, grid)
+#	x, y = np.meshgrid(surf_x, surf_y)
 #	z = spline(x, y)
-	z = plane([x, y], *popt)
+#	z = plane([x, y], *popt)
 
 # masking the data beyond zmax
-	z_mask_max = ma.masked_greater_equal(z, z_lim[1], copy=True)
-	z = z_mask_max.filled(fill_value=z_lim[1])
-	z_mask_min = ma.masked_less(z, z_lim[0], copy=True)
-	z = z_mask_min.filled(fill_value=z_lim[0])
+#	z_mask_max = ma.masked_greater_equal(z, z_lim[1], copy=True)
+#	z = z_mask_max.filled(fill_value=z_lim[1])
+#	z_mask_min = ma.masked_less(z, z_lim[0], copy=True)
+#	z = z_mask_min.filled(fill_value=z_lim[0])
 
-	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.7, vmin=z_lim[0], vmax=0)
+#	surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='viridis', alpha=0.7, vmin=z_lim[0], vmax=0)
 #	figure.colorbar(surface, shrink=0.25, aspect=10)
 
 	ax.set_xlabel('coordination', fontsize=16, labelpad=10)
 	ax.set_ylabel('GCN', fontsize=16)
-	ax.set_zlabel(y_label, fontsize=16, labelpad=10)
+	ax.set_zlabel(z_label, fontsize=16, labelpad=10)
 #	ax.text(-2, 13, 0, str(y_label), color="black", fontsize=16)
-	ax.set_xlim3d(0, max(x1)*1.1)
-	ax.set_ylim3d(0, max(x2)*1.1)
+	ax.set_xlim3d(0, max(x)*1.1)
+	ax.set_ylim3d(0, max(y)*1.1)
 	ax.set_zlim3d(z_lim)
 	ax.tick_params(axis='both', labelsize=14)
 #	ax.set_xticks([])
@@ -127,17 +130,18 @@ def SaveFig():
 
 ifile = open(sys.argv[1]).readlines()
 data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
-labels = []
-x = [data[i][0] for i in range(len(data))]												# first column
-y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]		# rest of columns
+labels = [data[i][0] for i in range(len(data))]
+x = [float(data[i][1]) for i in range(len(data))]												# first column
+y = [[float(data[i][j]) for i in range(len(x))] for j in range(2, len(data[0]))]		# rest of columns
 
 y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
 			[min(y[1])*0.9, max(y[1])*1.1],
 			[min(y[2])*0.9, max(y[2])*1.2],
-			[min(y[3])*0.99, max(y[3])*1.01]]
+#			[min(y[3])*0.99, max(y[3])*1.01]
+			]
 
-Display_MultiAxis(labels, 'Systems', x, ["$E^{min}$ $(eV)$", "N", "Cycles", "CPU (%)"], y, y_limits)
+#Display_MultiAxis(labels, 'Systems', x, ["$E^{min}$ $(eV)$", "N", "Cycles", "CPU (%)"], y, y_limits)
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
-#Display3D(label, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
-#Display3D(label, x1, x2, y2, '$r_{eq}$ $(\AA)$')
+#Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
+Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
