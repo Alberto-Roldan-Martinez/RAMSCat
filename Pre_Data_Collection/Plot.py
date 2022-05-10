@@ -118,6 +118,45 @@ def Display3D(labels, x, y, z, z_label):
 	SaveFig()
 	plt.clf()
 
+def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
+	inter_colum_d = 0.5
+	fig, ax1 = plt.subplots(figsize=(5 + len(list(set(x))), 8), clear=True)       # prepares a figure
+	ax1.set_xlabel(x_label, fontsize=16)
+	print(len(list(set(x)))*inter_colum_d*3/2)
+	ax1.set_xticks([inter_colum_d*3/2])	#np.arange(len(list(set(x))))
+	ax1.set_xticklabels([2]) #list(set(x)))
+	ax1.tick_params(axis='x', rotation=0, labelsize=14)
+
+	x_min = min(x)
+	n = 0
+	for i in range(len(x)):
+		if x[i] == x_min:
+			if y[i] == min(y):
+				ax1.plot([n + inter_colum_d, n + 1], [y[i] - min(y), y[i] - min(y)], 'b', lw=1.5)
+			else:
+				ax1.plot([n + inter_colum_d, n + 1], [y[i] - min(y), y[i] - min(y)], 'k', lw=0.5)
+
+			ax1.text(n + inter_colum_d*3/2, y_limit[1] - 0.05, str(len(x)),
+					 color="black", fontsize=14, ha="center", va="center",
+					 bbox=dict(boxstyle="round", ec=(0.5, 0.5, 0.5), fc=(0.8, 0.8, 0.8), ))
+		else:
+			x_min = x[i]
+			n += 1
+			ax1.plot([n + 0.5, n + 1], [y[i] - min(y), y[i] - min(y)], 'k')
+
+	ax1.set_ylabel(y_label, fontsize=16)
+	ax1.tick_params(axis='y', labelsize=14)
+	ax1.set_ylim(y_limit)
+# add labels
+#    	for i in range(len(x)):
+#	    	ax1.text(x[i]+0.02, y1[i], str(labels[i]), color="black", fontsize=14)
+#	legend = ax1.legend(loc='best')
+	fig.tight_layout()
+	plt.ion()
+	plt.show()
+	SaveFig()
+
+
 
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
@@ -131,8 +170,8 @@ def SaveFig():
 ifile = open(sys.argv[1]).readlines()
 data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
 labels = [data[i][0] for i in range(len(data))]
-x = [float(data[i][1]) for i in range(len(data))]												# first column
-y = [[float(data[i][j]) for i in range(len(x))] for j in range(2, len(data[0]))]		# rest of columns
+x = [int(data[i][0]) for i in range(len(data))]												# first column
+y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0])-2)]				# rest of columns
 
 y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
 			[min(y[1])*0.9, max(y[1])*1.1],
@@ -144,4 +183,6 @@ y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negati
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
 #Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
-Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
+#Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
+
+EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[16], [-0.05, 1])
