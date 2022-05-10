@@ -147,10 +147,6 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 	ax1.set_ylabel(y_label, fontsize=16)
 	ax1.tick_params(axis='y', labelsize=14)
 	ax1.set_ylim(y_limit)
-# add labels
-#    	for i in range(len(x)):
-#	    	ax1.text(x[i]+0.02, y1[i], str(labels[i]), color="black", fontsize=14)
-#	legend = ax1.legend(loc='best')
 	fig.tight_layout()
 	plt.ion()
 	plt.show()
