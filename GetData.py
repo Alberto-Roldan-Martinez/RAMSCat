@@ -46,5 +46,6 @@ values = [coordination.cluster_size, coordination.interface_cluster, coordinatio
 
 Write_labels("labels.txt", labels)
 write_results("data.dat", values)
+os.system("cat labels.txt data.dat >> Measured.dat; rm labels.txt data.dat")
 
 
