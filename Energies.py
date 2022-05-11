@@ -23,25 +23,21 @@ from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies, s
 
 
 class Energies:
-    def __init__(self, inputfiles, isolated_support, isolated_cluster, cluster_elements, support):
-        system = read(inputfiles[0], index=-1)
-        cluster = read(isolated_cluster)
-        slab = read(isolated_support)
-
-        e_system = system.get_total_energy()
+    def __init__(self, system, e_system, cluster_elements, cluster, support, support_size):
+        e_system = e_system.get_total_energy()
+        e_slab = supports(support, support_size)
         e_cluster = cluster.get_total_energy()
-        e_slab = slab.get_total_energy()
         e_atoms = sum([isolated_atoms(system[i].symbol) for i in range(len(system))
                        if system[i].symbol in cluster_elements])
 
 # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        coordination = Coordination(inputfiles[1], cluster_elements, support)
+        coordination = Coordination(system, cluster_elements, support)
         c_coord = coordination.cluster_coordinating
 # c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
-        gcn = Generalised_coodination(inputfiles[1], cluster_elements, support)
+        gcn = Generalised_coodination(system, cluster_elements, support)
         c_surf = gcn.cluster_surface_index
 # c_surf_area = area exposed to the vacuum according to interpolated area/atom in the Library
-        area = Areas(inputfiles[1], cluster_elements, support)
+        area = Areas(system, cluster_elements, support)
         c_surf_area = area.cluster_surface_area
 
 # cohesion = cohesion energy per atom in the cluster in eV/atom from the DFT data

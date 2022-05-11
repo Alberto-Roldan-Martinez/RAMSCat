@@ -1,17 +1,11 @@
 """
 	Versions:
-		Alberto: 08/2019
-
-	STRUCTURE:
-		- check structure and energy (OUTCAR) files
-		- check boundary conditions
-		- Import coordination data
-		- Import energy from the OUTCAR
+		Alberto: 05/2022
 
 """
 
-import os, sys
-# from CheckFiles import checkFiles
+import os
+from ase.io import read
 from Coordination import Coordination
 from GCN import Generalised_coodination
 from Areas import Areas
@@ -19,29 +13,27 @@ from Zdistance import Cluster_surface_distance
 from Energies import Energies
 from WriteData import Write_labels, write_results
 
-if sys.argv:
-	argument = sys.argv[1]
-else:
-	argument = "."
 
-
-###################################################################################################
+""" --------------------------- CLUSTER MODEL ---------------------------"""
 cluster_elements = ["Au"]                           		# Elements in the Cluster
+isolated_cluster = "./Cluster/OUTCAR"        				# file with the isolated cluster's energy
+""" --------------------------- SURFACE MODEL---------------------------"""
 support = "MgO"                             				# Support's name
-inputfiles = ["OUTCAR", "CONTCAR"]							# files containing the energies and geometries
-isolated_cluster = argument + "/gas/OUTCAR"           		# file with the isolated cluster's energy
-isolated_support = "/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"	# file with the support's energy
+support_size = [8, 8, 4]									# Dimension of the support's supercell
 ###################################################################################################
+
+''' ---------------- Get and Print Results ---------------------'''
+atoms = read("CONTCAR")
+e_atoms = read("OUTCAR")
+cluster = read(isolated_cluster)
+coordination = Coordination(atoms, cluster_elements, support)
+gcn = Generalised_coodination(atoms, cluster_elements, support)
+area = Areas(atoms, cluster_elements, support)
+z_distance = Cluster_surface_distance(atoms, cluster_elements, support)
+energy = Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size)
 
 path = os.getcwd()
 name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+path.split("/")[-1]
-
-coordination = Coordination(inputfiles[1], cluster_elements, support)
-gcn = Generalised_coodination(inputfiles[1], cluster_elements, support)
-area = Areas(inputfiles[1], cluster_elements, support)
-z_distance = Cluster_surface_distance(inputfiles[1], cluster_elements, support)
-energy = Energies(inputfiles, isolated_support, isolated_cluster, cluster_elements, support)
-
 
 labels = ["N", "i_c", coordination.site_cluster_coordination_label, "i_cc", coordination.cluster_coord_labels,
 				coordination.support_cluster_min_distance_labels, "cs_height", z_distance.zlabels, "GCN", "c_i_area",
