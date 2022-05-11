@@ -19,7 +19,7 @@ cluster_elements = ["Au"]                           		# Elements in the Cluster
 isolated_cluster = "./Cluster/OUTCAR"        				# file with the isolated cluster's energy
 """ --------------------------- SURFACE MODEL---------------------------"""
 support = "MgO"                             				# Support's name
-support_size = [8, 8, 4]									# Dimension of the support's supercell
+support_size = [8, 8, 2]									# Dimension of the support's supercell
 ###################################################################################################
 
 ''' ---------------- Get and Print Results ---------------------'''
