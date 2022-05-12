@@ -17,8 +17,11 @@ def e_support(support, size):                      # energies calculated with RP
                 }
 
     for sys in supports:
-        if sys[0] == support and sys[3] == int(size[-1]):
-            e_slab = sys[4]/(sys[1]*sys[2]) * (int(size[0])*int(size[1]))
+        if sys[0] == support and sys[1] == int(size[0]) and sys[2] == int(size[1]) and sys[3] == int(size[2]):
+            e_slab = sys[4]
+        else:
+            print(" ERROR : The support is not defined in the library")
+            exit(0)
 
     return e_slab
 
