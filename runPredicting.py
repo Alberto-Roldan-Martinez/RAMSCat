@@ -59,3 +59,6 @@ os.system("grep Energy pool.dat | sort -k3n -r | head -5 >> RAMSCat_Summary.txt"
 time_out = open("RAMSCat_Summary.txt", 'a+')
 time_out.write("\n")
 time_out.close()
+os.system("head -n -1 1/Predicted.dat >> Summary_Predicted.dat")
+os.system("re='^[0-9]+$'; for i in $(ls); do if [[ $i =~ $re ]] ; then "
+		  "tail -1 $i/Predicted.dat >> Summary_Predicted.dat ; fi; done")
