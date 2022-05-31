@@ -46,10 +46,9 @@ fmax = 0.5						# interatomic force maximum in the BFGS optimisation
 subString = " ".join(str(i) for i in ["~/Software/OTHER/NeuralNetwork/Predicting_MDMin.py",
 			 "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 
-print(vars(surface)['x'], vars(surface)['y'], vars(surface)['z'])
-
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
+# --------------------
 
 time_out = open("RAMSCat_Summary.txt", 'a+')
 time_out.write("Time used to execute GA: {:>.3f} hours". format((time.time() - start_time)/3600))
@@ -59,6 +58,6 @@ os.system("grep Energy pool.dat | sort -k3n -r | head -5 >> RAMSCat_Summary.txt"
 time_out = open("RAMSCat_Summary.txt", 'a+')
 time_out.write("\n")
 time_out.close()
-os.system("head -n -1 1/Predicted.dat >> Summary_Predicted.dat")
+os.system("head -n -1 1/Predicted.dat >> Predicted_All.dat")
 os.system("re='^[0-9]+$'; for i in $(ls); do if [[ $i =~ $re ]] ; then "
-		  "tail -1 $i/Predicted.dat >> Summary_Predicted.dat ; fi; done")
+		  "tail -1 $i/Predicted.dat >> Predicted_All.dat ; fi; done")

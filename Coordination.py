@@ -8,22 +8,18 @@
 """
 
 
-import numpy as np
 from ase import neighborlist
-from ase.io import read
 from ase.build import bulk, molecule
-from Library import opt_atom_distance, sites
+from Library import opt_atom_distance, sites, ecoh_bulk
 
 
 class Coordination:
-#    def __init__(self, inputfile, cluster_elements, support):
-#        system = read(inputfile)
     def __init__(self, system, cluster_elements, support):
 # cluster_size "N" = Total number of atoms forming the cluster
 # cluster_ave_coordination "cc" = Average atomic coordination within the cluster
 # cluster_coordinating = dictionary with the indexes of coordinating atoms within the cluster
-        self.cluster_size, self.cluster_ave_coordination, self.cluster_coordinating = \
-            self.cluster_coordination(system, cluster_elements)
+        self.cluster_size, self.cluster_ave_coordination, self.cluster_coordinating = self.cluster_coordination(system,
+                                                                                                    cluster_elements)
         self.cluster_coord_labels = ["cc"]
 
 # support_cluster_min_distance "dist_X" = Average of minimum distances (in Å) between the surface sites (X) and the clusters atom
@@ -66,7 +62,6 @@ class Coordination:
 
         return int(len(cluster_index)), float(average_coordination), coordinating
 
-
     def sites_coordination(self, system, cluster_elements, support):
         interface_cluster_index = []
         interface_support_index = []
@@ -88,7 +83,6 @@ class Coordination:
             s_sites.update({site: sites_index})
             cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
             interface_cluster_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
-
 
             optimised_distance = [opt_atom_distance(support, site, i) for i in cluster_elements]
             distance_cutoff = sum(optimised_distance) / len(optimised_distance)
@@ -137,5 +131,46 @@ class Coordination:
         except ValueError:
             bulkdistance = 1  # minimum distance by default
         return bulkdistance
+
+
+"""
+        Provides information related to the Generalised Coordination Number
+        original reference: doi/10.1002/anie.201402958
+"""
+class Generalised_coodination:
+    def __init__(self, system, cluster_elements, support):
+# c_coord = dictionary with the indexes of coordinating atoms within the cluster
+        coordination = Coordination(system, cluster_elements, support)
+        c_coord = coordination.cluster_coordinating
+
+# gcn_average = average generalised coordination number among the atoms in the cluster
+# gcn = dictionary with the generalised coordination number for each atom in the cluster
+# cluster_bulk_index = indexes of cluster atoms with bulk coordination
+# cluster_surface_index = indexes of cluster atoms with coordination within the cluster lower than its bulk
+        self.gcn_average, self.gcn, self.cluster_bulk_index, self.cluster_surface_index = \
+            self.cluster_gcn(system, cluster_elements, c_coord)
+
+    def cluster_gcn(self, system, cluster_elements, c_coord):
+        cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
+        gcn_average = 0
+        gcn = {}
+        cluster_bulk_index = []
+        cluster_surface_index = []
+        for n in cluster_index:
+            i_gcn = 0
+            e_coh, bulk_coordination = ecoh_bulk([system[n].symbol])
+            if len(c_coord[str(n)]) > 0:
+                for j in c_coord[str(n)]:
+                    i_gcn += len(c_coord[str(j)])/ecoh_bulk([system[j].symbol])[1]           # coordination of the coordinating atom of n
+                gcn[n] = i_gcn
+            if len(c_coord[str(n)]) < bulk_coordination and n not in cluster_surface_index:  # exposed atoms at the surface
+                cluster_surface_index.append(n)
+            if len(c_coord[str(n)]) == bulk_coordination and n not in cluster_bulk_index:
+                cluster_bulk_index.append(n)
+
+        if len([gcn[i] for i in gcn]) > 0:
+            gcn_average = float(sum([gcn[i] for i in gcn])/len(gcn))
+
+        return gcn_average, gcn, cluster_bulk_index, cluster_surface_index
 
 

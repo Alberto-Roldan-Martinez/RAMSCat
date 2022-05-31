@@ -6,20 +6,20 @@
 
 import os
 from ase.io import read
-from Coordination import Coordination
-from GCN import Generalised_coodination
-from Areas import Areas
-from Zdistance import Cluster_surface_distance
+from Coordination import Coordination, Generalised_coodination
+#from GCN import Generalised_coodination
+#from Areas import Areas
+#from Zdistance import Cluster_surface_distance
 from Energies import Energies
+from Properties import Areas, Cluster_surface_distance
 from WriteData import Write_labels, write_results
-
 
 """ --------------------------- CLUSTER MODEL ---------------------------"""
 cluster_elements = ["Au"]                           		# Elements in the Cluster
 isolated_cluster = "./Cluster/OUTCAR"        				# file with the isolated cluster's energy
 """ --------------------------- SURFACE MODEL---------------------------"""
 support = "MgO"                             				# Support's name
-support_size = [8, 8, 2]									# Dimension of the support's supercell
+support_size = [2, 2, 4]									# Dimension of the support's supercell
 ###################################################################################################
 
 ''' ---------------- Get and Print Results ---------------------'''

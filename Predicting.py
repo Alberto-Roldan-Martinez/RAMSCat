@@ -11,11 +11,9 @@ from ase.io import read
 import ase.io.vasp
 from ase.optimize import BFGS
 from RAMSCat import RAMSCat
-from Coordination import Coordination
-from GCN import Generalised_coodination
-from Areas import Areas
-from Zdistance import Cluster_surface_distance
+from Coordination import Coordination, Generalised_coodination
 from Energies import Energy_prediction
+from Properties import Areas, Cluster_surface_distance
 from WriteData import Write_labels, write_results, write_out
 
 #####################################################################################################

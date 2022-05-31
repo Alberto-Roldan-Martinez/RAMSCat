@@ -15,10 +15,8 @@
 """
 
 import numpy as np
-from ase.io import read
-from Coordination import Coordination
-from GCN import Generalised_coodination
-from Areas import Areas
+from Coordination import Coordination, Generalised_coodination
+from Properties import Areas
 from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies, supports
 
 
