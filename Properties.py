@@ -1,5 +1,5 @@
 
-
+import numpy as np
 from Library import sites
 from Coordination import Coordination, Generalised_coodination
 from Library import areas
@@ -15,12 +15,10 @@ class Cluster_surface_distance:
 
         support_zmax = max([system[i].position[2] for i in support_index])
         sites_index = [i.index for i in system if i.symbol in sites(support) and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
-        pos = sum([(system[i].position[2] * system[i].mass) for i in cluster_index])
-        self.cluster_mass_centre = float(pos/sum([system[i].mass for i in cluster_index]))
-
-        self.cluster_cm_surface_distance = float(self.cluster_mass_centre - sum([system[i].position[2] for i in sites_index])\
+        pos = [sum([(system[i].position[j] * system[i].mass) for i in cluster_index]) for j in range(3)]
+        self.cluster_mass_centre = [float(pos[j]/sum([system[i].mass for i in cluster_index])) for j in range(3)]
+        self.cluster_cm_surface_distance = float(self.cluster_mass_centre[2] - sum([system[i].position[2] for i in sites_index])\
                                            /len(sites_index))
-        self.zlabels = str("Zdist")
 
         coordination = Coordination(system, cluster_elements, support)
         c_interface = coordination.interface_cluster_index
@@ -58,6 +56,43 @@ class Areas:
 
     def surface(self, system, c_coord, c_surf):
         return float(sum([areas(system[i].symbol, len(c_coord[str(i)])) for i in c_surf]))
+
+
+"""
+        Provides mean interatomic distance between first neigbours in Angstroms
+"""
+class Mean_interatomic_distance:
+    def __init__(self, system, cluster_elements, support):
+# c_coord = dictionary with the indexes of coordinating atoms within the cluster
+        c_coord = Coordination(system, cluster_elements, support).cluster_coordinating
+        mean_distance = 0
+        for i in c_coord:
+            for j in c_coord[str(i)]:
+                mean_distance += system.get_distance(int(i), int(j), mic=True, vector=False)/len(c_coord[str(i)])
+# mean interatomic distance calculated over the first neighbour for each of the atoms in the cluster
+        self.mean_distance = float(mean_distance/len(c_coord))
+
+
+"""
+        Provides a measure of how spherical the cluster is by comparing its expose area to the one of a perfect sphere
+"""
+class Sphericity:
+    def __init__(self, system, cluster_elements, support):
+# c_mass_centre = the centre of mass from the cluster atoms considering their mass.
+        c_mass_centre = np.array(Cluster_surface_distance(system, cluster_elements, support).cluster_mass_centre)
+# c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
+        c_surf = Generalised_coodination(system, cluster_elements, support).cluster_surface_index
+# c_area = sum of expose and interface cluster areas
+        c_area = Areas(system, cluster_elements, support).cluster_interface_area +\
+                 Areas(system, cluster_elements, support).cluster_surface_area
+        distances = []
+        for i in c_surf:
+            dist_vector = np.subtract(np.array(system[i].position), c_mass_centre)
+            distances.append(np.sqrt(dist_vector.dot(dist_vector)))
+        sorted(distances)
+# 2 different measures of sphericity
+        self.shape_ratio = float((distances[-1] - distances[0])/distances[0])
+        self.sphericity = float(4 * np.pi * (sum(distances)/len(distances))**2 / c_area)
 
 
 

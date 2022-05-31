@@ -14,7 +14,8 @@ from ase.io import read
 
 class Write_labels:
     def __init__(self, outfile, data):
-        line=[]; n=0
+        line = []
+        n = 0
         for value in data:
             if type(value) is list:
                 for label in value:
@@ -24,7 +25,7 @@ class Write_labels:
                 line.append(self.label_definition(value.strip(), n))
                 n += 1
 
-        heading=[]
+        heading = []
         for value in data:
             if type(value) is list:
                 [heading.append(i) for i in value]
@@ -36,11 +37,10 @@ class Write_labels:
         for dat in line:
             output.write("#     %s\n" % dat)
         output.write("#\n#\n#\n#")
+        self.length = []
         for i, dat in enumerate(heading):
-            if i <= 3:
-                output.write(" {:>4}" .format(dat))
-            else:
-                output.write(" {:>9}" .format(dat))
+            self.length.append(len(dat) + 3)
+            output.write(" {val:>{wid}}" .format(wid=self.length[-1], val=dat))
         output.write("\n")
 
         output.close()
@@ -59,10 +59,12 @@ class Write_labels:
             comment = str("Column {0:3d} = {1:^10s} = Average coordination of cluster atoms at the interface within the cluster only" .format(n, value))
         elif value.startswith('dist_') is True:
             comment = str("Column {0:3d} = {1:^10s} = Average of minimum distances (in Å) between the surface sites and the clusters atoms" .format(n, value))
-        elif value is 'cs_height':
+        elif value is 'cs_dist':
             comment = str("Column {0:3d} = {1:^10s} = Distance (in Å) between the surface and the cluster" .format(n, value))
-        elif value.startswith('Zdist') is True:
+        elif value.startswith('cm_dist') is True:
             comment = str("Column {0:3d} = {1:^10s} = Distance (in Å) between the average surface hight and the cluster's centre of mass" .format(n, value))
+        elif value.startswith('cc_dist') is True:
+            comment = str("Column {0:3d} = {1:^10s} = Mean distance (in Å) between each atom in the cluster and its first neighbours" .format(n, value))
 
         elif value is "GCN":
             comment = str("Column {0:3d} = {1:^10s} = Average generalised coordination number for the atoms in the cluster excluding the coordination with the support" .format(n, value))
@@ -70,6 +72,10 @@ class Write_labels:
             comment = str("Column {0:3d} = {1:^10s} = Cluster interface area (in Angstrom^2) -- check Library" .format(n, value))
         elif value is "c_s_area":
             comment = str("Column {0:3d} = {1:^10s} = Area exposed by the cluster excluding the interface (in Angstrom^2 per atom)" .format(n, value))
+        elif value is "shape":
+            comment = str("Column {0:3d} = {1:^10s} = ratio between the furthers and closest atom at the cluster's surface to the cluster centre of mass" .format(n, value))
+        elif value is "sphericity":
+            comment = str("Column {0:3d} = {1:^10s} = ratio between the cluster's area (expose and interface) compared to the one of an sphere with an average radius" .format(n, value))
 
         elif value is 'Esurf':
             comment = str("Column {0:3d} = {1:^10s} = Exposed surface energy (in J/m^2) of the cluster (not interface) -- check Library" .format(n, value))
@@ -85,12 +91,11 @@ class Write_labels:
         else:
             comment = str("Column {0:3d} = {1:^10s} = label not identified" .format(n, value))
 
-
         return comment
 
 
-
-def write_results(outfile, data):
+def write_results(outfile, labels, data):
+    characters_length = Write_labels(outfile, labels).length
     line = []
     for value in data:
         if type(value) is list:
@@ -101,16 +106,16 @@ def write_results(outfile, data):
             line.append(value)
 
     output = open(outfile, "w+")
-    output.write("  ")
+    output.write(" ")
     for n, dat in enumerate(line):
         if type(dat) is int:
-            output.write(" {:3d} " .format(dat))
+            output.write(" {val:>{wid}d}" .format(wid=characters_length[n], val=dat))
         elif type(dat) is float:
-            output.write(" {:>9.3f}"  .format(dat))
+            output.write(" {val:>{wid}.3f}"  .format(wid=characters_length[n], val=dat))
         elif type(dat) is str:
             output.write(" # {:>s}" .format(dat))
         else:
-            output.write(" {:>9.3f}" .format(dat))
+            output.write(" {val:>{wid}.3f}" .format(wid=characters_length[n], val=dat))
 
     output.write("\n")
     output.close()

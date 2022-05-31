@@ -92,9 +92,9 @@ class Energy_prediction:
 
         self.e_coh, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
         self.e_adh, f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
-        self.e_total = self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh
-        self.e_binding = (self.e_total - e_slab - e_atom)/len(c_coord)
-        self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
+        self.e_total = float(self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh)
+        self.e_binding = float((self.e_total - e_slab - e_atom)/len(c_coord))
+        self.e_cluster_surface = float(surface_energy(system, c_coord, c_surf, c_surf_area))
 
 # forces = array of atomic forces in the 3 directions [[x1, y1, z1], [x2,...],...]
         forces = []
@@ -135,7 +135,7 @@ class Energy_prediction:
 #                cluster_elements.append(system[int(i)].symbol)
 #        e_coh = ecoh_trend(cluster_elements, average_coordination)
 
-        return e_coh, f_coh, e_atom
+        return float(e_coh), f_coh, float(e_atom)
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
@@ -190,6 +190,6 @@ class Energy_prediction:
             elif interface_adh_e[n][0] in secondary_sites:
                 adh_e += interface_adh_e[n][1]/len(secondary_sites)
 
-        return adh_e, adh_f
+        return float(adh_e), adh_f
 
 
