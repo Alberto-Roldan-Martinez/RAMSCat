@@ -31,8 +31,8 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
-dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
-#dyn = MDMin(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
+#dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
+dyn = MDMin(atoms, logfile='Optimisation.txt')#, trajectory='trajectory.traj')
 dyn.run(fmax=fmax, steps=500)
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 

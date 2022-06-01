@@ -56,8 +56,6 @@ class vasp_output:
                     print("Found the final energy")
                     energy = float(line.split()[2])
                     sphericity = float(line.split()[5])
-                else:
-                    print(energy_str, "NOT FOUND in RAMSCat.out")                       # Alberto 01/06/2022 added
 
         return energy, sphericity
 
