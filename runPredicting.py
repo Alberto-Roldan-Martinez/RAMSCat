@@ -44,20 +44,20 @@ natoms = sum(eleNums)
 """ --------------------------- CALCULATION ---------------------------"""
 fmax = 0.5						# interatomic force maximum in the BFGS optimisation
 subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting_MDMin.py",
-			 "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
+            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 # --------------------
 mutType = "move"
 subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting_MDMin.py",
-                         "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
+            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
                                    boxAdd, surface, surfGA)
 # --------------------
 mutType = "rotate"
 subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting.py",
-                         "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
+            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
                                    boxAdd, surface, surfGA)
 
