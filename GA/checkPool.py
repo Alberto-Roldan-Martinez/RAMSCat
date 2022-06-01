@@ -40,7 +40,7 @@ class checkPool:
                 elif "Running" in line:
                     self.energies.append(-1000000)
 					
-    def checkEnergy(self,newEnergy):
+    def checkEnergy(self, newEnergy):
 
         HighestEnergy = max(self.energies)
         self.lowestIndex = self.energies.index(HighestEnergy)

@@ -90,9 +90,10 @@ class Sphericity:
             dist_vector = np.subtract(np.array(system[i].position), c_mass_centre)
             distances.append(np.sqrt(dist_vector.dot(dist_vector)))
         sorted(distances)
-# 2 different measures of sphericity
-        self.shape_ratio = float((distances[-1] - distances[0])/distances[0])
+# level of sphericity
         self.sphericity = float(4 * np.pi * (sum(distances)/len(distances))**2 / c_area)
+# level of clustering
+        self.clustering = float((distances[0] - distances[-1])/distances[0])
 
 
 

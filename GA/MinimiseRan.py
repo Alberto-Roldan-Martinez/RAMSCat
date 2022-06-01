@@ -126,7 +126,7 @@ class minRan:
 			if output.checkError():
 				self.genRan()
 			else:
-				self.finalEnergy = output.getEnergy()
+				self.finalEnergy, self.sphericity = output.getEnergy()
 				self.finalCoords = output.getCoords()
 
 				check = checkClus(self.natoms,self.finalCoords)
@@ -176,7 +176,7 @@ class minRan:
 					AcceptReject = checkPool()
 					Accept = AcceptReject.checkEnergy(float(self.finalEnergy))
 
-					if Accept:
+					if Accept and self.sphericity < 1.: 					# Alberto 01/06/2022 Added sphericity
 						Index = AcceptReject.lowestIndex
 						Index = (Index*self.stride)+1
 
@@ -199,7 +199,7 @@ class minRan:
 		clus = []
 
 		output = DFTout(self.calcNum,self.natoms)
-		self.finalEnergy = output.getEnergy()
+		self.finalEnergy, self.sphericity = output.getEnergy()
 		self.finalCoords = output.getCoords()
 
 		db.lock()

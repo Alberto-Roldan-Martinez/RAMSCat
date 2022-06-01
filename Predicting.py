@@ -42,13 +42,13 @@ values = [Coordination(atoms, cluster_elements, support).cluster_size,  							#
           Coordination(atoms, cluster_elements, support).site_cluster_coordination,  				# site(s)
           Coordination(atoms, cluster_elements, support).interface_cc_average,  					# i_cc
           Coordination(atoms, cluster_elements, support).cluster_ave_coordination,  				# cc
-          float(Generalised_coodination(atoms, cluster_elements, support).gcn_average),  			# GCN
+          Generalised_coodination(atoms, cluster_elements, support).gcn_average,          			# GCN
           Coordination(atoms, cluster_elements, support).support_cluster_min_distance,  			# dist_X
           Cluster_surface_distance(atoms, cluster_elements, support).interface_height,  			# cs_dist
           Cluster_surface_distance(atoms, cluster_elements, support).cluster_cm_surface_distance,  	# cm_dist
           Mean_interatomic_distance(atoms, cluster_elements, support).mean_distance,  				# cc_dist
-          Sphericity(atoms, cluster_elements, support).shape_ratio,  								# shape
           Sphericity(atoms, cluster_elements, support).sphericity,  								# sphericity
+          Sphericity(atoms, cluster_elements, support).clustering,  								# clustering
           Areas(atoms, cluster_elements, support).cluster_interface_area,  							# c_i_area
           Areas(atoms, cluster_elements, support).cluster_surface_area,  							# c_s_area
           Energy_prediction(atoms, cluster_elements, support, support_size).e_cluster_surface,
@@ -61,11 +61,12 @@ values = [Coordination(atoms, cluster_elements, support).cluster_size,  							#
 labels = ["N", "i_c", Coordination(atoms, cluster_elements, support).site_cluster_coordination_label, "i_cc",
           Coordination(atoms, cluster_elements, support).cluster_coord_labels, "GCN",
           Coordination(atoms, cluster_elements, support).support_cluster_min_distance_labels, "cs_dist", "cm_dist",
-          "cc_dist", "shape", "sphericity", "c_i_area", "c_s_area", "Esurf", "Ecoh", "Eadh", "Eb", "Etotal",
-          "  structure_path"]
+          "cc_dist", "sphericity", "clustering", "c_i_area", "c_s_area", "Esurf", "Ecoh", "Eadh", "Eb",
+          "Etotal", "structure_path"]
 
 Write_labels("Predicted.tmp", labels)
 write_results("Predicted.dat", labels, values)
 os.system("cat Predicted.dat >> Predicted.tmp; mv Predicted.tmp Predicted.dat")
-write_out(structurefile, Energy_prediction(atoms, cluster_elements, support, support_size).e_total)
+write_out(structurefile, Energy_prediction(atoms, cluster_elements, support, support_size).e_total,
+          Sphericity(atoms, cluster_elements, support).sphericity)
 

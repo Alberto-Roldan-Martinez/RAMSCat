@@ -143,7 +143,7 @@ class minOff:
 			if output.checkError():
 				self.restart()
 			else:
-				self.finalEnergy = output.getEnergy()
+				self.finalEnergy, self.sphericity = output.getEnergy()
 				self.finalCoords = output.getCoords()
 
 				check = checkClus(self.natoms,self.finalCoords)

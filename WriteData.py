@@ -75,7 +75,9 @@ class Write_labels:
         elif value is "shape":
             comment = str("Column {0:3d} = {1:^10s} = ratio between the furthers and closest atom at the cluster's surface to the cluster centre of mass" .format(n, value))
         elif value is "sphericity":
-            comment = str("Column {0:3d} = {1:^10s} = ratio between the cluster's area (expose and interface) compared to the one of an sphere with an average radius" .format(n, value))
+            comment = str("Column {0:3d} = {1:^10s} = ratio between the cluster's area (expose and interface) and the one of a sphere with the average radius" .format(n, value))
+        elif value is "clustering":
+            comment = str("Column {0:3d} = {1:^10s} = average difference betwenn the mean interatomic distance in the cluster and the distance between the cluster's expose and interface atoms and the centre of mass" .format(n, value))
 
         elif value is 'Esurf':
             comment = str("Column {0:3d} = {1:^10s} = Exposed surface energy (in J/m^2) of the cluster (not interface) -- check Library" .format(n, value))
@@ -119,10 +121,11 @@ def write_results(outfile, labels, data):
     output.close()
 
 
-def write_out(structure_file, energy):
+def write_out(structure_file, energy, sphericity):
     system = read(structure_file)
     output = open("RAMSCat.out", "w+")
-    output.write(" energy  without entropy= {:> 12.6f} energy(sigma->0) = {:> 12.6f}\n" .format(energy, energy))
+    output.write(" energy = {:> 12.6f} sphericity = {:>3.3f}\n"
+                 .format(energy, energy, sphericity))
     output.write(" POSITION\n---------------------------\n")               # to adapt the reading from GA
 
     xyz = system.get_positions()

@@ -54,10 +54,11 @@ class vasp_output:
         with open(str(self.calcNum) + "/RAMSCat.out","r") as outcar:     # <<<<< Alberto 01/10/2021
             for line in outcar:
                 if energy_str in line:
-                    energy = line.split()
-        print ("Found the final energy")
+                    energy = float(line.split()[2])
+                    sphericity = float(line.split()[5])
+#        print ("Found the final energy")                       # Alberto 01/06/2022 commented
 
-        return energy[6]
+        return energy, sphericity
 
     def getCoords(self):
 
