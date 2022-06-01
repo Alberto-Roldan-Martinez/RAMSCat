@@ -49,14 +49,15 @@ class vasp_output:
         convereged OUTCAR file
         '''
 
-        energy_str = "energy  without entropy="
-
+        energy_str = "energy ="
         with open(str(self.calcNum) + "/RAMSCat.out","r") as outcar:     # <<<<< Alberto 01/10/2021
             for line in outcar:
                 if energy_str in line:
+                    print("Found the final energy")
                     energy = float(line.split()[2])
                     sphericity = float(line.split()[5])
-#        print ("Found the final energy")                       # Alberto 01/06/2022 commented
+                else:
+                    print(energy_str, "NOT FOUND in RAMSCat.out")                       # Alberto 01/06/2022 added
 
         return energy, sphericity
 
