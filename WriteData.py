@@ -125,7 +125,7 @@ def write_out(structure_file, energy, sphericity):
     system = read(structure_file)
     output = open("RAMSCat.out", "w+")
     output.write(" energy = {:> 12.6f} sphericity = {:>3.3f}\n"
-                 .format(energy, energy, sphericity))
+                 .format(energy, sphericity))
     output.write(" POSITION\n---------------------------\n")               # to adapt the reading from GA
 
     xyz = system.get_positions()
