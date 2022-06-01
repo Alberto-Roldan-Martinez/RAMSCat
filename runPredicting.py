@@ -37,13 +37,13 @@ mutType = "move"                                        # selected from the pool
 #mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
 mutate = 0.4                                            # mutation ratio
 
-r_ij = sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames) 
+r_ij = 1.2 * sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames)
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
 fmax = 0.5						# interatomic force maximum in the BFGS optimisation
-subString = " ".join(str(i) for i in ["~/Software/OTHER/NeuralNetwork/Predicting_MDMin.py",
+subString = " ".join(str(i) for i in ["~/Software/OTHER/NeuralNetwork/Predicting.py",
 			 "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,

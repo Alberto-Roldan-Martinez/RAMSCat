@@ -42,15 +42,11 @@ class Energies:
 # adhesion = adhesion energy in eV from the DFT calculated data
 # binding = binding energy in eV from the DFT calculated data
 # e_total = total energy in eV of the supported cluster from the DFT data
+# e_cluster_surface = surface energy (SE) in J/m^2 of the cluster atoms expossed to vacuum according to interpolated SE and area / atom in the Library
         self.cohesion = float((e_cluster - e_atoms) / len(cluster))
         self.adhesion = float(e_system - (e_cluster + e_slab))
-#        if sum(coordination.site_cluster_coordination) > 0:
-#            self.normalised_adhesion = self.adhesion / sum(coordination.site_cluster_coordination)
-#        else:
-#            self.normalised_adhesion = self.adhesion
         self.binding = float((e_system - (e_slab + e_atoms))/len(cluster))
         self.e_total = float(e_system)
-# e_cluster_surface = surface energy (SE) in J/m^2 of the cluster atoms expossed to vacuum according to interpolated SE and area / atom in the Library
         self.e_cluster_surface = surface_energy(system, c_coord, c_surf, c_surf_area)
 
 
@@ -90,10 +86,10 @@ class Energy_prediction:
 # e_binding = binding energy in eV
 # e_cluster_surface = predicted surface energy on the cluster atoms exposed to the vacuum.
 
-        self.e_coh, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
-        self.e_adh, f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
-        self.e_total = float(self.e_adh + e_slab + e_atom + len(c_coord) * self.e_coh)
-        self.e_binding = float((self.e_total - e_slab - e_atom)/len(c_coord))
+        self.cohesion, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
+        self.adhesion, f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
+        self.e_total = float(self.adhesion + e_slab + e_atom + len(c_coord) * self.cohesion)
+        self.binding = float((self.e_total - (e_slab + e_atom))/len(c_coord))
         self.e_cluster_surface = float(surface_energy(system, c_coord, c_surf, c_surf_area))
 
 # forces = array of atomic forces in the 3 directions [[x1, y1, z1], [x2,...],...]
@@ -114,8 +110,8 @@ class Energy_prediction:
 
     def e_cohesion(self, system, c_coord, gcn_i):
 #        cluster_elements = []
-        e_coh = 0
-        f_coh = {}
+        e_cohesion = 0
+        f_cohesion = {}
         e_atom = 0
         average_coordination = 0
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
@@ -123,19 +119,17 @@ class Energy_prediction:
             average_distance_vector = np.zeros(3)
             for j in c_coord[i]:
                 average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
-                average_distance_vector += np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
+                average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
+                                                    /len(c_coord[i]))
 #                           element, cc, distance, distance, vector, gcn
             e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
                               average_distance, list(average_distance_vector), gcn_i[int(i)])
-            e_coh += e/len(c_coord)
-            f_coh[str(i)] = f
+            e_cohesion += e/len(c_coord)
+            f_cohesion[str(i)] = f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
-#            if system[int(i)].symbol not in cluster_elements:
-#                cluster_elements.append(system[int(i)].symbol)
-#        e_coh = ecoh_trend(cluster_elements, average_coordination)
 
-        return float(e_coh), f_coh, float(e_atom)
+        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []

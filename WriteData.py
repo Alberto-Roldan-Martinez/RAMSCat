@@ -110,10 +110,8 @@ def write_results(outfile, labels, data):
     for n, dat in enumerate(line):
         if type(dat) is int:
             output.write(" {val:>{wid}d}" .format(wid=characters_length[n], val=dat))
-        elif type(dat) is float:
-            output.write(" {val:>{wid}.3f}"  .format(wid=characters_length[n], val=dat))
         elif type(dat) is str:
-            output.write(" # {:>s}" .format(dat))
+            output.write(" # {:<s}" .format(dat))
         else:
             output.write(" {val:>{wid}.3f}" .format(wid=characters_length[n], val=dat))
 
