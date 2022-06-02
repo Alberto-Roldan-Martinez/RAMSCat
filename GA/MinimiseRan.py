@@ -208,7 +208,8 @@ class minRan:
 
 			pool.write(str(self.natoms)+"\n")
 			pool.write("Energy = "+str(self.finalEnergy))
-			pool.write(" Dir = "+str(self.calcNum)+"\n")
+			pool.write(" Dir = "+str(self.calcNum))
+			pool.write(" Sphericity = "+str(self.sphericity)+"\n")
 
 			'''
 			Move coordinates from 
