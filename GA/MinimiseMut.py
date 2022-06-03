@@ -371,5 +371,5 @@ class minMut:
 					,self.calcNum
 					,index,self.eleNums
 					,self.eleNames,self.eleMasses
-					,self.finalEnergy,self.finalCoords
+					,self.finalEnergy, self.sphericity, self.finalCoords
 					,self.stride,self.vaspIN.box)

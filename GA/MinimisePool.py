@@ -270,9 +270,10 @@ class minPool:
 		coords = tempCoords
 
 		finalEnergy = 0.
+		sphericity = 0.
 
 		db.updatePool("Restart"
 			,self.strucNum,self.eleNums
 			,self.eleNames,self.eleMasses
-			,finalEnergy,coords
+			,finalEnergy, sphericity, coords
 			,self.stride,self.vaspIN.box)

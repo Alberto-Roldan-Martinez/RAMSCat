@@ -183,7 +183,7 @@ class minRan:
 						db.updatePool("Finish"
 									,Index,self.eleNums
 									,self.eleNames,self.eleMasses
-									,self.finalEnergy,self.finalCoords
+									,self.finalEnergy, self.sphericity, self.finalCoords
 									,self.stride,self.vaspIN.box)
 		else:
 			self.addToPool()
