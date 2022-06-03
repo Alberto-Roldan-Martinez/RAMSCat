@@ -65,6 +65,10 @@ class Write_labels:
             comment = str("Column {0:3d} = {1:^10s} = Distance (in Å) between the average surface hight and the cluster's centre of mass" .format(n, value))
         elif value.startswith('cc_dist') is True:
             comment = str("Column {0:3d} = {1:^10s} = Mean distance (in Å) between each atom in the cluster and its first neighbours" .format(n, value))
+        elif value.startswith('L_c_cm') is True:
+            comment = str("Column {0:3d} = {1:^10s} = The longest distance (in Å) between a surface atom and the cluster's centre of mass" .format(n, value))
+        elif value.startswith('S_c_cm') is True:
+            comment = str("Column {0:3d} = {1:^10s} = The shortest distance (in Å) between a surface atom and the cluster's centre of mass" .format(n, value))
 
         elif value is "GCN":
             comment = str("Column {0:3d} = {1:^10s} = Average generalised coordination number for the atoms in the cluster excluding the coordination with the support" .format(n, value))

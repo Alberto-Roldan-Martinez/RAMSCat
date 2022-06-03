@@ -44,7 +44,7 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 			ax_position = ax2.get_position()
 			ax2.set_position([ax_position.x0+(len(y_labels)-1)*0.005, ax_position.y0,
 						  ax_position.x1-(len(y_labels)-1)*0.115, ax_position.y1*0.9])
-			ax2.spines['right'].set_position(('axes', 1 + (i-1)*0.12))
+			ax2.spines['right'].set_position(('axes', 1 + (i-1)*0.12)) 				# Modify the arbitrary value chage the distance between right axes
 			ax2.set_ylabel(y_labels[i], color=icolour[i], fontsize=16)
 			ax2.tick_params(axis='y', labelcolor=icolour[i], rotation=0, labelsize=14)
 			ax2.set_ylim(y_limits[i])
@@ -55,7 +55,7 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 # add labels
 #            for j in range(len(x)):
 #        		ax2.text(x[i], y[i][j]+0.02, str(labels[i]), color="black", fontsize=14)
-	legend = ax1.legend(leg_lines, leg_labels, loc='best')
+	legend = ax1.legend(leg_lines, leg_labels, loc='best', fontsize=14)
 #	fig.tight_layout()
 	plt.ion()
 	plt.show()
@@ -166,19 +166,21 @@ def SaveFig():
 ifile = open(sys.argv[1]).readlines()
 data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
 labels = [data[i][0] for i in range(len(data))]
-x = [int(data[i][0]) for i in range(len(data))]												# first column
-y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0])-2)]				# rest of columns
+x = [data[i][0] for i in range(len(data))]												# first column
+y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]				# rest of columns
 
 y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
 			[min(y[1])*0.9, max(y[1])*1.1],
 			[min(y[2])*0.9, max(y[2])*1.2],
-#			[min(y[3])*0.99, max(y[3])*1.01]
+			[min(y[3])*0.99, max(y[3])*1.01]
 			]
+#print(labels, x, y)
+#exit()
 
-#Display_MultiAxis(labels, 'Systems', x, ["$E^{min}$ $(eV)$", "N", "Cycles", "CPU (%)"], y, y_limits)
+Display_MultiAxis(labels, 'Systems', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $x10^{3}$", "CPU (%)"], y, y_limits)
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
 #Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
 #Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
 
-EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[16], [-0.05, 1])
+#EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[16], [-0.05, 1])

@@ -1,55 +1,90 @@
-
 import numpy as np
-from Library import sites
 from Coordination import Coordination, Generalised_coodination
-from Library import areas
-
+from Library import sites, areas
 
 """
         Provides the distance from the cluster's centre of mass to the average top surface
 """
-class Cluster_surface_distance:
+
+
+class Properties:
     def __init__(self, system, cluster_elements, support):
+        coordination = Coordination(system, cluster_elements, support).coordination_complete
+        gcn = Generalised_coodination(system, cluster_elements, support).generalised
+
+        interface_height, cluster_cm_surface_distance, cluster_mass_centre, support_cluster_min_distance = \
+            self.cluster_surface_distance(system, cluster_elements, support, coordination[8])                               # interface_cluster_index
+        mean_distance = self.mean_interatomic_distance(system, cluster_elements, support, coordination[5])                  # cluster_coordinating
+        cluster_interface_area, cluster_surface_area = self.areas(system, coordination[8], coordination[5], gcn[2])         # interface_cluster_index, cluster_coordinating, GCN.cluster_surface_index
+        clustering, sphericity, longest_c_cm_distance, shortest_c_cm_distance = self.sphericity(system,
+                                                                cluster_elements, support, cluster_mass_centre, gcn[2],     # GCN.cluster_surface_index
+                                                                float(cluster_interface_area + cluster_surface_area))
+
+        self.properties = list([interface_height,               # 0 "cs_dist" = Distance (in Å) between the surface and the cluster
+                                cluster_cm_surface_distance,    # 1 "cm_dist" = Distance (in Å) between the average surface hight and the cluster's centre of mass
+                                longest_c_cm_distance,          # 2 "L_c_cm" = The longest distance (in Å) between a surface atom and the cluster's centre of mass
+                                shortest_c_cm_distance,         # 3 "S_c_cm" = The shorters distance (in Å) between a surface atom and the cluster's centre of mass
+                                support_cluster_min_distance,   # 4 "dist_X" = Average of minimum distances (in Å) between the surface sites (X) and the interface clusters atom
+                                mean_distance,                  # 5 "cc_dist" = mean interatomic distance calculated over the first neighbour for each of the atoms in the cluster
+                                clustering,                     # 6 "clustering" = average difference betwenn the mean interatomic distance in the cluster and the distance between the cluster's expose and interface atoms and the centre of mass
+                                sphericity,                     # 7 "sphericity" = ratio between the cluster's area (expose and interface) and the one of a sphere with the average radius
+                                cluster_interface_area,         # 8 area coordinating the support according to interpolated area/atom in the Library
+                                cluster_surface_area            # 9 area exposed to the vacuum according to interpolated area/atom in the Library
+                                ])
+        self.properties_labels = list(["cs_dist", "cm_dist"] + ["L_c_cm", "S_c_cm"] +
+                                      [("dist_" + site) for site in sites(support)] +
+                                      ["cc_dist", "clustering", "sphericity"] + ["c_i_area", "c_s_area"])
+
+    def cluster_surface_distance(self, system, cluster_elements, support, c_interface):
+        # c_interface = indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
         cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
         support_index = [system[i].index for i in range(len(system)) if system[i].symbol in sites(support)]
-
         support_zmax = max([system[i].position[2] for i in support_index])
-        sites_index = [i.index for i in system if i.symbol in sites(support) and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
-        pos = [sum([(system[i].position[j] * system[i].mass) for i in cluster_index]) for j in range(3)]
-        self.cluster_mass_centre = [float(pos[j]/sum([system[i].mass for i in cluster_index])) for j in range(3)]
-        self.cluster_cm_surface_distance = float(self.cluster_mass_centre[2] - sum([system[i].position[2] for i in sites_index])\
-                                           /len(sites_index))
+        sites_index = [i.index for i in system if i.symbol in sites(support) and i.position[
+            2] >= support_zmax - 1]  # gets the site atoms index in the support
 
-        coordination = Coordination(system, cluster_elements, support)
-        c_interface = coordination.interface_cluster_index
+        interface_height, cluster_cm_surface_distance, cluster_mass_centre = self.mass_centre(system, cluster_index,
+                                                                                              sites_index, c_interface)
+        support_cluster_min_distance = self.interface_distance(system, support, sites_index, c_interface)
+
+        return interface_height, cluster_cm_surface_distance, cluster_mass_centre, support_cluster_min_distance
+
+    def mass_centre(self, system, cluster_index, sites_index, c_interface):
+        pos = [sum([(system[i].position[j] * system[i].mass) for i in cluster_index]) for j in range(3)]
+        cluster_mass_centre = [float(pos[j] / sum([system[i].mass for i in cluster_index])) for j in range(3)]
+        cluster_cm_surface_distance = float(cluster_mass_centre[2] - sum([system[i].position[2] for
+                                                                          i in sites_index]) / len(sites_index))
         if len(c_interface) > 0:
-            c_height_average = sum([system[i].position[2] for i in c_interface])/len(c_interface)
+            c_height_average = sum([system[i].position[2] for i in c_interface]) / len(c_interface)
         else:
             cluster_zmin = min([system[i].position[2] for i in cluster_index])
             c_inter_index = [i for i in cluster_index if system[i].position[2] <= cluster_zmin + 1]
-            c_height_average = sum([system[i].position[2] for i in c_inter_index])/len(c_inter_index)
+            c_height_average = sum([system[i].position[2] for i in c_inter_index]) / len(c_inter_index)
 
-        self.interface_height = float(c_height_average - sum([system[i].position[2] for i in sites_index])/len(sites_index))
+        interface_height = float(
+            c_height_average - sum([system[i].position[2] for i in sites_index]) / len(sites_index))
 
+        return interface_height, cluster_cm_surface_distance, cluster_mass_centre
 
-"""
-        Provides areas of the interface and cluster surface in A^2
-"""
-class Areas:
-    def __init__(self, system, cluster_elements, support):
-# c_interface = indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
-# c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        coordination = Coordination(system, cluster_elements, support)
-        c_interface = coordination.interface_cluster_index
-        c_coord = coordination.cluster_coordinating
-# c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
-        gcn = Generalised_coodination(system, cluster_elements, support)
-        c_surf = gcn.cluster_surface_index
+    def interface_distance(self, system, support, sites_index, c_interface):
+        cs_distance = {}
+        for site in sites(support):
+            cs_distance[site] = 0
+            distances = []
+            dist_array = []
+            for n in c_interface:
+                for j in sites_index:
+                    dist_array.append(system.get_distance(n, j, mic=True, vector=False))
+                distances.append(min(dist_array))
+            cs_distance[site] = float(sum(distances) / len(distances))
+        return cs_distance
 
-# cluster_interface_area = area coordinating the support according to interpolated area/atom in the Library
-# cluster_surface_area = area exposed to the vacuum according to interpolated area/atom in the Library
-        self.cluster_interface_area = self.interface(system, c_coord, c_interface)
-        self.cluster_surface_area = self.surface(system, c_coord, c_surf)
+    # Provides areas of the interface and cluster surface in A^2
+    def areas(self, system, c_interface, c_coord, c_surf):
+        # c_interface = indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
+        # c_coord = dictionary with the indexes of coordinating atoms within the cluster
+        # c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
+        return self.interface(system, c_coord, c_interface), self.surface(system, c_coord, c_surf)
 
     def interface(self, system, c_coord, c_interface):
         return float(sum([areas(system[i].symbol, len(c_coord[str(i)])) for i in c_interface]))
@@ -57,43 +92,28 @@ class Areas:
     def surface(self, system, c_coord, c_surf):
         return float(sum([areas(system[i].symbol, len(c_coord[str(i)])) for i in c_surf]))
 
-
-"""
-        Provides mean interatomic distance between first neigbours in Angstroms
-"""
-class Mean_interatomic_distance:
-    def __init__(self, system, cluster_elements, support):
-# c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        c_coord = Coordination(system, cluster_elements, support).cluster_coordinating
+    # Provides mean interatomic distance between first neigbours in Angstroms
+    def mean_interatomic_distance(self, system, cluster_elements, support, c_coord):
+        # c_coord = dictionary with the indexes of coordinating atoms within the cluster
         mean_distance = 0
         for i in c_coord:
             for j in c_coord[str(i)]:
-                mean_distance += system.get_distance(int(i), int(j), mic=True, vector=False)/len(c_coord[str(i)])
-# mean interatomic distance calculated over the first neighbour for each of the atoms in the cluster
-        self.mean_distance = float(mean_distance/len(c_coord))
+                mean_distance += system.get_distance(int(i), int(j), mic=True, vector=False) / len(c_coord[str(i)])
+        mean_distance = float(mean_distance / len(c_coord))
+        return mean_distance
 
-
-"""
-        Provides a measure of how spherical the cluster is by comparing its expose area to the one of a perfect sphere
-"""
-class Sphericity:
-    def __init__(self, system, cluster_elements, support):
-# c_mass_centre = the centre of mass from the cluster atoms considering their mass.
-        c_mass_centre = np.array(Cluster_surface_distance(system, cluster_elements, support).cluster_mass_centre)
-# c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
-        c_surf = Generalised_coodination(system, cluster_elements, support).cluster_surface_index
-# c_area = sum of expose and interface cluster areas
-        c_area = Areas(system, cluster_elements, support).cluster_interface_area +\
-                 Areas(system, cluster_elements, support).cluster_surface_area
+    # Provides a measure of how spherical the cluster is by comparing its expose area to the one of a perfect sphere
+    def sphericity(self, system, cluster_elements, support, c_mass_centre, c_surf, c_area):
+        # c_mass_centre = the centre of mass from the cluster atoms considering their mass.
+        # c_surf = indexes of cluster atoms with coordination within the cluster lower than its bulk
+        # c_area = sum of expose and interface cluster areas
         distances = []
         for i in c_surf:
             dist_vector = np.subtract(np.array(system[i].position), c_mass_centre)
             distances.append(np.sqrt(dist_vector.dot(dist_vector)))
         sorted(distances)
-# level of sphericity
-        self.sphericity = float(4 * np.pi * (sum(distances)/len(distances))**2 / c_area)
-# level of clustering
-        self.clustering = float((distances[0] - distances[-1])/distances[0])
-
-
-
+        # level of sphericity
+        sphericity = float(4 * np.pi * (sum(distances) / len(distances)) ** 2 / c_area)
+        # level of clustering
+        clustering = float((distances[0] - distances[-1]) / distances[0])
+        return clustering, sphericity, distances[0], distances[-1]

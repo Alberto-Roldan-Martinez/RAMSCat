@@ -13,7 +13,7 @@ from ase.optimize import BFGS, MDMin
 from RAMSCat import RAMSCat
 from Coordination import Coordination, Generalised_coodination
 from Energies import Energy_prediction
-from Properties import Areas, Cluster_surface_distance, Mean_interatomic_distance, Sphericity
+from Properties import Properties
 from WriteData import Write_labels, write_results, write_out
 
 #####################################################################################################
@@ -37,35 +37,18 @@ dyn.run(fmax=fmax, steps=500)
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
 ''' ---------------- Get and Print Results ---------------------'''
-values = [Coordination(atoms, cluster_elements, support).cluster_size,  							# N
-          Coordination(atoms, cluster_elements, support).interface_cluster,  						# i_c
-          Coordination(atoms, cluster_elements, support).site_cluster_coordination,  				# site(s)
-          Coordination(atoms, cluster_elements, support).interface_cc_average,  					# i_cc
-          Coordination(atoms, cluster_elements, support).cluster_ave_coordination,  				# cc
-          Generalised_coodination(atoms, cluster_elements, support).gcn_average,          			# GCN
-          Coordination(atoms, cluster_elements, support).support_cluster_min_distance,  			# dist_X
-          Cluster_surface_distance(atoms, cluster_elements, support).interface_height,  			# cs_dist
-          Cluster_surface_distance(atoms, cluster_elements, support).cluster_cm_surface_distance,  	# cm_dist
-          Mean_interatomic_distance(atoms, cluster_elements, support).mean_distance,  				# cc_dist
-          Sphericity(atoms, cluster_elements, support).sphericity,  								# sphericity
-          Sphericity(atoms, cluster_elements, support).clustering,  								# clustering
-          Areas(atoms, cluster_elements, support).cluster_interface_area,  							# c_i_area
-          Areas(atoms, cluster_elements, support).cluster_surface_area,  							# c_s_area
-          Energy_prediction(atoms, cluster_elements, support, support_size).e_cluster_surface,
-          Energy_prediction(atoms, cluster_elements, support, support_size).cohesion,
-          Energy_prediction(atoms, cluster_elements, support, support_size).adhesion,
-          Energy_prediction(atoms, cluster_elements, support, support_size).binding,
-          Energy_prediction(atoms, cluster_elements, support, support_size).e_total,
-          name]
+properties = Properties(atoms, cluster_elements, support).properties
+energies = Energy_prediction(atoms, cluster_elements, support, support_size).energies
 
-labels = ["N", "i_c", Coordination(atoms, cluster_elements, support).site_cluster_coordination_label, "i_cc",
-          Coordination(atoms, cluster_elements, support).cluster_coord_labels, "GCN",
-          Coordination(atoms, cluster_elements, support).support_cluster_min_distance_labels, "cs_dist", "cm_dist",
-          "cc_dist", "sphericity", "clustering", "c_i_area", "c_s_area", "Esurf", "Ecoh", "Eadh", "Eb",
-          "Etotal", "structure_path"]
+values = list(Coordination(atoms, cluster_elements, support).coordination +
+              [Generalised_coodination(atoms, cluster_elements, support).generalised[0]] +          # MUST be in an array
+              properties + energies)
+labels = list(Coordination(atoms, cluster_elements, support).coordination_labels +
+              Generalised_coodination(atoms, cluster_elements, support).gcn_labels +
+              Properties(atoms, cluster_elements, support).properties_labels +
+              Energy_prediction(atoms, cluster_elements, support, support_size).energies_labels)
 
 Write_labels("Predicted.tmp", labels)
 write_results("Predicted.dat", labels, values)
 os.system("cat Predicted.dat >> Predicted.tmp; mv Predicted.tmp Predicted.dat")
-write_out(structurefile, Energy_prediction(atoms, cluster_elements, support, support_size).e_total,
-          Sphericity(atoms, cluster_elements, support).sphericity)
+write_out(structurefile, energies[-1], properties[7])

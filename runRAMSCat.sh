@@ -41,10 +41,10 @@
 	mkdir Structures; mv 1* 2* 3* 4* 5* 6* 7* 8* 9* Structures;
 	for i in $(grep Energy RAMSCat_Summary.txt | awk '{print $6}'); do cp -rf Structures/$i .; done;
 	tar -zcf Structures.tar Structures; rm -rf Structures
-        mv ${WDPATH}/* ${MYPATH}/
+  mv ${WDPATH}/* ${MYPATH}/
 	cd ${MYPATH}/
 	echo "seff $SLURM_JOBID | grep \"Efficiency\" >> RAMSCat_Summary.txt" >> efficiency.sh ; chmod +x efficiency.sh
-        rm -rf ${WDPATH}
+  rm -rf ${WDPATH}
 
 # To remove all the NUMERIC folders
 #	re='^[0-9]+$'; for i in $(ls); do if [[ $i =~ $re ]] ; then rm -rf $i; fi; done

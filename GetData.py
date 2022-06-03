@@ -8,7 +8,7 @@ import os
 from ase.io import read
 from Coordination import Coordination, Generalised_coodination
 from Energies import Energies
-from Properties import Areas, Cluster_surface_distance, Mean_interatomic_distance, Sphericity
+from Properties import Properties
 from WriteData import Write_labels, write_results
 
 """ --------------------------- CLUSTER MODEL ---------------------------"""
@@ -27,32 +27,14 @@ cluster = read(isolated_cluster)
 path = os.getcwd()
 name = path.split("/")[-4] + "/" + path.split("/")[-3] + "/" + path.split("/")[-2] + "/" + path.split("/")[-1]
 
-values = [Coordination(atoms, cluster_elements, support).cluster_size,  							# N
-          Coordination(atoms, cluster_elements, support).interface_cluster,  						# i_c
-          Coordination(atoms, cluster_elements, support).site_cluster_coordination,  				# site(s)
-          Coordination(atoms, cluster_elements, support).interface_cc_average,  					# i_cc
-          Coordination(atoms, cluster_elements, support).cluster_ave_coordination,  				# cc
-          Generalised_coodination(atoms, cluster_elements, support).gcn_average,          			# GCN
-          Coordination(atoms, cluster_elements, support).support_cluster_min_distance,  			# dist_X
-          Cluster_surface_distance(atoms, cluster_elements, support).interface_height,  			# cs_dist
-          Cluster_surface_distance(atoms, cluster_elements, support).cluster_cm_surface_distance,  	# cm_dist
-          Mean_interatomic_distance(atoms, cluster_elements, support).mean_distance,  				# cc_dist
-          Sphericity(atoms, cluster_elements, support).sphericity,  								# sphericity
-          Sphericity(atoms, cluster_elements, support).clustering,  								# clustering
-          Areas(atoms, cluster_elements, support).cluster_interface_area,  							# c_i_area
-          Areas(atoms, cluster_elements, support).cluster_surface_area,  							# c_s_area
-          Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).e_cluster_surface,
-          Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).cohesion,
-          Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).adhesion,
-          Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).binding,
-          Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).e_total,
-          name]
-
-labels = ["N", "i_c", Coordination(atoms, cluster_elements, support).site_cluster_coordination_label, "i_cc",
-          Coordination(atoms, cluster_elements, support).cluster_coord_labels, "GCN",
-          Coordination(atoms, cluster_elements, support).support_cluster_min_distance_labels, "cs_dist", "cm_dist",
-          "cc_dist", "sphericity", "clustering", "c_i_area", "c_s_area", "Esurf", "Ecoh", "Eadh", "Eb",
-          "Etotal", "structure_path"]
+values = list(Coordination(atoms, cluster_elements, support).coordination +
+              [Generalised_coodination(atoms, cluster_elements, support).generalised[0]] +          # MUST be in an array
+              Properties(atoms, cluster_elements, support).properties +
+              Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).energies)
+labels = list(Coordination(atoms, cluster_elements, support).coordination_labels +
+              Generalised_coodination(atoms, cluster_elements, support).gcn_labels +
+              Properties(atoms, cluster_elements, support).properties_labels +
+              Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).energies_labels)
 
 Write_labels("labels.txt", labels)
 write_results("data.dat", labels, values)
