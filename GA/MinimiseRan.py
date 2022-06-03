@@ -176,7 +176,7 @@ class minRan:
 					AcceptReject = checkPool()
 					Accept = AcceptReject.checkEnergy(float(self.finalEnergy))
 
-					if Accept and self.sphericity < 2.: 					# Alberto 01/06/2022 Added sphericity
+					if Accept and self.sphericity < 1.5: 					# Alberto 01/06/2022 Added sphericity
 						Index = AcceptReject.lowestIndex
 						Index = (Index*self.stride)+1
 

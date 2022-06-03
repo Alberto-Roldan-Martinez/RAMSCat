@@ -35,7 +35,7 @@ def updatePool(upType
 			,calcNum
 			,index,eleNums
 			,eleNames,eleMasses
-			,finalEn,finalCoords
+			,finalEn, sphericity, finalCoords
 			,stride,box):
 
 	'''
@@ -56,7 +56,7 @@ def updatePool(upType
 	poolList[index+1:index+stride-1]=coordsEle
 
 	if "Finish" in upType:
-		poolList[index]="Energy = "+str(finalEn)+" Dir = "+str(calcNum)+"\n"
+		poolList[index]="Energy = "+str(finalEn)+" Dir = "+str(calcNum)+" Sphericity = " + str(sphericity) + "\n"
 	elif "Restart" in upType:
 		poolList[index]="Restart\n"
 

@@ -216,7 +216,7 @@ class minPool:
 		db.updatePool("Finish"
 			,self.strucNum,self.eleNums,
 			self.eleNames,self.eleMasses
-			,self.finalEnergy,self.finalCoords
+			,self.finalEnergy,self.sphericity, self.finalCoords			# Alberto 03/06/2022
 			,self.stride,self.vaspIN.box)
 
 	def restart(self):
