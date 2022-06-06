@@ -26,26 +26,29 @@ class Coordination:
         else:
             interface_cc_average = 0
 
-        self.coordination = list([cluster_size,             # "N" = Total number of atoms forming the cluster
-                             len(interface_cluster_index),  # "i_c" =  Number of cluster atoms at the interface
-                             site_cluster_coordination,     # "cs_X" = Dictionary with the number of coordinating cluster atoms with the support sites (X)
-                             interface_cc_average,          # "i_cc" = average interface atoms coordination within the cluster
-                             cluster_ave_coordination       # "cc" = Average atomic coordination within the cluster
-                             ])
-        self.coordination_labels = list(["N", "i_c", [("cs_" + site) for site in sites(support)], "i_cc", "cc"])
+        values = [cluster_size,                     # "N" = Total number of atoms forming the cluster
+                  len(interface_cluster_index),     # "i_c" =  Number of cluster atoms at the interface
+                  interface_cc_average,             # "icc" = average interface atoms coordination within the cluster
+                  cluster_ave_coordination          # "cc" = Average atomic coordination within the cluster
+                 ]
+        keys = ["N", "i_c", "icc", "cc"]
+        for i in site_cluster_coordination:         # "cs_X" = Dictionary with the number of coordinating cluster atoms with the support sites (X)
+            keys.append("Ncs_" + i)
+            values.append(site_cluster_coordination[i])
 
-        self.coordination_complete = list([cluster_size,                    # 0 "N" = Total number of atoms forming the cluster
-                                            len(interface_cluster_index),   # 1 "i_c" =  Number of cluster atoms at the interface
-                                            site_cluster_coordination,      # 2 "cs_X" = Dictionary with the number of coordinating cluster atoms with the support sites (X)
-                                            interface_cc_average,           # 3 "i_cc" = average interface atoms coordination within the cluster
-                                            cluster_ave_coordination,       # 4 "cc" = Average atomic coordination within the cluster
-                                            cluster_coordinating,           # 5 dictionary with the indexes of coordinating atoms within the cluster
-                                            support_coordinating,           # 6 dictionary with the indexes of coordinating sites with the cluster interface atoms
-                                            sites_index_all,                # 7 dictionary with the indexes of surface sites per kind of site
-                                            interface_cluster_index,        # 8 indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
-                                            interface_support_index,        # 9 indexes of the support coordinating with the cluster at 1.5 * optimised distance
-                                            cluster_support_distances       # 10 dictionary of interface cluster atoms with the minimum distances to site X and Y.
-                                        ])
+        values.append([cluster_coordinating,        # 0 dictionary with the indexes of coordinating atoms within the cluster
+                        support_coordinating,       # 1 dictionary with the indexes of coordinating sites with the cluster interface atoms
+                        sites_index_all,            # 2 dictionary with the indexes of surface sites per kind of site
+                        interface_cluster_index,    # 3 indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
+                        interface_support_index,    # 4 indexes of the support coordinating with the cluster at 1.5 * optimised distance
+                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.]
+                    ])
+        keys.append("Others")
+
+        self.coordination = {}
+        for i in range(len(keys)):
+            self.coordination[keys[i]] = values[i]
+
 
     def cluster_coordination(self, system, cluster_elements):
         average_coordination = 0
@@ -69,16 +72,14 @@ class Coordination:
         site_cluster_coordination = {}
         s_sites = {}
         coordinating = {}
-#        cs_distance = {}
         cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
         cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
         interface_c_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
         cluster_support_distances = {}
         for site in sites(support):
-#            cs_distance[site] = 0
             distances = []
             dist_array = []
-            site_cluster_coordination[site] = 0
+#            site_cluster_coordination[site] = 0
             support_zmax = max([i.position[2] for i in system if i.symbol == site])
             sites_index = [i.index for i in system if i.symbol == site and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
             s_sites.update({site: sites_index})
@@ -112,7 +113,7 @@ class Coordination:
                     cluster_support_distances[n] = [min(distances)]
                 else:
                     cluster_support_distances[n].append(min(distances))
-            site_cluster_coordination[site] = int(len(coordinating))
+            site_cluster_coordination[site] = int(len(coordinating[n]))
 
         return coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances
@@ -123,23 +124,25 @@ class Coordination:
         original reference: doi/10.1002/anie.201402958
 """
 class Generalised_coodination:
-    def __init__(self, system, cluster_elements, support):
-        # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        c_coord = Coordination(system, cluster_elements, support).coordination_complete[5]   # cluster_coordinating
-
+    def __init__(self, system, cluster_elements, c_coord):
+        # c_coord = cluster_coordinating = dictionary with the indexes of coordinating atoms within the cluster
         gcn_average, gcn, cluster_surface_index = self.cluster_gcn(system, cluster_elements, c_coord)
 
-        self.generalised = list([gcn_average,                  # 0 "GCN" = average generalised coordination number among the atoms in the cluster
-                                gcn,                           # 1 dictionary with the generalised coordination number for each atom in the cluster
-                                cluster_surface_index          # 2 indexes of cluster atoms with coordination within the cluster lower than its bulk
-                                ])
-        self.gcn_labels = list(["GCN"])
+        values = [gcn_average,                  # "GCN" = average generalised coordination number among the atoms in the cluster
+                  [gcn,                         # 0 dictionary with the generalised coordination number for each atom in the cluster
+                  cluster_surface_index]        # 1 indexes of cluster atoms with coordination within the cluster lower than its bulk
+                 ]
+        keys = ["GCN", "Others"]
+
+        self.generalised = {}
+        for i in range(len(keys)):
+            self.generalised[keys[i]] = values[i]
 
     def cluster_gcn(self, system, cluster_elements, c_coord):
         cluster_index = [system[i].index for i in range(len(system)) if system[i].symbol in cluster_elements]
         gcn_average = 0
         gcn = {}
-        cluster_bulk_index = []
+#        cluster_bulk_index = []
         cluster_surface_index = []
         for n in cluster_index:
             i_gcn = 0
@@ -150,8 +153,8 @@ class Generalised_coodination:
                 gcn[n] = i_gcn
             if len(c_coord[str(n)]) < bulk_coordination and n not in cluster_surface_index:  # exposed atoms at the surface
                 cluster_surface_index.append(n)
-            if len(c_coord[str(n)]) == bulk_coordination and n not in cluster_bulk_index:
-                cluster_bulk_index.append(n)
+#            if len(c_coord[str(n)]) == bulk_coordination and n not in cluster_bulk_index:
+#                cluster_bulk_index.append(n)
         if len([gcn[i] for i in gcn]) > 0:
             gcn_average = float(sum([gcn[i] for i in gcn])/len(gcn))
 

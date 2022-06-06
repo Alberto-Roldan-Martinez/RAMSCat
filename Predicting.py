@@ -37,18 +37,23 @@ dyn.run(fmax=fmax, steps=500)
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
 ''' ---------------- Get and Print Results ---------------------'''
-properties = Properties(atoms, cluster_elements, support).properties
-energies = Energy_prediction(atoms, cluster_elements, support, support_size).energies
+coordination = Coordination(atoms, cluster_elements, support).coordination
+generalised = Generalised_coodination(atoms, cluster_elements, coordination["Others"][0]).generalised
+properties = Properties(atoms, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
+                        generalised["Others"][1]).properties
+energies = Energy_prediction(atoms, support, support_size, coordination["Others"][0], coordination["Others"][5],
+                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
+                             properties["c_s_area"]).energies
 
-values = list(Coordination(atoms, cluster_elements, support).coordination +
-              [Generalised_coodination(atoms, cluster_elements, support).generalised[0]] +          # MUST be in an array
-              properties + energies)
-labels = list(Coordination(atoms, cluster_elements, support).coordination_labels +
-              Generalised_coodination(atoms, cluster_elements, support).gcn_labels +
-              Properties(atoms, cluster_elements, support).properties_labels +
-              Energy_prediction(atoms, cluster_elements, support, support_size).energies_labels)
+labels = []
+values = []
+for i in [coordination, generalised, properties, energies]:
+    for j in list(i.keys()):
+       if j != "Others":
+           labels.append(j)
+           values.append(i[j])
 
 Write_labels("Predicted.tmp", labels)
 write_results("Predicted.dat", labels, values)
 os.system("cat Predicted.dat >> Predicted.tmp; mv Predicted.tmp Predicted.dat")
-write_out(structurefile, energies[-1], properties[7])
+write_out(structurefile, energies["Etotal"], properties["sphericity"])

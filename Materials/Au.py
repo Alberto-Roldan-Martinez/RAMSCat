@@ -50,15 +50,6 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
     coh_f = vector_distance * nd.Gradient(generalised_morse_3D)(distance, gcn, *arg)
 
     return coh_e, coh_f
-'''
-- include forces with d(Morse) -->    scipy.misc.derivative(func, x0) x0=[cc, gcn]??
-done    2 variables: scipy.misc.derivative for multiple argument function -->stackoverflow 
-done        forces = [ atom1, atom2, ...]
-        forces of constrained atoms = 0
-- implement geometry optimisation through ASE
-        combine forces from cohesion and adhesion
-- amend Predicting to recheck coordination every X optimisation steps if convergence hasn't been reached. x=5?? 
-'''
 
 
 def surf_areas(coordination):                # Atomic areas trend using a ??? LORENTZIAN: a + b / (4 * ( x - c )**2 - d**2)

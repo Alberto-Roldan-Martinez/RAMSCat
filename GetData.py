@@ -27,14 +27,20 @@ cluster = read(isolated_cluster)
 path = os.getcwd()
 name = path.split("/")[-4] + "/" + path.split("/")[-3] + "/" + path.split("/")[-2] + "/" + path.split("/")[-1]
 
-values = list(Coordination(atoms, cluster_elements, support).coordination +
-              [Generalised_coodination(atoms, cluster_elements, support).generalised[0]] +          # MUST be in an array
-              Properties(atoms, cluster_elements, support).properties +
-              Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).energies)
-labels = list(Coordination(atoms, cluster_elements, support).coordination_labels +
-              Generalised_coodination(atoms, cluster_elements, support).gcn_labels +
-              Properties(atoms, cluster_elements, support).properties_labels +
-              Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size).energies_labels)
+coordination = Coordination(atoms, cluster_elements, support).coordination
+generalised = Generalised_coodination(atoms, cluster_elements, coordination["Others"][0]).generalised
+properties = Properties(atoms, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
+                        generalised["Others"][1]).properties
+energies = Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size, coordination["Others"][0],
+                    generalised["Others"][1], properties["c_s_area"]).energies
+
+labels = []
+values = []
+for i in [coordination, generalised, properties, energies]:
+    for j in list(i.keys()):
+       if j != "Others":
+           labels.append(j)
+           values.append(i[j])
 
 Write_labels("labels.txt", labels)
 write_results("data.dat", labels, values)

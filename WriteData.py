@@ -12,92 +12,46 @@
 
 from ase.io import read
 
+
 class Write_labels:
     def __init__(self, outfile, data):
-        line = []
-        n = 0
-        for value in data:
-            if type(value) is list:
-                for label in value:
-                    line.append(self.label_definition(label.strip(), n))
-                    n += 1
-            else:
-                line.append(self.label_definition(value.strip(), n))
-                n += 1
-
-        heading = []
-        for value in data:
-            if type(value) is list:
-                [heading.append(i) for i in value]
-            else:
-                heading.append(value)
-
-        output = open(outfile, "w+")
+        output = open(outfile, "w")
         output.write("#\n#\n#\n")
-        for dat in line:
-            output.write("#     %s\n" % dat)
+        for n, value in enumerate(data):
+            output.write("#    Column {0:3d} = {1:^10s} = {2:}\n".format(n, value, self.label_definition(value[:3])))
         output.write("#\n#\n#\n#")
         self.length = []
-        for i, dat in enumerate(heading):
-            self.length.append(len(dat) + 3)
-            output.write(" {val:>{wid}}" .format(wid=self.length[-1], val=dat))
+        for i, value in enumerate(data):
+            self.length.append(len(value) + 3)
+            output.write(" {val:>{wid}}".format(wid=self.length[-1], val=value))
         output.write("\n")
-
         output.close()
-                   
-    def label_definition(self, value, n):
 
-        if value is "N":
-            comment = str("Column {0:3d} = {1:^10s} = Total number of atoms forming the cluster" .format(n, value))
-        elif value is 'i_c':
-            comment = str("Column {0:3d} = {1:^10s} = Number of cluster atoms coordinating the surface" .format(n, value))
-        elif value.startswith('cs_') is True:
-            comment = str("Column {0:3d} = {1:^10s} = Number of surface sites coordinating with the cluster" .format(n, value))
-        elif value is "cc":
-            comment = str("Column {0:3d} = {1:^10s} = Average atomic coordination within the cluster" .format(n, value))
-        elif value is "i_cc":
-            comment = str("Column {0:3d} = {1:^10s} = Average coordination of cluster atoms at the interface within the cluster only" .format(n, value))
-        elif value.startswith('dist_') is True:
-            comment = str("Column {0:3d} = {1:^10s} = Average of minimum distances (in Å) between the surface sites and the clusters atoms" .format(n, value))
-        elif value is 'cs_dist':
-            comment = str("Column {0:3d} = {1:^10s} = Distance (in Å) between the surface and the cluster" .format(n, value))
-        elif value.startswith('cm_dist') is True:
-            comment = str("Column {0:3d} = {1:^10s} = Distance (in Å) between the average surface hight and the cluster's centre of mass" .format(n, value))
-        elif value.startswith('cc_dist') is True:
-            comment = str("Column {0:3d} = {1:^10s} = Mean distance (in Å) between each atom in the cluster and its first neighbours" .format(n, value))
-        elif value.startswith('L_c_cm') is True:
-            comment = str("Column {0:3d} = {1:^10s} = The longest distance (in Å) between a surface atom and the cluster's centre of mass" .format(n, value))
-        elif value.startswith('S_c_cm') is True:
-            comment = str("Column {0:3d} = {1:^10s} = The shortest distance (in Å) between a surface atom and the cluster's centre of mass" .format(n, value))
+    def label_definition(self, value):
+        definitions = {
+            "N": "Total number of atoms forming the cluster",
+            "i_c": "Number of surface sites coordinating with the cluster",
+            "cc": "Average atomic coordination within the cluster",
+            "icc": "Average coordination of cluster atoms at the interface within the cluster only",
+            "Ncs":  "Number of coordinating cluster atoms with the support sites (X)",
+            "dis": "Average of minimum distances (in Å) between the surface sites and the clusters atoms",
+            "cs_": "Distance (in Å) between the surface and the cluster",
+            "cm_": "Distance (in Å) between the average surface height and the cluster's centre of mass",
+            "cc_": "Mean distance (in Å) between each atom in the cluster and its first neighbours",
+            "L_r": "The longest distance (in Å) between a surface atom and the cluster's centre of mass",
+            "S_r": "The shortest distance (in Å) between a surface atom and the cluster's centre of mass",
+            "GCN": "Average generalised coordination number for the atoms in the cluster excluding the coordination with the support",
+            "c_i": "Cluster interface area (in Angstrom^2) -- check Library",
+            "c_s": "Area exposed by the cluster excluding the interface (in Angstrom^2 per atom)",
+            "sph": "Ratio between the cluster's area (expose and interface) and the one of a sphere with the average radius",
+            "clu": "Average difference between the mean interatomic distance in the cluster and the distance between the cluster's expose and interface atoms and the centre of mass",
+            "Esu": "Exposed surface energy (in J/m^2) of the cluster (not interface) -- check Library",
+            "Eco": "Cohesion energy per cluster atom (in eV/atom) == (Ecluster -( N * Eatom))/N",
+            "Ead": "Cluster adhesion energy (in eV) == Esystem - (Esurface + Ecluster)",
+            "Eb": "Binding energy per cluster atom (in eV/atom) == (Esystem -(Esurface + N * Eatom))/N",
+            "Eto": "Total energy of the system (in eV)"}
 
-        elif value is "GCN":
-            comment = str("Column {0:3d} = {1:^10s} = Average generalised coordination number for the atoms in the cluster excluding the coordination with the support" .format(n, value))
-        elif value is "c_i_area":
-            comment = str("Column {0:3d} = {1:^10s} = Cluster interface area (in Angstrom^2) -- check Library" .format(n, value))
-        elif value is "c_s_area":
-            comment = str("Column {0:3d} = {1:^10s} = Area exposed by the cluster excluding the interface (in Angstrom^2 per atom)" .format(n, value))
-        elif value is "shape":
-            comment = str("Column {0:3d} = {1:^10s} = ratio between the furthers and closest atom at the cluster's surface to the cluster centre of mass" .format(n, value))
-        elif value is "sphericity":
-            comment = str("Column {0:3d} = {1:^10s} = ratio between the cluster's area (expose and interface) and the one of a sphere with the average radius" .format(n, value))
-        elif value is "clustering":
-            comment = str("Column {0:3d} = {1:^10s} = average difference betwenn the mean interatomic distance in the cluster and the distance between the cluster's expose and interface atoms and the centre of mass" .format(n, value))
-
-        elif value is 'Esurf':
-            comment = str("Column {0:3d} = {1:^10s} = Exposed surface energy (in J/m^2) of the cluster (not interface) -- check Library" .format(n, value))
-        elif value is 'Ecoh':
-            comment = str("Column {0:3d} = {1:^10s} = Cohesion energy per cluster atom (in eV/atom) == (Ecluster -( N * Eatom))/N" .format(n, value))
-        elif value is 'Eadh':
-            comment = str("Column {0:3d} = {1:^10s} = Cluster adhesion energy (in eV) == Esystem - (Esurface + Ecluster)" .format(n, value))
-        elif value is 'Eb':
-            comment = str("Column {0:3d} = {1:^10s} = Binding energy per cluster atom (in eV/atom) == (Esystem -(Esurface + N * Eatom))/N" .format(n, value))
-        elif value is 'Etotal':
-            comment = str("Column {0:3d} = {1:^10s} = Total energy of the system (in eV)" .format(n, value))
-
-        else:
-            comment = str("Column {0:3d} = {1:^10s} = label not identified" .format(n, value))
-
-        return comment
+        return definitions[value]
 
 
 def write_results(outfile, labels, data):
@@ -115,11 +69,11 @@ def write_results(outfile, labels, data):
     output.write(" ")
     for n, dat in enumerate(line):
         if type(dat) is int:
-            output.write(" {val:>{wid}d}" .format(wid=characters_length[n], val=dat))
+            output.write(" {val:>{wid}d}".format(wid=characters_length[n], val=dat))
         elif type(dat) is str:
-            output.write(" # {:<s}" .format(dat))
+            output.write(" # {:<s}".format(dat))
         else:
-            output.write(" {val:>{wid}.3f}" .format(wid=characters_length[n], val=dat))
+            output.write(" {val:>{wid}.3f}".format(wid=characters_length[n], val=dat))
 
     output.write("\n")
     output.close()
@@ -130,14 +84,12 @@ def write_out(structure_file, energy, sphericity):
     output = open("RAMSCat.out", "w+")
     output.write(" energy = {:> 12.6f} sphericity = {:>3.3f}\n"
                  .format(energy, sphericity))
-    output.write(" POSITION\n---------------------------\n")               # to adapt the reading from GA
+    output.write(" POSITION\n---------------------------\n")  # to adapt the reading from GA
 
     xyz = system.get_positions()
     for i in range(len(xyz)):
         x, y, z = xyz[i]
-        output.write(" {:> 5.8f}  {:> 5.8f}  {:> 5.8f}" .format(x, y, z))
+        output.write(" {:> 5.8f}  {:> 5.8f}  {:> 5.8f}".format(x, y, z))
         output.write("\n")
     output.write("---------------------------\n")
     output.close()
-
-
