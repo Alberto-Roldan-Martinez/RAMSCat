@@ -21,8 +21,8 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 
 def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 	fig, ax1 = plt.subplots(figsize=(12, 8), clear=True)       # prepares a figure
-	ax1.set_xlabel(x_label, fontsize=16)
-	ax1.tick_params(axis='x', rotation=0, labelsize=14)
+	ax1.set_xlabel(x_label, fontsize=18)
+	ax1.tick_params(axis='x', rotation=0, labelsize=16)
 #	ax1.set_xlim([0, 13])
 	if len(y_labels) < 1:
 		print("*** No Y axis give ***")
@@ -55,7 +55,7 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 # add labels
 #            for j in range(len(x)):
 #        		ax2.text(x[i], y[i][j]+0.02, str(labels[i]), color="black", fontsize=14)
-	legend = ax1.legend(leg_lines, leg_labels, loc='best', fontsize=14)
+	legend = ax1.legend(leg_lines, leg_labels, loc='upper left', fontsize=14)
 #	fig.tight_layout()
 	plt.ion()
 	plt.show()
@@ -177,7 +177,7 @@ y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negati
 #print(labels, x, y)
 #exit()
 
-Display_MultiAxis(labels, 'Systems', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $x10^{3}$", "CPU (%)"], y, y_limits)
+Display_MultiAxis(labels, 'Pool Size', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
 #Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
