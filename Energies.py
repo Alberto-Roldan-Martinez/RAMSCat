@@ -15,8 +15,6 @@
 """
 
 import numpy as np
-from Coordination import Coordination, Generalised_coodination
-from Properties import Properties
 from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies, supports
 
 

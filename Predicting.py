@@ -29,18 +29,7 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 
 ''' --------------- Structure Optimisation ---------------------'''
 atoms = read(structurefile)
-
-coordination = Coordination(atoms, cluster_elements, support).coordination
-generalised = Generalised_coodination(atoms, cluster_elements, coordination["Others"][0]).generalised
-properties = Properties(atoms, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
-                        generalised["Others"][1]).properties
-energies = Energy_prediction(atoms, support, support_size, coordination["Others"][0], coordination["Others"][5],
-                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
-                             properties["c_s_area"]).energies
-
-atoms.calc = RAMSCat(atoms, support, support_size, coordination["Others"][0], coordination["Others"][5],
-                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
-                             properties["c_s_area"])
+atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
 dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
 #dyn = MDMin(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
@@ -48,6 +37,14 @@ dyn.run(fmax=fmax, steps=500)
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
 ''' ---------------- Get and Print Results ---------------------'''
+atoms = read("CONTCAR.vasp")
+coordination = Coordination(atoms, cluster_elements, support).coordination
+generalised = Generalised_coodination(atoms, cluster_elements, coordination["Others"][0]).generalised
+properties = Properties(atoms, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
+                        generalised["Others"][1]).properties
+energies = Energy_prediction(atoms, support, support_size, coordination["Others"][0], coordination["Others"][5],
+                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
+                             properties["c_s_area"]).energies
 labels = []
 values = []
 for i in [coordination, generalised, properties, energies]:

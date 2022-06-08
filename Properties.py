@@ -1,5 +1,10 @@
+'''
+
+ File collecting properties data
+
+'''
+
 import numpy as np
-from Coordination import Coordination, Generalised_coodination
 from Library import sites, areas
 
 """

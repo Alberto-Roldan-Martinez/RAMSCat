@@ -49,7 +49,6 @@ subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwor
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 # --------------------
-#structure_file = "CONTCAR.vasp"
 #mutType = "move"
 #subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting_MDMin.py",
 #            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy

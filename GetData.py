@@ -33,7 +33,6 @@ properties = Properties(atoms, cluster_elements, support, coordination["Others"]
                         generalised["Others"][1]).properties
 energies = Energies(atoms, e_atoms, cluster_elements, cluster, support, support_size, coordination["Others"][0],
                     generalised["Others"][1], properties["c_s_area"]).energies
-
 labels = []
 values = []
 for i in [coordination, generalised, properties, energies]:
