@@ -22,7 +22,7 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 	fig, ax1 = plt.subplots(figsize=(12, 8), clear=True)       # prepares a figure
 	ax1.set_xlabel(x_label, fontsize=18)
-	ax1.tick_params(axis='x', rotation=0, labelsize=16)
+	ax1.tick_params(axis='x', rotation=15, labelsize=16)
 #	ax1.set_xlim([0, 13])
 	if len(y_labels) < 1:
 		print("*** No Y axis give ***")
