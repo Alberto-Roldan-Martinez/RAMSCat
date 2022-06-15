@@ -55,7 +55,7 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 # add labels
 #            for j in range(len(x)):
 #        		ax2.text(x[i], y[i][j]+0.02, str(labels[i]), color="black", fontsize=14)
-	legend = ax1.legend(leg_lines, leg_labels, loc='upper left', fontsize=14)
+	legend = ax1.legend(leg_lines, leg_labels, loc='best', fontsize=14) #upper left
 #	fig.tight_layout()
 	plt.ion()
 	plt.show()
@@ -169,15 +169,18 @@ labels = [data[i][0] for i in range(len(data))]
 x = [data[i][0] for i in range(len(data))]												# first column
 y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]				# rest of columns
 
+#y_limits = [[min(y[i])-np.abs(min(y[i]))*0.01, max(y[i])+np.abs(max(y[i]))*0.01] for i in range(len(y))]
 y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
 			[min(y[1])*0.9, max(y[1])*1.1],
 			[min(y[2])*0.9, max(y[2])*1.2],
-			[min(y[3])*0.99, max(y[3])*1.01]
-			]
+			[min(y[3])*0.99, max(y[3])*1.01]]
+y_min = min([min(i) for i in y_limits])*1.2
+y_max = max([max(i) for i in y_limits])+0.1
+
 #print(labels, x, y)
 #exit()
 
-Display_MultiAxis(labels, 'Pool Size', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
+Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
 #Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
