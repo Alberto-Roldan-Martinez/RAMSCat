@@ -119,34 +119,41 @@ def Display3D(labels, x, y, z, z_label):
 	plt.clf()
 
 def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
-	inter_colum_d = 0.5
+	inter_colum_d = 0.25
 	fig, ax1 = plt.subplots(figsize=(5 + len(list(set(x))), 8), clear=True)       # prepares a figure
-	ax1.set_xlabel(x_label, fontsize=16)
-	print(len(list(set(x)))*inter_colum_d*3/2)
-	ax1.set_xticks([inter_colum_d*3/2])	#np.arange(len(list(set(x))))
-	ax1.set_xticklabels([2]) #list(set(x)))
-	ax1.tick_params(axis='x', rotation=0, labelsize=14)
 
-	x_min = min(x)
-	n = 0
-	for i in range(len(x)):
-		if x[i] == x_min:
-			if y[i] == min(y):
-				ax1.plot([n + inter_colum_d, n + 1], [y[i] - min(y), y[i] - min(y)], 'b', lw=1.5)
+	xtick_locator = []
+	n_atoms = sorted(list(set([int(i) for i in x])))
+	for n in range(len(n_atoms)):
+		array = [y[i] for i in range(len(x)) if int(x[i]) == n_atoms[n]]
+		for i in range(len(array)):
+			if array[i] == min(array):
+				ax1.plot([n_atoms[n], n_atoms[n]+1 - inter_colum_d], [array[i] - min(array), array[i] - min(array)],
+						 'b', lw=1.5)
 			else:
-				ax1.plot([n + inter_colum_d, n + 1], [y[i] - min(y), y[i] - min(y)], 'k', lw=0.5)
+				ax1.plot([n_atoms[n], n_atoms[n]+1 - inter_colum_d], [array[i] - min(array), array[i] - min(array)],
+						 'k', lw=0.5)
 
-			ax1.text(n + inter_colum_d*3/2, y_limit[1] - 0.05, str(len(x)),
+			ax1.text(n_atoms[n] + (1 - inter_colum_d)/2, y_limit[1] - 0.05, str(len(array)),
 					 color="black", fontsize=14, ha="center", va="center",
 					 bbox=dict(boxstyle="round", ec=(0.5, 0.5, 0.5), fc=(0.8, 0.8, 0.8), ))
-		else:
-			x_min = x[i]
-			n += 1
-			ax1.plot([n + 0.5, n + 1], [y[i] - min(y), y[i] - min(y)], 'k')
+		xtick_locator.append(n_atoms[n] + (1 - inter_colum_d)/2)
 
+	ax1.set_xlabel(x_label, fontsize=16)
 	ax1.set_ylabel(y_label, fontsize=16)
-	ax1.tick_params(axis='y', labelsize=14)
+	ax1.tick_params(axis='both', rotation=0, labelsize=14)
+	ax1.set_xticks(xtick_locator)
+	ax1.set_xticklabels(n_atoms)
 	ax1.set_ylim(y_limit)
+
+	ax2 = ax1.twinx()           # instantiate a second axes that shares the same x-axis
+	ax2.set_ylabel("$e^{ \\left( \\frac{\minus \Delta E}{k_{B} \cdot 298} \\right) }$", fontsize=20, labelpad=-30)
+	ax2.tick_params(axis='y', rotation=0, labelsize=14)
+	ax2.set_ylim(y_limit)
+	ax2.set_yticks(np.arange(0.05, 0.25, 0.05))
+	y_values = [np.exp(-i/(8.617333262e-5*298)) for i in ax2.get_yticks()]
+	ax2.set_yticklabels(["{:.1{c}}".format(i, c="e" if i < 0.1 else "f") for i in y_values])
+
 	fig.tight_layout()
 	plt.ion()
 	plt.show()
@@ -158,7 +165,7 @@ def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
-		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
+		plt.savefig(figure_out_name + ".svg",    # figsize=(12, 10), clear=True,
 					bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 ######################################################################################################
@@ -178,12 +185,11 @@ y_min = min([min(i) for i in y_limits])*1.2
 y_max = max([max(i) for i in y_limits])+0.1
 
 #print(labels, x, y)
-#exit()
 
-Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
+#Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
 #Display_2axis(label, 'GCN', x2, y1, y2)
 
 #Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
 #Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
 
-#EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[16], [-0.05, 1])
+EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[-1], [-0.01, 1])
