@@ -147,11 +147,11 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 	ax1.set_ylim(y_limit)
 
 	ax2 = ax1.twinx()           # instantiate a second axes that shares the same x-axis
-	ax2.set_ylabel("$e^{ \\left( \\frac{\minus \Delta E}{k_{B} \cdot 298} \\right) }$", fontsize=20, labelpad=-30)
+	ax2.set_ylabel("$e^{ \\left( \\frac{\minus \Delta E}{k_{B} \cdot 298} \\right) }$ $(\%)$", fontsize=20, labelpad=-30)
 	ax2.tick_params(axis='y', rotation=0, labelsize=14)
 	ax2.set_ylim(y_limit)
 	ax2.set_yticks(np.arange(0.05, 0.25, 0.05))
-	y_values = [np.exp(-i/(8.617333262e-5*298)) for i in ax2.get_yticks()]
+	y_values = [np.exp(-i/(8.617333262e-5*298))*100 for i in ax2.get_yticks()]
 	ax2.set_yticklabels(["{:.1{c}}".format(i, c="e" if i < 0.1 else "f") for i in y_values])
 
 	fig.tight_layout()
@@ -165,7 +165,7 @@ def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
-		plt.savefig(figure_out_name + ".svg",    # figsize=(12, 10), clear=True,
+		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
 					bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 ######################################################################################################
