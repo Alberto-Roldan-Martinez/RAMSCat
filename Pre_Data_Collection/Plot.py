@@ -179,6 +179,7 @@ def CrossRelation(x, y):
 	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
 			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
+	ax2.plot(x[1], y[1], marker='o', c='k', s=3)
 	ax3 = plt.subplot(1, 2, 2)
 	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
 	ax3.set_ylabel("$Predicted E_{Total}$ $(eV)$", fontsize=16)
@@ -187,6 +188,7 @@ def CrossRelation(x, y):
 	ax3.set_ylim([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9])
 	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
 			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
+	ax3.plot(x[2], y[2], marker='o', c='k', s=3)
 
 	fig.tight_layout()
 	plt.ion()
