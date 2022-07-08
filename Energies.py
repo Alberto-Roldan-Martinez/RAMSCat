@@ -66,7 +66,7 @@ class Energy_prediction:
         e_slab = supports(support, support_size)
 
         # f_coh = predicted force in the direction between the cluster atom in question and the averaged cluster neighbours
-        # e_atom = sum of all the atomic energies in eV in the cluster
+        # e_atom = sum of ALL the atomic energies in eV in the cluster
         # f_adh = predicted force in the direction between the cluster atom in question and the surface neighbours
         e_cluster_surface = float(surface_energy(system, c_coord, c_surf, c_surf_area))
         cohesion, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
@@ -120,7 +120,9 @@ class Energy_prediction:
             f_cohesion[str(i)] = f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
-        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
+# WHY substracting e_atom if it is already e_coh?!
+#        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
+        return float(e_cohesion), f_cohesion, float(e_atom)
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
@@ -173,7 +175,7 @@ class Energy_prediction:
                 adh_e += interface_adh_e[n][1]/len(primary_sites)
             elif interface_adh_e[n][0] in secondary_sites:
                 adh_e += interface_adh_e[n][1]/len(secondary_sites)
-
+# WHY dividing by len(1`) or len(2`)? is it making it eV/atom???????????
         return float(adh_e), adh_f
 
 

@@ -161,34 +161,34 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 
 
 def CrossRelation(x, y):
-	fig = plt.figure(figsize=(12, 8), clear=True)
+	fig = plt.figure(figsize=(12, 12), clear=True)
 	ax1 = plt.subplot(2, 2, 1)
 	ax1.set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
-	ax1.set_ylabel("$Predicted E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax1.set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax1.tick_params(axis='both', labelsize=14)
 	ax1.set_xlim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
 	ax1.set_ylim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
 	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
 			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
-	ax1.plot(x[0], y[0], marker='o', c='k', s=3)
+	ax1.plot(x[0], y[0], marker='o', c='k', ms=3, linestyle="None")
 	ax2 = plt.subplot(2, 2, 3)
 	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
-	ax2.set_ylabel("$Predicted E_{Adh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax2.tick_params(axis='both', labelsize=14)
 	ax2.set_xlim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
 			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
-	ax2.plot(x[1], y[1], marker='o', c='k', s=3)
+	ax2.plot(x[1], y[1], marker='o', c='k', ms=3, linestyle="None")
 	ax3 = plt.subplot(1, 2, 2)
 	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
-	ax3.set_ylabel("$Predicted E_{Total}$ $(eV)$", fontsize=16)
+	ax3.set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
 	ax3.tick_params(axis='both', labelsize=14)
-	ax3.set_xlim([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9])
-	ax3.set_ylim([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9])
+	ax3.set_xlim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
+	ax3.set_ylim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
 	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
 			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
-	ax3.plot(x[2], y[2], marker='o', c='k', s=3)
+	ax3.plot(x[2], y[2], marker='o', c='k', ms=3, linestyle="None")
 
 	fig.tight_layout()
 	plt.ion()
@@ -223,7 +223,7 @@ def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
 	if answer == "y":
 		figure_out_name = str(input("What would it be the figure name (a word & no format)?\n"))
-		plt.savefig(figure_out_name + ".svg", figsize=(12, 10), clear=True,
+		plt.savefig(figure_out_name + ".svg", # figsize=(12, 10), clear=True,
 					bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
 ######################################################################################################
@@ -255,9 +255,13 @@ if len(sys.argv) <= 2:
 else:
 	dft = open(sys.argv[1]).readlines()
 	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
-	x = [data[-4], data[-3], data[-1]]					# E_Coh, E_Adh, E_Total
+	x = [[float(data[i][-4]) for i in range(len(data))],
+		 [float(data[i][-3]) for i in range(len(data))],
+		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
 	ifile = open(sys.argv[2]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
-	y = [data[-4], data[-3], data[-1]]					# E_Coh, E_Adh, E_Total
+	y = [[float(data[i][-4]) for i in range(len(data))],
+		 [float(data[i][-3]) for i in range(len(data))],
+		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
 
 	CrossRelation(x, y)
