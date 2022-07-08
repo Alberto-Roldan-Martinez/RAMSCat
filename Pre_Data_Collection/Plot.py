@@ -160,6 +160,62 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 	SaveFig()
 
 
+def CrossRelation(x, y):
+	fig = plt.figure(figsize=(12, 8), clear=True)
+	ax1 = plt.subplot(2, 2, 1)
+	ax1.set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax1.set_ylabel("$Predicted E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax1.tick_params(axis='both', labelsize=14)
+	ax1.set_xlim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
+	ax1.set_ylim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
+	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
+			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
+	ax1.plot(x[0], y[0], marker='o', c='k', s=3)
+	ax2 = plt.subplot(2, 2, 3)
+	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax2.set_ylabel("$Predicted E_{Adh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax2.tick_params(axis='both', labelsize=14)
+	ax2.set_xlim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
+	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
+	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
+			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
+	ax3 = plt.subplot(1, 2, 2)
+	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
+	ax3.set_ylabel("$Predicted E_{Total}$ $(eV)$", fontsize=16)
+	ax3.tick_params(axis='both', labelsize=14)
+	ax3.set_xlim([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9])
+	ax3.set_ylim([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9])
+	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
+			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
+
+	fig.tight_layout()
+	plt.ion()
+	plt.show()
+	SaveFig()
+
+
+#def Hystogram_3D(labels, x_label, x, y_label, y, y_limit):
+#	figure = plt.figure(figsize=(10, 10), clear=True)		# prepares a figure
+#	ax = figure.add_subplot(111, projection='3d') 			#plt.axes(projection='3d')
+#	ax.scatter3D(x, y, z, s=5, c='k', marker='o') #, label="$R^{2}=$ " + str(round(r2, 2)))
+#	z_lim = [min(z), max(z)]
+#x, y = np.random.rand(2, 100) * 4
+#hist, xedges, yedges = np.histogram2d(x, y, bins=4, range=[[0, 4], [0, 4]])
+#
+## Construct arrays for the anchor positions of the 16 bars.
+#xpos, ypos = np.meshgrid(xedges[:-1] + 0.25, yedges[:-1] + 0.25, indexing="ij")
+#xpos = xpos.ravel()
+#ypos = ypos.ravel()
+#zpos = 0
+#
+## Construct arrays with the dimensions for the 16 bars.
+#dx = dy = 0.5 * np.ones_like(zpos)
+#dz = hist.ravel()
+#
+#ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+
+
+
 
 def SaveFig():
 	answer = str(input("Would you like to save the figure (y/n)?\n"))
@@ -170,26 +226,36 @@ def SaveFig():
 
 ######################################################################################################
 
-ifile = open(sys.argv[1]).readlines()
-data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
-labels = [data[i][0] for i in range(len(data))]
-x = [data[i][0] for i in range(len(data))]												# first column
-y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]				# rest of columns
+if len(sys.argv) <= 2:
+	ifile = open(sys.argv[1]).readlines()
+	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
+	labels = [data[i][0] for i in range(len(data))]
+	x = [data[i][0] for i in range(len(data))]												# first column
+	y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]		# rest of columns
 
-#y_limits = [[min(y[i])-np.abs(min(y[i]))*0.01, max(y[i])+np.abs(max(y[i]))*0.01] for i in range(len(y))]
-y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
-			[min(y[1])*0.9, max(y[1])*1.1],
-			[min(y[2])*0.9, max(y[2])*1.2],
-			[min(y[3])*0.99, max(y[3])*1.01]]
-y_min = min([min(i) for i in y_limits])*1.2
-y_max = max([max(i) for i in y_limits])+0.1
+#	y_limits = [[min(y[i])-np.abs(min(y[i]))*0.01, max(y[i])+np.abs(max(y[i]))*0.01] for i in range(len(y))]
+	y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
+				[min(y[1])*0.9, max(y[1])*1.1],
+				[min(y[2])*0.9, max(y[2])*1.2],
+				[min(y[3])*0.99, max(y[3])*1.01]]
+	y_min = min([min(i) for i in y_limits])*1.2
+	y_max = max([max(i) for i in y_limits])+0.1
 
-#print(labels, x, y)
+#	print(labels, x, y)
 
-#Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
-#Display_2axis(label, 'GCN', x2, y1, y2)
+#	Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
+#	Display_2axis(label, 'GCN', x2, y1, y2)
 
-#Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
-#Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
+#	Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')
+#	Display3D(labels, x, y[0], y[1], '$r_{eq}$ $(\AA)$')
 
-EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[-1], [-0.01, 1])
+#	EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[-1], [-0.01, 1])
+else:
+	dft = open(sys.argv[1]).readlines()
+	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
+	x = [data[-4], data[-3], data[-1]]					# E_Coh, E_Adh, E_Total
+	ifile = open(sys.argv[2]).readlines()
+	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
+	y = [data[-4], data[-3], data[-1]]					# E_Coh, E_Adh, E_Total
+
+	CrossRelation(x, y)
