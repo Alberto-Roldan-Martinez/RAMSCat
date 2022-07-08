@@ -160,7 +160,7 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 	SaveFig()
 
 
-def CrossRelation(x, y):
+def CrossRelation(labels, x, y):
 	fig = plt.figure(figsize=(12, 12), clear=True)
 	ax1 = plt.subplot(2, 2, 1)
 	ax1.set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
@@ -170,16 +170,22 @@ def CrossRelation(x, y):
 	ax1.set_ylim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
 	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
 			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
-	ax1.plot(x[0], y[0], marker='o', c='k', ms=3, linestyle="None")
+	for i in range(len(list(set(labels)))):
+		xx = [x[0][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		yy = [y[0][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		ax1.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None")
 	ax2 = plt.subplot(2, 2, 3)
-	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
-	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV)$", fontsize=16)
+	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV)$", fontsize=16)
 	ax2.tick_params(axis='both', labelsize=14)
 	ax2.set_xlim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
 			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
-	ax2.plot(x[1], y[1], marker='o', c='k', ms=3, linestyle="None")
+	for i in range(len(list(set(labels)))):
+		xx = [x[1][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		yy = [y[1][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		ax2.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None")
 	ax3 = plt.subplot(1, 2, 2)
 	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
 	ax3.set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
@@ -188,8 +194,13 @@ def CrossRelation(x, y):
 	ax3.set_ylim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
 	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
 			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
-	ax3.plot(x[2], y[2], marker='o', c='k', ms=3, linestyle="None")
+	for i in range(len(list(set(labels)))):
+		xx = [x[2][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		yy = [y[2][j] for j in range(len(labels)) if labels[j] == labels[i]]
+		ax3.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None",
+				 label="n= " + str(labels[i]))
 
+	legend = ax3.legend(loc="best")
 	fig.tight_layout()
 	plt.ion()
 	plt.show()
@@ -255,13 +266,17 @@ if len(sys.argv) <= 2:
 else:
 	dft = open(sys.argv[1]).readlines()
 	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
+	x_labels = [int(data[i][0]) for i in range(len(data))]
 	x = [[float(data[i][-4]) for i in range(len(data))],
 		 [float(data[i][-3]) for i in range(len(data))],
 		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
 	ifile = open(sys.argv[2]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
+	y_labels = [int(data[i][0]) for i in range(len(data))]
 	y = [[float(data[i][-4]) for i in range(len(data))],
 		 [float(data[i][-3]) for i in range(len(data))],
 		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-
-	CrossRelation(x, y)
+	if x_labels != y_labels:
+		print("   The atomicity in Measured does not correspond to this in Predicted.")
+		exit()
+	CrossRelation(x_labels, x, y)
