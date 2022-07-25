@@ -9,7 +9,7 @@ import numpy as np
 import numdifftools as nd
 
 
-def e_isolated_atom():                      # energies of isolated atoms in vaccuo (RPBE)
+def e_isolated_atom():                      # energies of isolated atoms in vacuum (RPBE)
     return -0.1921
 
 
@@ -24,7 +24,7 @@ def e_coh_trend(cc, distance, vector_distance, gcn):
         if d1 < d2:
             e_dissociation = (d1/(1 + np.exp(-a4*y + a3))) + d2 		# Sigmoidal curve <<< OK
         else:
-            e_dissociation = (d1/(1 + np.exp(-a4*y + a3))) - d2		# Sigmoidal curve <<< OK
+            e_dissociation = (d1/(1 + np.exp(-a4*y + a3))) - d2		    # Sigmoidal curve <<< OK
         return e_dissociation * (np.exp(-2*a1*(x - r_eq)) - 2 * np.exp(-(a2+w)*(x - r_eq)))
 
     popts = {(0, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.),

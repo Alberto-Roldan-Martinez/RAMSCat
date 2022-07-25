@@ -74,6 +74,8 @@ class Energy_prediction:
         e_total = float(adhesion + e_slab + e_atom + len(c_coord) * cohesion)
         binding = float((e_total - (e_slab + e_atom))/len(c_coord))
 
+        print("coh= ", cohesion, "adh= ",adhesion, e_atom)
+
         values = [e_cluster_surface,    # "Esurf" = surface energy (SE) in J/m^2 of the cluster atoms expossed to vacuum according to interpolated SE and area / atom in the Library
                   cohesion,             # "Ecoh" = cohesion energy per atom in the cluster in eV/atom from the DFT data
                   adhesion,             # "Eadh" = adhesion energy in eV from the DFT calculated data
@@ -109,20 +111,36 @@ class Energy_prediction:
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
             average_distance = 0
             average_distance_vector = np.zeros(3)
+            e_ij = 0
+            force = 0
             for j in c_coord[i]:
+#               atom by atom
+#                ij_distance = float(system.get_distance(int(i), int(j), mic=True))
+#                ij_distance_vector = np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
+##                                   element, cc, distance, distance, vector, gcn
+#                e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), ij_distance, list(ij_distance_vector),
+#                                  gcn_i[int(i)])
+#                e_ij += e/2
+#                force += f/len(c_coord[i])
+#            e_cohesion += e_ij/len(c_coord[i])
+#            f_cohesion[str(i)] = force
+#            print("coord= ", len(c_coord[i]), "E_coh= ", e/2, "eV/atom", "f= ", f)
+#               atom by average between neighbours
                 average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
                 average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
-                                                    /len(c_coord[i]))
+                                                   /len(c_coord[i]))
 #                           element, cc, distance, distance, vector, gcn
             e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
                               average_distance, list(average_distance_vector), gcn_i[int(i)])
-            e_cohesion += e/len(c_coord)
+            e_cohesion += e/(len(c_coord) * 2)       # to avoid double counting the Coh contribution per atom
+#            print("coord= ", len(c_coord[i]), "E_coh= ", a, "eV/atom")
             f_cohesion[str(i)] = f
+
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 # WHY substracting e_atom if it is already e_coh?!
-        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
-#        return float(e_cohesion * 2/3), f_cohesion, float(e_atom)
+#        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
+        return float(e_cohesion), f_cohesion, float(e_atom)
 
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
@@ -177,7 +195,7 @@ class Energy_prediction:
             elif interface_adh_e[n][0] in secondary_sites:
                 adh_e += interface_adh_e[n][1]/len(secondary_sites)
 # WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
-        print(len(primary_sites), len(secondary_sites))
+#        print(len(primary_sites), len(secondary_sites))
         return float(adh_e), adh_f
 
 

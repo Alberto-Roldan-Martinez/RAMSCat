@@ -161,45 +161,52 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 
 
 def CrossRelation(labels, x, y):
-	fig = plt.figure(figsize=(12, 12), clear=True)
+	fig = plt.figure(figsize=(14, 8), clear=True)
 	ax1 = plt.subplot(2, 2, 1)
 	ax1.set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax1.set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax1.tick_params(axis='both', labelsize=14)
+	ax1.axis("scaled")
 	ax1.set_xlim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
 	ax1.set_ylim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
 	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
 			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
-		xx = [x[0][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		yy = [y[0][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		ax1.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None")
+		xx = [x[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		yy = [y[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		ax1.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=4, linestyle="None",
+				 label="n= " + str(list(set(labels))[i]))
 	ax2 = plt.subplot(2, 2, 3)
 	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV)$", fontsize=16)
 	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV)$", fontsize=16)
 	ax2.tick_params(axis='both', labelsize=14)
+	ax2.axis("scaled")
 	ax2.set_xlim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
 	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
 			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
-		xx = [x[1][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		yy = [y[1][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		ax2.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None")
+		xx = [x[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		yy = [y[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		ax2.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=4, linestyle="None",
+				 label="n= " + str(list(set(labels))[i]))
 	ax3 = plt.subplot(1, 2, 2)
 	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
 	ax3.set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
 	ax3.tick_params(axis='both', labelsize=14)
+	ax3.axis("scaled")
 	ax3.set_xlim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
 	ax3.set_ylim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
 	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
 			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
-		xx = [x[2][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		yy = [y[2][j] for j in range(len(labels)) if labels[j] == labels[i]]
-		ax3.plot(xx, yy, marker=imarker[labels[i]], color=icolour[labels[i]], ms=4, linestyle="None",
-				 label="n= " + str(labels[i]))
+		xx = [x[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		yy = [y[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
+		ax3.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=4, linestyle="None",
+				 label="n= " + str(list(set(labels))[i]))
 
+	legend = ax1.legend(loc="best")
+	legend = ax2.legend(loc="best")
 	legend = ax3.legend(loc="best")
 	fig.tight_layout()
 	plt.ion()
