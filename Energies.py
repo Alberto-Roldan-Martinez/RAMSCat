@@ -121,8 +121,9 @@ class Energy_prediction:
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 # WHY substracting e_atom if it is already e_coh?!
-#        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
-        return float(e_cohesion), f_cohesion, float(e_atom)
+        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
+#        return float(e_cohesion * 2/3), f_cohesion, float(e_atom)
+
 
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
@@ -166,8 +167,8 @@ class Energy_prediction:
                 if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
                     primary_sites.remove(i)
                     secondary_sites.append(i)
-        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-                               interface_adh_e[i][0] not in primary_sites])
+#        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+#                               interface_adh_e[i][0] not in primary_sites])
         # Predict Adhesion energy & forces
         adh_e = 0
         for n in range(len(interface_adh_e)):
@@ -175,7 +176,8 @@ class Energy_prediction:
                 adh_e += interface_adh_e[n][1]/len(primary_sites)
             elif interface_adh_e[n][0] in secondary_sites:
                 adh_e += interface_adh_e[n][1]/len(secondary_sites)
-# WHY dividing by len(1`) or len(2`)? is it making it eV/atom???????????
+# WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
+        print(len(primary_sites), len(secondary_sites))
         return float(adh_e), adh_f
 
 
