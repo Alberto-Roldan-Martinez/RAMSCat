@@ -108,38 +108,23 @@ class Energy_prediction:
         f_cohesion = {}
         e_atom = 0
         average_coordination = 0
+        e_array = []
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
             average_distance = 0
             average_distance_vector = np.zeros(3)
-            e_ij = 0
-            force = 0
             for j in c_coord[i]:
-#               atom by atom
-#                ij_distance = float(system.get_distance(int(i), int(j), mic=True))
-#                ij_distance_vector = np.array(system.get_distance(int(i), int(j), mic=True, vector=True))
-##                                   element, cc, distance, distance, vector, gcn
-#                e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), ij_distance, list(ij_distance_vector),
-#                                  gcn_i[int(i)])
-#                e_ij += e/2
-#                force += f/len(c_coord[i])
-#            e_cohesion += e_ij/len(c_coord[i])
-#            f_cohesion[str(i)] = force
-#            print("coord= ", len(c_coord[i]), "E_coh= ", e/2, "eV/atom", "f= ", f)
-#               atom by average between neighbours
+#               atom by average neighbours
                 average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
                 average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
                                                    /len(c_coord[i]))
 #                           element, cc, distance, distance, vector, gcn
             e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
                               average_distance, list(average_distance_vector), gcn_i[int(i)])
-            e_cohesion += e/(len(c_coord) * 2)       # to avoid double counting the Coh contribution per atom
-#            print("coord= ", len(c_coord[i]), "E_coh= ", a, "eV/atom")
+            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
             f_cohesion[str(i)] = f
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
-# WHY substracting e_atom if it is already e_coh?!
-#        return float((e_cohesion - e_atom)/len(c_coord)), f_cohesion, float(e_atom)
         return float(e_cohesion), f_cohesion, float(e_atom)
 
 
