@@ -74,8 +74,6 @@ class Energy_prediction:
         e_total = float(adhesion + e_slab + e_atom + len(c_coord) * cohesion)
         binding = float((e_total - (e_slab + e_atom))/len(c_coord))
 
-        print("coh= ", cohesion, "adh= ",adhesion, e_atom)
-
         values = [e_cluster_surface,    # "Esurf" = surface energy (SE) in J/m^2 of the cluster atoms expossed to vacuum according to interpolated SE and area / atom in the Library
                   cohesion,             # "Ecoh" = cohesion energy per atom in the cluster in eV/atom from the DFT data
                   adhesion,             # "Eadh" = adhesion energy in eV from the DFT calculated data
@@ -172,13 +170,19 @@ class Energy_prediction:
                     secondary_sites.append(i)
 #        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
 #                               interface_adh_e[i][0] not in primary_sites])
-        # Predict Adhesion energy & forces
+        # Predict Adhesion energy
         adh_e = 0
         for n in range(len(interface_adh_e)):
             if interface_adh_e[n][0] in primary_sites:
-                adh_e += interface_adh_e[n][1]/len(primary_sites)
+                if len(primary_sites) == 1:
+                    adh_e += interface_adh_e[n][1]/len(primary_sites)
+                else:
+                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
             elif interface_adh_e[n][0] in secondary_sites:
-                adh_e += interface_adh_e[n][1]/len(secondary_sites)
+                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
+                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
+                else:
+                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
 # WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
 #        print(len(primary_sites), len(secondary_sites))
         return float(adh_e), adh_f

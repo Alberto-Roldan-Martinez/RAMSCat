@@ -9,9 +9,11 @@ import sys
 import numpy as np
 import numpy.ma as ma
 from scipy.optimize import curve_fit
+
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 
 icolour = ["k", "b", "r", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
@@ -167,8 +169,15 @@ def CrossRelation(labels, x, y):
 	ax1.set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax1.tick_params(axis='both', labelsize=14)
 	ax1.axis("scaled")
-	ax1.set_xlim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
-	ax1.set_ylim([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9])
+	axis_max = max([max(x[0]), max(y[0])])*0.9
+	axis_min = min([min(x[0]), min(y[0])])*1.1
+	axis_step = (axis_max - axis_min)/5
+	ax1.set_xlim([axis_min, axis_max])
+	ax1.set_ylim([axis_min, axis_max])
+	ax1.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax1.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+	ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
 			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
@@ -181,8 +190,15 @@ def CrossRelation(labels, x, y):
 	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV)$", fontsize=16)
 	ax2.tick_params(axis='both', labelsize=14)
 	ax2.axis("scaled")
-	ax2.set_xlim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
-	ax2.set_ylim([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9])
+	axis_max = max([max(x[1]), max(y[1])])*0.9
+	axis_min = min([min(x[1]), min(y[1])])*1.1
+	axis_step = (axis_max - axis_min)/5
+	ax2.set_xlim([axis_min, axis_max])
+	ax2.set_ylim([axis_min, axis_max])
+	ax2.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax2.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax2.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+	ax2.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
 			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
@@ -195,8 +211,15 @@ def CrossRelation(labels, x, y):
 	ax3.set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
 	ax3.tick_params(axis='both', labelsize=14)
 	ax3.axis("scaled")
-	ax3.set_xlim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
-	ax3.set_ylim([min([min(x[2]), min(y[2])])-0.1, max([max(x[2]), max(y[2])])+0.1])
+	axis_max = max([max(x[2]), max(y[2])])+0.5
+	axis_min = min([min(x[2]), min(y[2])])-0.5
+	axis_step = (axis_max - axis_min)/7
+	ax3.set_xlim([axis_min, axis_max])
+	ax3.set_ylim([axis_min, axis_max])
+	ax3.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax3.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+	ax3.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+	ax3.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
 			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
 	for i in range(len(list(set(labels)))):
