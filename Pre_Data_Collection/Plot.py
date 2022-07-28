@@ -15,6 +15,8 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.gridspec import GridSpec
+
 
 icolour = ["k", "b", "r", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
 imarker = ['o',"s","v","H","X","*","^","<",">","p","P","h","1","2","3","4","d","+"]
@@ -164,94 +166,46 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 
 def CrossRelation(labels, x, y, x2, y2):
 	fig = plt.figure(figsize=(14, 8), clear=True)
-	ax1 = plt.subplot(2, 2, 1)
-	ax1.set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
-	ax1.set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
-	ax1.tick_params(axis='both', labelsize=14)
-	ax1.axis("scaled")
-	axis_max = max([max(x[0]), max(y[0])])*0.9
-	axis_min = min([min(x[0]), min(y[0])])*1.1
-	axis_step = (axis_max - axis_min)/5
-	ax1.set_xlim([axis_min, axis_max])
-	ax1.set_ylim([axis_min, axis_max])
-	ax1.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax1.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax1.plot([min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9],
-			 [min([min(x[0]), min(y[0])])*1.1, max([max(x[0]), max(y[0])])*0.9], 'k', lw=1.5)
-	for i in range(len(list(set(labels)))):
-		xx = [x[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		yy = [y[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		ax1.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=5, linestyle="None",
-				 label="n= " + str(list(set(labels))[i]))
-		if len(x2) > 0:
-			xx2 = [x2[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			yy2 = [y2[0][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			ax1.plot(xx2, yy2, marker=imarker[i], color=icolour[i], ms=5, linestyle="None", markerfacecolor='none')
-			for j in range(len(xx)):
-				ax1.arrow(xx[j], yy[j], xx2[j]-xx[j], yy2[j]-yy[j], head_width=0.1, head_length=0.1, fc=icolour[i], ec=icolour[i])
-	legend = ax1.legend(loc="best")
-
-	ax2 = plt.subplot(2, 2, 3)
-	ax2.set_xlabel("$E_{Adh}^{DFT}$ $(eV)$", fontsize=16)
-	ax2.set_ylabel("Predicted $E_{Adh}$ $(eV)$", fontsize=16)
-	ax2.tick_params(axis='both', labelsize=14)
-	ax2.axis("scaled")
-	axis_max = max([max(x[1]), max(y[1])])*0.9
-	axis_min = min([min(x[1]), min(y[1])])*1.1
-	axis_step = (axis_max - axis_min)/5
-	ax2.set_xlim([axis_min, axis_max])
-	ax2.set_ylim([axis_min, axis_max])
-	ax2.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax2.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax2.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax2.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax2.plot([min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9],
-			 [min([min(x[1]), min(y[1])])*1.1, max([max(x[1]), max(y[1])])*0.9], 'k', lw=1.5)
-	for i in range(len(list(set(labels)))):
-		xx = [x[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		yy = [y[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		ax2.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=5, linestyle="None",
-				 label="n= " + str(list(set(labels))[i]))
-		if len(x2) > 0:
-			xx2 = [x2[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			yy2 = [y2[1][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			ax2.plot(xx2, yy2, marker=imarker[i], color=icolour[i], ms=10, linestyle="None", markerfacecolor='none')
-			for j in range(len(xx)):
-				ax2.arrow(xx[j], yy[j], xx2[j]-xx[j], yy2[j]-yy[j], head_width=0.1, head_length=0.1, fc=icolour[i], ec=icolour[i])
-	legend = ax2.legend(loc="best")
-
-	ax3 = plt.subplot(1, 2, 2)
-	ax3.set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
-	ax3.set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
-	ax3.tick_params(axis='both', labelsize=14)
-	ax3.axis("scaled")
-	axis_max = max([max(x[2]), max(y[2])])+0.5
-	axis_min = min([min(x[2]), min(y[2])])-0.5
-	axis_step = (axis_max - axis_min)/7
-	ax3.set_xlim([axis_min, axis_max])
-	ax3.set_ylim([axis_min, axis_max])
-	ax3.xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax3.yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
-	ax3.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax3.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-	ax3.plot([min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9],
-			 [min([min(x[2]), min(y[2])])*1.1, max([max(x[2]), max(y[2])])*0.9], 'k', lw=1.5)
-	for i in range(len(list(set(labels)))):
-		xx = [x[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		yy = [y[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-		ax3.plot(xx, yy, marker=imarker[i], color=icolour[i], ms=5, linestyle="None",
-				 label="n= " + str(list(set(labels))[i]))
-		if len(x2) > 0:
-			xx2 = [x2[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			yy2 = [y2[2][j] for j in range(len(labels)) if labels[j] == list(set(labels))[i]]
-			ax3.plot(xx2, yy2, marker=imarker[i], color=icolour[i], ms=10, linestyle="None", markerfacecolor='none')
-			for j in range(len(xx)):
-				ax3.arrow(xx[j], yy[j], xx2[j]-xx[j], yy2[j]-yy[j], head_width=0.1, head_length=0.1, fc=icolour[i], ec=icolour[i])
-	legend = ax3.legend(loc="best")
-
-#		ax.arrow(0, 0, 0.5, 0.5, head_width=0.05, head_length=0.1, fc='k', ec='k')
+	ax = ["E_coh", "E_adh", "E_total"]
+	ax[0] = fig.add_subplot(GridSpec(2, 2)[0])
+	ax[1] = fig.add_subplot(GridSpec(2, 2)[2])
+	ax[2] = fig.add_subplot(GridSpec(2, 2)[:, -1])
+	for i in range(3):
+		ax[i].tick_params(axis='both', labelsize=14)
+		ax[i].axis("scaled")
+		if i < 2:
+			axis_max = max(x[i] + y[i] + x2[i] + y2[i])*0.9
+			axis_min = min(x[i] + y[i] + x2[i] + y2[i])*1.1
+		else:
+			axis_max = max(x[i] + y[i] + x2[i] + y2[i])+1
+			axis_min = min(x[i] + y[i] + x2[i] + y2[i])-1
+		axis_step = (axis_max - axis_min)/5
+		ax[i].set_xlim([axis_min, axis_max])
+		ax[i].set_ylim([axis_min, axis_max])
+		ax[i].xaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+		ax[i].yaxis.set_ticks(np.arange(axis_min, axis_max, axis_step))
+		ax[i].xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+		ax[i].yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+		ax[i].plot([axis_min, axis_max], [axis_min, axis_max], 'k', lw=1.5)
+		for j in range(len(list(set(labels)))):
+			xx = [x[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
+			yy = [y[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
+			ax[i].plot(xx, yy, marker=imarker[j], color=icolour[j], ms=5, linestyle="None",
+					   label="n= " + str(list(set(labels))[j]))
+			if len(x2) > 0:
+				xx2 = [x2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
+				yy2 = [y2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
+				ax[i].plot(xx2, yy2, marker=imarker[j], color=icolour[j], ms=7, linestyle="None", markerfacecolor='none')
+				for n in range(len(xx)):
+					ax[i].arrow(xx[n], yy[n], xx2[n]-xx[n], yy2[n]-yy[n],# head_width=0.1, head_length=0.1,
+								fc=icolour[j], ec=icolour[j])
+		legend = ax[i].legend(loc="best")
+	ax[0].set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax[0].set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
+	ax[1].set_xlabel("$E_{Adh}^{DFT}$ $(eV)$", fontsize=16)
+	ax[1].set_ylabel("Predicted $E_{Adh}$ $(eV)$", fontsize=16)
+	ax[2].set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
+	ax[2].set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
 
 	fig.tight_layout()
 	plt.ion()
@@ -334,13 +288,13 @@ else:
 		print("   The atomicity in Measured does not correspond to this in Predicted.")
 		exit()
 
-	dft_relaxed = open(sys.argv[3]).readlines()
+	dft = open(sys.argv[3]).readlines()
 	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
 	x2_labels = [int(data[i][0]) for i in range(len(data))]
 	x2 = [[float(data[i][-4]) for i in range(len(data))],
 		 [float(data[i][-3]) for i in range(len(data))],
 		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-	ifile = open(sys.argv[2]).readlines()
+	ifile = open(sys.argv[4]).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
 	y2_labels = [int(data[i][0]) for i in range(len(data))]
 	y2 = [[float(data[i][-4]) for i in range(len(data))],
