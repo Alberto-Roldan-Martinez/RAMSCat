@@ -89,9 +89,9 @@ class poolGA:
 
 		mutateRate = self.mutate * self.nPool
 
-		for i in range(1000): 
+		for i in range(sum(self.eleNums)*100):				# Alberto 01/08/2022: Changed 1000 by sum(eleNums)*100 --> eleNums is list
 
-			choice = uniform(0,self.nPool)
+			choice = uniform(0, self.nPool)
 
 			if choice < mutateRate:
 
