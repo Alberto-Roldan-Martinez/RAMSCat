@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.gridspec import GridSpec
+import matplotlib.patches as patches
 
 
 icolour = ["k", "b", "r", "g", "c", "m", "y", "grey", "olive", "brown", "pink"] ## n=11
@@ -26,8 +27,7 @@ iliner = ['-', '--', '-.', ':', (0, (3, 5, 1, 5, 1, 5)), (0, (5, 1)), (0, (3, 1,
 def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 	fig, ax1 = plt.subplots(figsize=(12, 8), clear=True)       # prepares a figure
 	ax1.set_xlabel(x_label, fontsize=18)
-	ax1.tick_params(axis='x', rotation=15, labelsize=16)
-#	ax1.set_xlim([0, 13])
+	ax1.tick_params(axis='x', rotation=0, labelsize=15)
 	if len(y_labels) < 1:
 		print("*** No Y axis give ***")
 		exit()
@@ -56,9 +56,16 @@ def Display_MultiAxis(labels, x_label, x, y_labels, y, y_limits):
 			leg2_lines, leg2_labels = ax2.get_legend_handles_labels()
 			leg_lines += leg2_lines
 			leg_labels += leg2_labels
-# add labels
+# 			add labels
 #            for j in range(len(x)):
 #        		ax2.text(x[i], y[i][j]+0.02, str(labels[i]), color="black", fontsize=14)
+# add notes
+#	ax2.annotate("Quasi-Newton", xy=(1, -5), xycoords="data", size=16, color='Grey', annotation_clip=False)
+#	ax2.add_patch(patches.Rectangle((-0.05, -6), 3.5, 4, linewidth=1, edgecolor='cyan', facecolor='white', alpha=0.4))
+#	ax2.annotate("Newtonian Dyn", xy=(4, -5), xycoords="data", size=16, color='grey', annotation_clip=False,
+#				 bbox=dict(boxstyle="round, pad=0.1", fc="white", ec="white", lw=1, alpha=0.4))
+#	ax2.add_patch(patches.Rectangle((3.75, -6), 1.5, 4, linewidth=1, edgecolor='cyan', facecolor='white', alpha=0.4))
+
 	legend = ax1.legend(leg_lines, leg_labels, loc='best', fontsize=14) #upper left
 #	fig.tight_layout()
 	plt.ion()
@@ -262,7 +269,7 @@ if len(sys.argv) <= 2:
 
 #	print(labels, x, y)
 
-#	Display_MultiAxis(labels, 'Optimisers', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
+	Display_MultiAxis(labels, 'GA Methods', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
 #	Display_2axis(label, 'GCN', x2, y1, y2)
 
 #	Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')

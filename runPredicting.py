@@ -43,7 +43,7 @@ natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
 fmax = 0.01						# interatomic force maximum in the optimisation
-subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting_MDMin.py",
+subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
             "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
