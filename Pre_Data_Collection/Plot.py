@@ -269,7 +269,7 @@ if len(sys.argv) <= 2:
 
 #	print(labels, x, y)
 
-	Display_MultiAxis(labels, 'GA Methods', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
+	Display_MultiAxis(labels, 'GA Mutation', labels, ["$E^{min}$ $(eV)$", "Time $(h)$", "Cycles $(x10^{3})$", "CPU (%)"], y, y_limits)
 #	Display_2axis(label, 'GCN', x2, y1, y2)
 
 #	Display3D(labels, x1, x2, y1, '$E_{eq}$ $(eV \cdot atom^{\minus 1})$')

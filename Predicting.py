@@ -32,7 +32,7 @@ atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
 dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
-dyn.run(fmax=fmax)#, steps=1000)
+dyn.run(fmax=fmax, steps=10000)
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
 ''' ---------------- Get and Print Results ---------------------'''
