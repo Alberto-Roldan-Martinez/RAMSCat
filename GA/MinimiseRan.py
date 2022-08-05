@@ -170,13 +170,15 @@ class minRan:
 			with open("pool.dat","r") as pool:
 				poolList = pool.readlines()
 				poolSize = len(poolList) / (self.natoms + 2)
+
+				print("spheri", self.sphericity, type(self.sphericity))
 				if poolSize < self.nPool and self.sphericity < 1.5:                                    # Alberto 05/08/2022 Added sphericity
 					self.addToPool()
 				else:
 					AcceptReject = checkPool()
-					Accept = AcceptReject.checkEnergy(float(self.finalEnergy))
+					Accept = AcceptReject.checkEnergy(float(self.finalEnergy), float(self.sphericity))
 
-					if Accept and self.sphericity < 1.5: 					# Alberto 01/06/2022 Added sphericity
+					if Accept:
 						Index = AcceptReject.lowestIndex
 						Index = (Index*self.stride)+1
 

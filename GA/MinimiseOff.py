@@ -176,7 +176,7 @@ class minOff:
 	def updatePool(self):
 
 		AcceptReject = checkPool()
-		Accept = AcceptReject.checkEnergy(float(self.finalEnergy))
+		Accept = AcceptReject.checkEnergy(float(self.finalEnergy), float(self.sphericity))
 
 		if Accept:
 			index = AcceptReject.lowestIndex

@@ -40,12 +40,12 @@ class checkPool:
                 elif "Running" in line:
                     self.energies.append(-1000000)
 					
-    def checkEnergy(self, newEnergy):
+    def checkEnergy(self, newEnergy, sphericity):
 
         HighestEnergy = max(self.energies)
         self.lowestIndex = self.energies.index(HighestEnergy)
 
-        if newEnergy < HighestEnergy:
+        if newEnergy < HighestEnergy and sphericity < 1.5:              # Alberto 05/08/2022
             self.Index = self.energies.index(HighestEnergy)
             return True
         else:
