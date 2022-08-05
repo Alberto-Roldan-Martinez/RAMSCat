@@ -170,7 +170,7 @@ class minRan:
 			with open("pool.dat","r") as pool:
 				poolList = pool.readlines()
 				poolSize = len(poolList) / (self.natoms + 2)
-				if poolSize < self.nPool:
+				if poolSize < self.nPool and self.sphericity < 1.5:                                    # Alberto 05/08/2022 Added sphericity
 					self.addToPool()
 				else:
 					AcceptReject = checkPool()
