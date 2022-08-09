@@ -45,7 +45,7 @@ class checkPool:
         HighestEnergy = max(self.energies)
         self.lowestIndex = self.energies.index(HighestEnergy)
 
-        if newEnergy < HighestEnergy and sphericity < 1.:              # Alberto 05/08/2022
+        if newEnergy < HighestEnergy and sphericity <= 1.:              # Alberto 05/08/2022
             self.Index = self.energies.index(HighestEnergy)
             return True
         else:
