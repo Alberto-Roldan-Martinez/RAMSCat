@@ -30,14 +30,12 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 ''' --------------- Structure Optimisation ---------------------'''
 atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
-dyn = MDMin(atoms, logfile='Optimisation_MDmin.txt') #, trajectory='trajectory.traj')
-dyn.run(fmax=fmax, steps=1000)
-ase.io.vasp.write_vasp("CONTCAR_MDmin.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 
-atoms = read("CONTCAR_MDmin.vasp")
-atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
+dyn = MDMin(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
+dyn.run(fmax=fmax, steps=10000)
 dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
 dyn.run(fmax=fmax, steps=1000)
+
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 ''' ---------------- Get and Print Results ---------------------'''
 atoms = read("CONTCAR.vasp")
