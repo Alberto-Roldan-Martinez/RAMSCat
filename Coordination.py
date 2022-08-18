@@ -41,14 +41,13 @@ class Coordination:
                         sites_index_all,            # 2 dictionary with the indexes of surface sites per kind of site
                         interface_cluster_index,    # 3 indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
                         interface_support_index,    # 4 indexes of the support coordinating with the cluster at 1.5 * optimised distance
-                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.]
+                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.] -->> Updated on the 18/08/2022 to include all cluster atoms
                     ])
         keys.append("Others")
 
         self.coordination = {}
         for i in range(len(keys)):
             self.coordination[keys[i]] = values[i]
-
 
     def cluster_coordination(self, system, cluster_elements):
         average_coordination = 0
@@ -77,8 +76,6 @@ class Coordination:
         interface_c_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
         cluster_support_distances = {}
         for site in sites(support):
-            distances = []
-            dist_array = []
 #            site_cluster_coordination[site] = 0
             support_zmax = max([i.position[2] for i in system if i.symbol == site])
             sites_index = [i.index for i in system if i.symbol == site and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
@@ -104,16 +101,26 @@ class Coordination:
                     for j in coord:
                         if j not in interface_support_index:
                             interface_support_index.append(j)
-                    distances.append(min([d[i] for i in range(len(a)) if a[i] == n and b[i] in coord]))
-                else:
-                    for j in sites_index:
-                        dist_array.append(system.get_distance(n, j, mic=True, vector=False))
-                    distances.append(min(dist_array))
-                if n not in cluster_support_distances:
-                    cluster_support_distances[n] = [min(distances)]
-                else:
-                    cluster_support_distances[n].append(min(distances))
             site_cluster_coordination[site] = int(len(coordinating[n]))
+                # Updated on the 18/08/2022 to include all the cluster atoms in CLUSTER_SUPPORT_DISTANCES
+#                    distances.append(min([d[i] for i in range(len(a)) if a[i] == n and b[i] in coord]))
+#                else:
+#                    for j in sites_index:
+#                        dist_array.append(system.get_distance(n, j, mic=True, vector=False))
+#                    distances.append(min(dist_array))
+#                if n not in cluster_support_distances:
+#                    cluster_support_distances[n] = [min(distances)]
+#                else:
+#                    cluster_support_distances[n].append(min(distances))
+#            site_cluster_coordination[site] = int(len(coordinating[n]))
+            for n in cluster_index:
+                dist_array = []
+                cluster_support_distances[n] = [1000, 1000, 1000]
+                for j in sites_index:
+                    dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
+                distance = sorted(dist_array, key=lambda x: x[1])[0]
+                if distance[1] < cluster_support_distances[n][2]:
+                    cluster_support_distances[n] = [system[j].symbol, distance[0], distance[1]]
 
         return coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances

@@ -125,66 +125,71 @@ class Energy_prediction:
             average_coordination += len(c_coord[i]) / len(c_coord)
         return float(e_cohesion), f_cohesion, float(e_atom)
 
-
+    # Adhesion energy measured ONLY from the cluster atoms at the interface.
+    # The Adhesion forces, however, should be measured for all the atoms in the cluster independely if they are in
+    # contact with the surface or not. Thus, it will avoid `hovering` atoms
     def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
         adh_f = {}
-        for i in interface_distances:
-            v_x = [0, 0, 0]
-            v_y = [0, 0, 0]
-            for j in interface_indexes[i]:
-                if interface_distances[i][0] == system.get_distance(int(i), int(j), mic=True):
-                    v_x = system.get_distance(int(i), int(j), mic=True, vector=True)
-                if interface_distances[i][1] == system.get_distance(int(i), int(j), mic=True):
-                    v_y = system.get_distance(int(i), int(j), mic=True, vector=True)
-#                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
-            e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
-                                                                      system[int(i)].symbol,
-                                                                      len(c_coord[str(i)]),
-                                                                      interface_distances[i][0],
-                                                                      interface_distances[i][1], v_x, v_y)
-            adh_f[str(i)] = f_adh
-            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
-                                    round(interface_distances[i][0]/distances_opt[0], 3),
-                                    round(interface_distances[i][1]/distances_opt[1], 3)])
-        # Adhesion Energy Prediction RULES
-        # there is the distinction between two adsorption sites, i.e., strong and weak.
-        # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
-        interface_adh_e.sort(key=lambda x: x[1])
-        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
-        primary_sites = [interface_adh_e[0][0]]
-        secondary_sites = []
-        for n in range(1, len(interface_adh_e)):
-            i = interface_adh_e[n][0]
-            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
-                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
-                    primary_sites.append(i)
-                    for j in c_coord[str(i)]:
-                        if j in interface_indexes:
-                            secondary_sites.append(j)
-        if len(interface_adh_e) == len(primary_sites):
-            for n in range(1, len(interface_adh_e)):
-                i = interface_adh_e[n][0]
-                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
-                    primary_sites.remove(i)
-                    secondary_sites.append(i)
-#        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-#                               interface_adh_e[i][0] not in primary_sites])
-        # Predict Adhesion energy
-        adh_e = 0
-        for n in range(len(interface_adh_e)):
-            if interface_adh_e[n][0] in primary_sites:
-                if len(primary_sites) == 1:
-                    adh_e += interface_adh_e[n][1]/len(primary_sites)
-                else:
-                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
-            elif interface_adh_e[n][0] in secondary_sites:
-                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
-                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
-                else:
-                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
-# WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
-#        print(len(primary_sites), len(secondary_sites))
+        # changed on 18/08/2022. Here the interface distances only contains interface cluster atoms. It is updated
+        # for all cluster atoms.
+#        for i in interface_distances:
+#            v_x = [0, 0, 0]
+#            v_y = [0, 0, 0]
+#            for j in interface_indexes[i]:
+#                if interface_distances[i][0] == system.get_distance(int(i), int(j), mic=True):
+#                    v_x = system.get_distance(int(i), int(j), mic=True, vector=True)
+#                if interface_distances[i][1] == system.get_distance(int(i), int(j), mic=True):
+#                    v_y = system.get_distance(int(i), int(j), mic=True, vector=True)
+##                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
+#            e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
+#                                                                      system[int(i)].symbol,
+#                                                                      len(c_coord[str(i)]),
+#                                                                      interface_distances[i][0],
+#                                                                      interface_distances[i][1], v_x, v_y)
+#            adh_f[str(i)] = f_adh
+#            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
+#                                    round(interface_distances[i][0]/distances_opt[0], 3),
+#                                    round(interface_distances[i][1]/distances_opt[1], 3)])
+#        # Adhesion Energy Prediction RULES
+#       # there is the distinction between two adsorption sites, i.e., strong and weak.
+#       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
+#       interface_adh_e.sort(key=lambda x: x[1])
+#        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
+#        primary_sites = [interface_adh_e[0][0]]
+#        secondary_sites = []
+#        for n in range(1, len(interface_adh_e)):
+#            i = interface_adh_e[n][0]
+#            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
+#                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
+#                    primary_sites.append(i)
+#                    for j in c_coord[str(i)]:
+#                        if j in interface_indexes:
+#                            secondary_sites.append(j)
+#        if len(interface_adh_e) == len(primary_sites):
+#            for n in range(1, len(interface_adh_e)):
+#                i = interface_adh_e[n][0]
+#                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
+#                    primary_sites.remove(i)
+#                    secondary_sites.append(i)
+##        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+##                               interface_adh_e[i][0] not in primary_sites])
+#        # Predict Adhesion energy
+#        adh_e = 0
+#        for n in range(len(interface_adh_e)):
+#            if interface_adh_e[n][0] in primary_sites:
+#                if len(primary_sites) == 1:
+#                    adh_e += interface_adh_e[n][1]/len(primary_sites)
+#                else:
+#                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
+#            elif interface_adh_e[n][0] in secondary_sites:
+#                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
+#                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
+#                else:
+#                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
+## WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
+##        print(len(primary_sites), len(secondary_sites))
+#
         return float(adh_e), adh_f
 
 
