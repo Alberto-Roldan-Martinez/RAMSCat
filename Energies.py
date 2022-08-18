@@ -90,16 +90,27 @@ class Energy_prediction:
         for i in range(len(system)):
             f = np.zeros(3,)
             if str(system[i].index) in f_coh:
-                f += [n for n in f_coh[str(i)]]
-
-            if str(system[i].index) in f_adh:
-                for n in f_adh[str(i)]:
-                    f_control = []
-                    if n < 500:
+                # force control to smoothen large forces
+                f_control = []
+                for n in f_coh[str(i)]:
+                    if np.abs(n) > 100:
                         f_control.append(n * 1E-2)
                     else:
                         f_control.append(n)
                 f += [n for n in f_control]
+#                f += [n for n in f_coh[str(i)]]
+
+            if str(system[i].index) in f_adh:
+                # force control to smoothen large forces
+                f_control = []
+                for n in f_adh[str(i)]:
+                    if np.abs(n) > 100:
+                        f_control.append(n * 1E-2)
+                    else:
+                        f_control.append(n)
+                f += [n for n in f_control]
+#                f += [n for n in f_adh[str(i)]]
+
             forces.append(f)
 
         self.results = {'energy': e_total,
