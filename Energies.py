@@ -54,10 +54,10 @@ def surface_energy(system, c_coord, c_surf, c_surf_area):
 
 
 class Energy_prediction:
-    def __init__(self, system, support, support_size, c_coord, interface_distances, interface_indexes, gcn_i, c_surf,
+    def __init__(self, system, support, support_size, c_coord, cluster_support_distances, interface_indexes, gcn_i, c_surf,
                  c_surf_area):
         # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        # interface_distances = cluster_support_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y
+        # interface_distances = cluster_support_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y. --->> Updated on 18/08/2022, previouly interface_distances and changed to all the atoms in the cluster, not only the interface ones.
         # interface_indexes = support_coordinating = dictionary with surface neighbours with cluster interface atoms
         # gcn_i = gnc = dictionary with the generalised coordination number for each atom in the cluster
         # c_surf = cluster_surface_index = indexes of cluster atoms with coordination within the cluster lower than its bulk
@@ -70,7 +70,7 @@ class Energy_prediction:
         # f_adh = predicted force in the direction between the cluster atom in question and the surface neighbours
         e_cluster_surface = float(surface_energy(system, c_coord, c_surf, c_surf_area))
         cohesion, f_coh, e_atom = self.e_cohesion(system, c_coord, gcn_i)
-        adhesion, f_adh = self.e_adhesion(interface_distances, system, support, c_coord, interface_indexes)
+        adhesion, f_adh = self.e_adhesion(cluster_support_distances, system, support, c_coord, interface_indexes)
         e_total = float(adhesion + e_slab + e_atom + len(c_coord) * cohesion)
         binding = float((e_total - (e_slab + e_atom))/len(c_coord))
 
@@ -90,10 +90,16 @@ class Energy_prediction:
         for i in range(len(system)):
             f = np.zeros(3,)
             if str(system[i].index) in f_coh:
-                f += [i for i in f_coh[str(i)]]
+                f += [n for n in f_coh[str(i)]]
 
             if str(system[i].index) in f_adh:
-                f += [i for i in f_adh[str(i)]]
+                for n in f_adh[str(i)]:
+                    f_control = []
+                    if n < 500:
+                        f_control.append(n * 1E-2)
+                    else:
+                        f_control.append(n)
+                f += [n for n in f_control]
             forces.append(f)
 
         self.results = {'energy': e_total,
@@ -128,11 +134,27 @@ class Energy_prediction:
     # Adhesion energy measured ONLY from the cluster atoms at the interface.
     # The Adhesion forces, however, should be measured for all the atoms in the cluster independely if they are in
     # contact with the surface or not. Thus, it will avoid `hovering` atoms
-    def e_adhesion(self, interface_distances, system, support, c_coord, interface_indexes):
+    def e_adhesion(self, cluster_support_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
         adh_f = {}
-        # changed on 18/08/2022. Here the interface distances only contains interface cluster atoms. It is updated
+        # Updated on 18/08/2022. Previously (below) the interface distances only contains interface cluster atoms. It is updated
         # for all cluster atoms.
+        for i in cluster_support_distances:
+            site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
+            vector_distance_a = system.get_distance(int(i), int(site_index_a), mic=True, vector=True)
+            site_symbol_b, site_index_b, distance_b = cluster_support_distances[i][1]
+            vector_distance_b = system.get_distance(int(i), int(site_index_b), mic=True, vector=True)
+#                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
+            e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
+                                                                             system[int(i)].symbol,
+                                                                             len(c_coord[str(i)]),
+                                                                             distance_a,
+                                                                             distance_b,
+                                                                             vector_distance_a,
+                                                                             vector_distance_b)
+            adh_f[str(i)] = f_adh
+            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
+                                    round(distance_b/distances_opt[1], 3)])
 #        for i in interface_distances:
 #            v_x = [0, 0, 0]
 #            v_y = [0, 0, 0]
@@ -151,45 +173,46 @@ class Energy_prediction:
 #            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
 #                                    round(interface_distances[i][0]/distances_opt[0], 3),
 #                                    round(interface_distances[i][1]/distances_opt[1], 3)])
-#        # Adhesion Energy Prediction RULES
-#       # there is the distinction between two adsorption sites, i.e., strong and weak.
-#       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
-#       interface_adh_e.sort(key=lambda x: x[1])
-#        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
-#        primary_sites = [interface_adh_e[0][0]]
-#        secondary_sites = []
-#        for n in range(1, len(interface_adh_e)):
-#            i = interface_adh_e[n][0]
-#            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
-#                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
-#                    primary_sites.append(i)
-#                    for j in c_coord[str(i)]:
-#                        if j in interface_indexes:
-#                            secondary_sites.append(j)
-#        if len(interface_adh_e) == len(primary_sites):
-#            for n in range(1, len(interface_adh_e)):
-#                i = interface_adh_e[n][0]
-#                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
-#                    primary_sites.remove(i)
-#                    secondary_sites.append(i)
-##        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-##                               interface_adh_e[i][0] not in primary_sites])
-#        # Predict Adhesion energy
-#        adh_e = 0
-#        for n in range(len(interface_adh_e)):
-#            if interface_adh_e[n][0] in primary_sites:
-#                if len(primary_sites) == 1:
-#                    adh_e += interface_adh_e[n][1]/len(primary_sites)
-#                else:
-#                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
-#            elif interface_adh_e[n][0] in secondary_sites:
-#                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
-#                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
-#                else:
-#                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
-## WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
-##        print(len(primary_sites), len(secondary_sites))
-#
+
+       # Adhesion Energy Prediction RULES
+       # there is the distinction between two adsorption sites, i.e., strong and weak.
+       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
+        interface_adh_e.sort(key=lambda x: x[1])
+        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
+        primary_sites = [interface_adh_e[0][0]]
+        secondary_sites = []
+        for n in range(1, len(interface_adh_e)):
+            i = interface_adh_e[n][0]
+            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
+                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
+                    primary_sites.append(i)
+                    for j in c_coord[str(i)]:
+                        if j in interface_indexes:
+                            secondary_sites.append(j)
+        if len(interface_adh_e) == len(primary_sites):
+            for n in range(1, len(interface_adh_e)):
+                i = interface_adh_e[n][0]
+                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
+                    primary_sites.remove(i)
+                    secondary_sites.append(i)
+#        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+#                               interface_adh_e[i][0] not in primary_sites])
+        # Predict Adhesion energy
+        adh_e = 0
+        for n in range(len(interface_adh_e)):
+            if interface_adh_e[n][0] in primary_sites:
+                if len(primary_sites) == 1:
+                    adh_e += interface_adh_e[n][1]/len(primary_sites)
+                else:
+                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
+            elif interface_adh_e[n][0] in secondary_sites:
+                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
+                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
+                else:
+                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
+# WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
+#        print(len(primary_sites), len(secondary_sites))
+
         return float(adh_e), adh_f
 
 

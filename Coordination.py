@@ -115,12 +115,13 @@ class Coordination:
 #            site_cluster_coordination[site] = int(len(coordinating[n]))
             for n in cluster_index:
                 dist_array = []
-                cluster_support_distances[n] = [1000, 1000, 1000]
                 for j in sites_index:
                     dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
                 distance = sorted(dist_array, key=lambda x: x[1])[0]
-                if distance[1] < cluster_support_distances[n][2]:
-                    cluster_support_distances[n] = [system[j].symbol, distance[0], distance[1]]
+                if n not in cluster_support_distances:
+                    cluster_support_distances[n] = [[system[j].symbol, distance[0], distance[1]]]
+                else:
+                    cluster_support_distances[n].append([system[j].symbol, distance[0], distance[1]])
 
         return coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances

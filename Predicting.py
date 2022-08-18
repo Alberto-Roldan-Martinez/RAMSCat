@@ -31,8 +31,8 @@ name = path.split("/")[-4]+"/"+path.split("/")[-3]+"/"+path.split("/")[-2]+"/"+p
 atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
-dyn = MDMin(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
-dyn.run(fmax=fmax, steps=10000)
+dyn = MDMin(atoms, logfile='Optimisation.txt', trajectory='trajectory.traj')
+dyn.run(fmax=fmax, steps=1500)
 dyn = BFGS(atoms, logfile='Optimisation.txt') #, trajectory='trajectory.traj')
 dyn.run(fmax=fmax, steps=1000)
 

@@ -16,17 +16,34 @@ class RAMSCat(Calculator):
     all_changes = ['positions']
 
     def __init__(self, system, cluster_elements, support, support_size):
-        coordination = Coordination(system, cluster_elements, support).coordination
-        generalised = Generalised_coodination(system, cluster_elements, coordination["Others"][0]).generalised
-        properties = Properties(system, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
-                        generalised["Others"][1]).properties
-        self.arg = [system, support, support_size, coordination["Others"][0], coordination["Others"][5],
-                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
-                             properties["c_s_area"]]
+#        coordination = Coordination(system, cluster_elements, support).coordination
+#        generalised = Generalised_coodination(system, cluster_elements, coordination["Others"][0]).generalised
+#        properties = Properties(system, cluster_elements, support, coordination["Others"][3], coordination["Others"][0],
+#                        generalised["Others"][1]).properties
+#        self.arg = [system, support, support_size, coordination["Others"][0], coordination["Others"][5],
+#                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
+#                             properties["c_s_area"]]
+
+        self.system = system
+        self.cluster_elements = cluster_elements
+        self.support = support
+        self.support_size = support_size
+
+
 
         Calculator.__init__(self)
 
     def calculate(self, atoms=None, properties=implemented_properties, system_changes=all_changes):
+        coordination = Coordination(self.system, self.cluster_elements, self.support).coordination
+        generalised = Generalised_coodination(self.system, self.cluster_elements, coordination["Others"][0]).generalised
+        properties = Properties(self.system, self.cluster_elements, self.support, coordination["Others"][3], coordination["Others"][0],
+                        generalised["Others"][1]).properties
+        self.arg = [self.system, self.support, self.support_size, coordination["Others"][0], coordination["Others"][5],
+                             coordination["Others"][1], generalised["Others"][0], generalised["Others"][1],
+                             properties["c_s_area"]]
+
+
+
         Calculator.calculate(self, atoms, properties, system_changes)
 
         self.results = energies(*self.arg).results
