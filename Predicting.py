@@ -39,7 +39,7 @@ dyn.run(fmax=fmax, steps=1500)
 dyn = BFGS(atoms, logfile='Optimisation.txt')#, trajectory='trajectory.traj')
 dyn.run(fmax=fmax, steps=500)
 
-ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
+ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=True, vasp5=True, sort=True, ignore_constraints=False)
 ''' ---------------- Get and Print Results ---------------------'''
 atoms = read("CONTCAR.vasp")
 coordination = Coordination(atoms, cluster_elements, support).coordination
