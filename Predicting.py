@@ -32,12 +32,12 @@ atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
 # BFGS treat the forces smoothier than MDMin
-dyn = BFGS(atoms, logfile='Optimisation.txt', trajectory='1_trajectory.traj')
+dyn = BFGS(atoms, logfile='Optimisation.txt')#, trajectory='1_trajectory.traj')
 dyn.run(fmax=fmax, steps=100)
-dyn = MDMin(atoms, logfile='Optimisation.txt', trajectory='trajectory.traj')
+dyn = MDMin(atoms, logfile='Optimisation.txt')#, trajectory='trajectory.traj')
 dyn.run(fmax=fmax, steps=1500)
-#dyn = BFGS(atoms, logfile='Optimisation.txt')#, trajectory='trajectory.traj')
-#dyn.run(fmax=fmax, steps=1000)
+dyn = BFGS(atoms, logfile='Optimisation.txt')#, trajectory='trajectory.traj')
+dyn.run(fmax=fmax, steps=500)
 
 ase.io.vasp.write_vasp("CONTCAR.vasp", atoms, direct=False, vasp5=True, sort=True, ignore_constraints=False)
 ''' ---------------- Get and Print Results ---------------------'''
