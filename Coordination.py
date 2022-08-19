@@ -41,7 +41,7 @@ class Coordination:
                         sites_index_all,            # 2 dictionary with the indexes of surface sites per kind of site
                         interface_cluster_index,    # 3 indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
                         interface_support_index,    # 4 indexes of the support coordinating with the cluster at 1.5 * optimised distance
-                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.] -->> Updated on the 18/08/2022 to include all cluster atoms
+                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.] -->> Updated on the 18/08/2022 to include all cluster atoms -->> changed back, as it make the cluster to overbing the surface
                     ])
         keys.append("Others")
 
@@ -95,33 +95,29 @@ class Coordination:
                 else:
                     for i in coord:
                         coordinating[n].append(i)
+
                 if len(coord) > 0:
                     if n not in interface_cluster_index:
                         interface_cluster_index.append(n)
                     for j in coord:
                         if j not in interface_support_index:
                             interface_support_index.append(j)
-            site_cluster_coordination[site] = int(len(coordinating[n]))
-                # Updated on the 18/08/2022 to include all the cluster atoms in CLUSTER_SUPPORT_DISTANCES
-#                    distances.append(min([d[i] for i in range(len(a)) if a[i] == n and b[i] in coord]))
-#                else:
-#                    for j in sites_index:
-#                        dist_array.append(system.get_distance(n, j, mic=True, vector=False))
-#                    distances.append(min(dist_array))
-#                if n not in cluster_support_distances:
-#                    cluster_support_distances[n] = [min(distances)]
-#                else:
-#                    cluster_support_distances[n].append(min(distances))
-#            site_cluster_coordination[site] = int(len(coordinating[n]))
+                # Using only the interface cluster atoms
+#                dist_array = []
+#                for j in sites_index:
+#                    dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
+           # Using the entirety of the cluster insted of only the interface atoms: It seems to favour fat structures
             for n in cluster_index:
                 dist_array = []
                 for j in sites_index:
                     dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
                 distance = sorted(dist_array, key=lambda x: x[1])[0]
                 if n not in cluster_support_distances:
-                    cluster_support_distances[n] = [[system[j].symbol, distance[0], distance[1]]]
+                    cluster_support_distances[n] = [[system[distance[0]].symbol, distance[0], distance[1]]]
                 else:
-                    cluster_support_distances[n].append([system[j].symbol, distance[0], distance[1]])
+                    cluster_support_distances[n].append([system[distance[0]].symbol, distance[0], distance[1]])
+            site_cluster_coordination[site] = int(len(coordinating))
+
 
         return coordinating, s_sites, interface_cluster_index, interface_support_index, \
                site_cluster_coordination, cluster_support_distances

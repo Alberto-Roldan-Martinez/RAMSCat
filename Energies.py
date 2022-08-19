@@ -57,7 +57,7 @@ class Energy_prediction:
     def __init__(self, system, support, support_size, c_coord, cluster_support_distances, interface_indexes, gcn_i, c_surf,
                  c_surf_area):
         # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        # interface_distances = cluster_support_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y. --->> Updated on 18/08/2022, previouly interface_distances and changed to all the atoms in the cluster, not only the interface ones.
+        # cluster_support_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y. --->> Updated on 18/08/2022, previouly interface_distances and changed to all the atoms in the cluster, not only the interface ones.
         # interface_indexes = support_coordinating = dictionary with surface neighbours with cluster interface atoms
         # gcn_i = gnc = dictionary with the generalised coordination number for each atom in the cluster
         # c_surf = cluster_surface_index = indexes of cluster atoms with coordination within the cluster lower than its bulk
@@ -142,14 +142,12 @@ class Energy_prediction:
             average_coordination += len(c_coord[i]) / len(c_coord)
         return float(e_cohesion), f_cohesion, float(e_atom)
 
-    # Adhesion energy measured ONLY from the cluster atoms at the interface.
-    # The Adhesion forces, however, should be measured for all the atoms in the cluster independely if they are in
-    # contact with the surface or not. Thus, it will avoid `hovering` atoms
+    # Adhesion energy measured from ALL cluster atoms.
+    # The Adhesion, should be measured for all the atoms in the cluster independely if they are in
+    # contact with the surface or not.
     def e_adhesion(self, cluster_support_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
         adh_f = {}
-        # Updated on 18/08/2022. Previously (below) the interface distances only contains interface cluster atoms. It is updated
-        # for all cluster atoms.
         for i in cluster_support_distances:
             site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
             vector_distance_a = system.get_distance(int(i), int(site_index_a), mic=True, vector=True)
@@ -163,27 +161,11 @@ class Energy_prediction:
                                                                              distance_b,
                                                                              vector_distance_a,
                                                                              vector_distance_b)
-            adh_f[str(i)] = f_adh
             interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
                                     round(distance_b/distances_opt[1], 3)])
-#        for i in interface_distances:
-#            v_x = [0, 0, 0]
-#            v_y = [0, 0, 0]
-#            for j in interface_indexes[i]:
-#                if interface_distances[i][0] == system.get_distance(int(i), int(j), mic=True):
-#                    v_x = system.get_distance(int(i), int(j), mic=True, vector=True)
-#                if interface_distances[i][1] == system.get_distance(int(i), int(j), mic=True):
-#                    v_y = system.get_distance(int(i), int(j), mic=True, vector=True)
-##                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
-#            e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
-#                                                                      system[int(i)].symbol,
-#                                                                      len(c_coord[str(i)]),
-#                                                                      interface_distances[i][0],
-#                                                                      interface_distances[i][1], v_x, v_y)
-#            adh_f[str(i)] = f_adh
-#            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
-#                                    round(interface_distances[i][0]/distances_opt[0], 3),
-#                                    round(interface_distances[i][1]/distances_opt[1], 3)])
+            # ONLY the cluster atoms at the interface contribute to the forces, otherwise the structure optimises as flat
+            if i in interface_indexes:
+                adh_f[str(i)] = f_adh
 
        # Adhesion Energy Prediction RULES
        # there is the distinction between two adsorption sites, i.e., strong and weak.
