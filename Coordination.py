@@ -55,7 +55,7 @@ class Coordination:
 #        del cluster_atoms[[atom.index for atom in cluster_atoms if atom.symbol not in cluster_elements]]
         coordinating = {}
         if len(cluster_index) > 1:
-            cutoff = neighborlist.natural_cutoffs(system, mult=1.3)
+            cutoff = neighborlist.natural_cutoffs(system, mult=1.4)
             a, b = neighborlist.neighbor_list('ij', system, cutoff)
             for i in cluster_index:
                 coordinating[str(i)] = [b[n] for n in range(len(a)) if a[n] == i and b[n] in cluster_index]
@@ -106,7 +106,7 @@ class Coordination:
 #                dist_array = []
 #                for j in sites_index:
 #                    dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
-           # Using the entirety of the cluster insted of only the interface atoms: It seems to favour fat structures
+           # Using the entirety of the cluster insted of only the interface atoms: It seems to favour flat structures
             for n in cluster_index:
                 dist_array = []
                 for j in sites_index:

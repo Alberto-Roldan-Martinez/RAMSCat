@@ -123,20 +123,31 @@ class Energy_prediction:
         f_cohesion = {}
         e_atom = 0
         average_coordination = 0
-        e_array = []
-        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
-            average_distance = 0
-            average_distance_vector = np.zeros(3)
-            for j in c_coord[i]:
-#               atom by average neighbours
-                average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
-                average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
-                                                   /len(c_coord[i]))
+        # Energy and Forces of each atom in cluster with coordination > 0 against the average distance to its neighbours
+#        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
+#            average_distance = 0
+#            average_distance_vector = np.zeros(3)
+#            for j in c_coord[i]:
+#                average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
+#                average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
+#                                                   /len(c_coord[i]))
+##                           element, cc, distance, distance, vector, gcn
+#            e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
+#                              average_distance, list(average_distance_vector), gcn_i[int(i)])
+#            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
+#            f_cohesion[str(i)] = f
+        # Energy and Forces of each atom in cluster with coordination > 0 against each individual atom in the cluster
+        for i in c_coord:
+            f_cohesion[str(i)] = np.zeros(3)
+            for j in [n for n in c_coord if n != i]:
+                distance = float(system.get_distance(int(i), int(j), mic=True))
+                distance_vector = np.array((system.get_distance(int(i), int(j), mic=True, vector=True)))
 #                           element, cc, distance, distance, vector, gcn
-            e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
-                              average_distance, list(average_distance_vector), gcn_i[int(i)])
-            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
-            f_cohesion[str(i)] = f
+                e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
+                                  gcn_i[int(i)])
+
+                e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
+                f_cohesion[str(i)] += f
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
@@ -163,9 +174,10 @@ class Energy_prediction:
                                                                              vector_distance_b)
             interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
                                     round(distance_b/distances_opt[1], 3)])
+            adh_f[str(i)] = f_adh
             # ONLY the cluster atoms at the interface contribute to the forces, otherwise the structure optimises as flat
-            if i in interface_indexes:
-                adh_f[str(i)] = f_adh
+#            if i in interface_indexes:
+#                adh_f[str(i)] = f_adh
 
        # Adhesion Energy Prediction RULES
        # there is the distinction between two adsorption sites, i.e., strong and weak.
