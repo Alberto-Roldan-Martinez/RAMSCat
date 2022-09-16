@@ -136,8 +136,8 @@ class Energy_prediction:
 #                              average_distance, list(average_distance_vector), gcn_i[int(i)])
 #            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
 #            f_cohesion[str(i)] = f
-        # Energy and Forces of each atom in cluster with coordination > 0 against each individual atom in the cluster
-        for i in c_coord:
+        # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
+        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
                 distance = float(system.get_distance(int(i), int(j), mic=True))

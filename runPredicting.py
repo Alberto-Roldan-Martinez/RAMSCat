@@ -37,7 +37,7 @@ mutType = "random"                                     # new random cluster geom
 #mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
 mutate = 0.4                                            # mutation ratio
 
-r_ij = 1.2 * sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames)
+r_ij = 2 * sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames)
 eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
