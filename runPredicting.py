@@ -24,12 +24,12 @@ boxAdd = 15.0
 surfGA = True                                           # is it a supported cluster?
 support = "MgO"
 structure_file = "POSCAR"
-surface = MgO(x=8, y=8, z=2, vac=8, clusHeight=2.0)     # how is the support's surface
+surface = MgO(x=8, y=8, z=2, vac=8, clusHeight=2.5)     # how is the support's surface
 
 """ --------------------------- ALGORITHM to generate structures ---------------------------"""
 nPool = 15
-cross = "random"                                        #
-#cross = "weighted"                                     # determined by fitness of the two clusters selected for crossover.
+#cross = "random"                                        #
+cross = "weighted"                                     # determined by fitness of the two clusters selected for crossover.
 # ------------------------- algorithm to generate mutants
 mutType = "random"                                     # new random cluster geometry
 #mutType = "move"                                        # selected from the pool and 20% of the geometry is displaced by up to 1 angstrom
@@ -42,18 +42,18 @@ eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
-fmax = 0.01						# interatomic force maximum in the optimisation
+#fmax = 0.1*natoms						# interatomic force maximum in the optimisation
 subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
-            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
+            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], natoms])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
 # --------------------
-#mutType = "move"
-#subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting_MDMin.py",
-#            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
-#StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
-#                                   boxAdd, surface, surfGA)
+mutType = "move"
+subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting.py",
+            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], natoms])      # package to calculate the Energy
+StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
+                                   boxAdd, surface, surfGA)
 ## --------------------
 #mutType = "rotate"
 #subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting.py",
