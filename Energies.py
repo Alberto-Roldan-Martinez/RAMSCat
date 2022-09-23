@@ -147,7 +147,7 @@ class Energy_prediction:
                                   gcn_i[int(i)])
 
                 e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
-                f_cohesion[str(i)] += f
+                f_cohesion[str(i)] += f/len(c_coord)
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
