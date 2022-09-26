@@ -21,7 +21,7 @@ cluster_elements = [i for i in sys.argv[1].split("-")]                      # El
 structurefile = sys.argv[2] 												# file name, e.g. POSCAR
 support = sys.argv[3]                                                       # Surface name
 support_size = [sys.argv[4], sys.argv[5], sys.argv[6]] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
-fmax = 0.1*int(sys.argv[7])
+fmax = 0.5*int(sys.argv[7])
 ####################################################################################################
 
 path = os.getcwd()
@@ -32,7 +32,7 @@ atoms = read(structurefile)
 atoms.calc = RAMSCat(atoms, cluster_elements, support, support_size)
 
 # BFGS treat the forces smoothier than MDMin
-dyn = BFGS(atoms, logfile='Optimisation.txt', trajectory='1_trajectory.traj')
+dyn = BFGS(atoms, logfile='Optimisation.txt')#, trajectory='1_trajectory.traj')
 dyn.run(fmax=fmax, steps=1500)
 #dyn = MDMin(atoms, logfile='Optimisation.txt', trajectory='trajectory.traj') ## Fast, but very rough
 #dyn.run(fmax=fmax, steps=1500)

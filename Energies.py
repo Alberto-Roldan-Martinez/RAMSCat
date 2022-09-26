@@ -118,6 +118,12 @@ class Energy_prediction:
                         'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
                         'magmom': 0.0, 'magmoms': np.zeros(len(system))}
 
+    def factorial(self, n):
+        if n == 1 or n == 0:
+            return 1
+        else:
+            return n * self.factorial(n - 1)
+
     def e_cohesion(self, system, c_coord, gcn_i):
         e_cohesion = 0
         f_cohesion = {}
@@ -137,6 +143,11 @@ class Energy_prediction:
 #            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
 #            f_cohesion[str(i)] = f
         # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
+
+        cluster_average_coordination = sum([len(c_coord[i]) for i in c_coord])/len(c_coord)
+        cluster_coordination_sum = sum([len(c_coord[i]) for i in c_coord]) - 1
+        if len(c_coord) == 2:
+            cluster_coordination_sum += 3
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
@@ -146,7 +157,7 @@ class Energy_prediction:
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
 
-                e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
+                e_cohesion += e/cluster_coordination_sum                  # to avoid double counting the Coh contribution per atom --- e/(2* len(c_coord)) works for the total E
                 f_cohesion[str(i)] += f/len(c_coord)
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
@@ -219,5 +230,6 @@ class Energy_prediction:
 #        print(len(primary_sites), len(secondary_sites))
 
         return float(adh_e), adh_f
+
 
 

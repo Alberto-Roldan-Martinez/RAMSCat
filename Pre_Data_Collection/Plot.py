@@ -181,11 +181,11 @@ def CrossRelation(labels, x, y, x2, y2):
 		ax[i].tick_params(axis='both', labelsize=14)
 		ax[i].axis("scaled")
 		if i < 2:
-			axis_max = max(x[i] + y[i] + x2[i] + y2[i])*0.9
-			axis_min = min(x[i] + y[i] + x2[i] + y2[i])*1.1
+			axis_max = max(x[i] + y[i])*0.9 # + x2[i] + y2[i])*0.9
+			axis_min = min(x[i] + y[i])*1.1 # + x2[i] + y2[i])*1.1
 		else:
-			axis_max = max(x[i] + y[i] + x2[i] + y2[i])+1
-			axis_min = min(x[i] + y[i] + x2[i] + y2[i])-1
+			axis_max = max(x[i] + y[i])+1 # + x2[i] + y2[i])+1
+			axis_min = min(x[i] + y[i])-1 # + x2[i] + y2[i])-1
 		axis_step = (axis_max - axis_min)/5
 		ax[i].set_xlim([axis_min, axis_max])
 		ax[i].set_ylim([axis_min, axis_max])
@@ -250,14 +250,18 @@ def SaveFig():
 		plt.savefig(figure_out_name + ".svg", # figsize=(12, 10), clear=True,
 					bbox_inches='tight', dpi=300, orientation='landscape', transparent=True)
 
-######################################################################################################
-
-if len(sys.argv) <= 2:
-	ifile = open(sys.argv[1]).readlines()
+def getData(fileName):
+	ifile = open(fileName).readlines()
 	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
 	labels = [data[i][0] for i in range(len(data))]
 	x = [data[i][0] for i in range(len(data))]												# first column
-	y = [[float(data[i][j]) for i in range(len(x))] for j in range(1, len(data[0]))]		# rest of columns
+	y = [[float(data[i][j]) for j in range(1, len(data[0]))] for i in range(len(x))]		# rest of columns
+
+	return labels, x, y
+
+######################################################################################################
+if len(sys.argv) == 1:
+	labels, x, y = getData(sys.argv[1])
 
 #	y_limits = [[min(y[i])-np.abs(min(y[i]))*0.01, max(y[i])+np.abs(max(y[i]))*0.01] for i in range(len(y))]
 	y_limits = [[min(y[0])+min(y[0])*0.0005, max(y[0])-max(y[0])*0.0005],			# negative values
@@ -277,39 +281,19 @@ if len(sys.argv) <= 2:
 
 #	EnergyLevels(labels, 'n', x, "$E - E^{min}$ $(eV)$", y[-1], [-0.01, 1])
 else:
-	x2 = []
-	y2 = []
-	dft = open(sys.argv[1]).readlines()
-	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
-	x_labels = [int(data[i][0]) for i in range(len(data))]
-	x = [[float(data[i][-4]) for i in range(len(data))],
-		 [float(data[i][-3]) for i in range(len(data))],
-		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-	ifile = open(sys.argv[2]).readlines()
-	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
-	y_labels = [int(data[i][0]) for i in range(len(data))]
-	y = [[float(data[i][-4]) for i in range(len(data))],
-		 [float(data[i][-3]) for i in range(len(data))],
-		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-	if x_labels != y_labels:
+	labels = {}
+	x = {}
+	y = {}
+	for n in range(1, len(sys.argv)):
+		a, b, c = getData(sys.argv[n])
+		labels[str(n)] = [int(a[i]) for i in range(len(a))]
+		x[str(n)] = [float(i) for i in b]
+		y[str(n)] = [[float(c[i][-4]) for i in range(len(c))],
+					 [float(c[i][-3]) for i in range(len(c))],
+					 [float(c[i][-1]) for i in range(len(c))]]					# E_Coh, E_Adh, E_Total
+
+	if labels[str(1)] != labels[str(2)]:
 		print("   The atomicity in Measured does not correspond to this in Predicted.")
 		exit()
 
-	dft = open(sys.argv[3]).readlines()
-	data = [dft[i].split() for i in range(len(dft)) if len(dft[i].split()) >= 1 and dft[i].startswith("#") is False]
-	x2_labels = [int(data[i][0]) for i in range(len(data))]
-	x2 = [[float(data[i][-4]) for i in range(len(data))],
-		 [float(data[i][-3]) for i in range(len(data))],
-		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-	ifile = open(sys.argv[4]).readlines()
-	data = [ifile[i].split() for i in range(len(ifile)) if len(ifile[i].split()) >= 1 and ifile[i].startswith("#") is False]
-	y2_labels = [int(data[i][0]) for i in range(len(data))]
-	y2 = [[float(data[i][-4]) for i in range(len(data))],
-		 [float(data[i][-3]) for i in range(len(data))],
-		 [float(data[i][-1]) for i in range(len(data))]]					# E_Coh, E_Adh, E_Total
-	if x2_labels != y2_labels:
-		print("   The atomicity in Measured does not correspond to this in Predicted_Relaxed.")
-		exit()
-
-
-	CrossRelation(x_labels, x, y, x2, y2)
+	CrossRelation(labels[str(1)], y[str(1)], y[str(2)], "", "")
