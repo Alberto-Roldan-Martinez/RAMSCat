@@ -15,7 +15,7 @@
 """
 
 import numpy as np
-from Library import isolated_atoms, surf_energies, ecoh_trend, e_adh_energies, supports
+from Library import isolated_atoms, surf_energies, ecoh_bulk, ecoh_trend, e_adh_energies, supports
 
 
 class Energies:
@@ -118,11 +118,6 @@ class Energy_prediction:
                         'stress': np.zeros(6), 'dipole': np.zeros(3), 'charges': np.zeros(len(system)),
                         'magmom': 0.0, 'magmoms': np.zeros(len(system))}
 
-    def factorial(self, n):
-        if n == 1 or n == 0:
-            return 1
-        else:
-            return n * self.factorial(n - 1)
 
     def e_cohesion(self, system, c_coord, gcn_i):
         e_cohesion = 0
@@ -142,30 +137,29 @@ class Energy_prediction:
 #                              average_distance, list(average_distance_vector), gcn_i[int(i)])
 #            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
 #            f_cohesion[str(i)] = f
-        # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
 
-        cluster_average_coordination = sum([len(c_coord[i]) for i in c_coord])/len(c_coord)
-        cluster_coordination_sum = sum([len(c_coord[i]) for i in c_coord]) - 1
-        if len(c_coord) == 2:
-            cluster_coordination_sum += 3
-        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
+        # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
+        e_factor = (len(c_coord)-1) * len(c_coord)/2
+        if e_factor <= sum([ecoh_bulk([system[int(i)].symbol])[1] for i in c_coord])/len(c_coord):  # bulk coordination
+            e_factor += 12/len(c_coord)
+        for i in [n for n in c_coord if len(c_coord[n]) > 0]:       # atoms without neighbours don't have Coh
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
                 distance = float(system.get_distance(int(i), int(j), mic=True))
                 distance_vector = np.array((system.get_distance(int(i), int(j), mic=True, vector=True)))
-#                           element, cc, distance, distance, vector, gcn
+                #      element, cc, distance, distance, vector, gcn
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
-
-                e_cohesion += e/cluster_coordination_sum                  # to avoid double counting the Coh contribution per atom --- e/(2* len(c_coord)) works for the total E
+                e_cohesion += e/e_factor
                 f_cohesion[str(i)] += f/len(c_coord)
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
+
         return float(e_cohesion), f_cohesion, float(e_atom)
 
     # Adhesion energy measured from ALL cluster atoms.
-    # The Adhesion, should be measured for all the atoms in the cluster independely if they are in
+    # The Adhesion, should be measured for all the atoms in the cluster independently if they are in
     # contact with the surface or not.
     def e_adhesion(self, cluster_support_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
@@ -211,23 +205,15 @@ class Energy_prediction:
                 if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
                     primary_sites.remove(i)
                     secondary_sites.append(i)
-#        secondary_sites = set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-#                               interface_adh_e[i][0] not in primary_sites])
+        secondary_sites = list(set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+                               interface_adh_e[i][0] not in primary_sites]))
         # Predict Adhesion energy
         adh_e = 0
         for n in range(len(interface_adh_e)):
             if interface_adh_e[n][0] in primary_sites:
-                if len(primary_sites) == 1:
-                    adh_e += interface_adh_e[n][1]/len(primary_sites)
-                else:
-                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
+                adh_e += interface_adh_e[n][1] #/len(primary_sites)    # only interface works OK-ish
             elif interface_adh_e[n][0] in secondary_sites:
-                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
-                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
-                else:
-                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
-# WHY dividing by len(1`) or len(2`)? is it making it eV/atom??????????? -- Now multiplying by number of interface cluster atoms
-#        print(len(primary_sites), len(secondary_sites))
+                adh_e += interface_adh_e[n][1]/(2 * len(c_coord))   # 2 * (len(secondary_sites) + len(primary_sites)))     # it works well-ish
 
         return float(adh_e), adh_f
 
