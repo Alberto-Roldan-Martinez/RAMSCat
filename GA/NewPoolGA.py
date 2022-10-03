@@ -68,7 +68,7 @@ class poolGA:
 		Minimise random geometries and
 		add them to the pool.dat file.
 		'''
-		while db.findLastDir() < sum(self.eleNums)*3 + self.mutate * self.nPool:
+		while db.findLastDir() < sum(self.eleNums)*100 + self.mutate * self.nPool:
 			while self.getPoolSize() < self.nPool:
 				print("   Adding to pool ", db.findLastDir() + 1, " - NewPoolGA")
 				pool = minRan(self.natoms,self.r_ij
