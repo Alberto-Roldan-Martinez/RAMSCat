@@ -65,9 +65,10 @@ class poolGA:
 		self.runJobs()
 
 	def runJobs(self):
+		print("   poolGA")
 
 		notFinished = self.checkFinished()
-		
+
 		while notFinished:
 
 			pool = minPool(self.natoms,self.r_ij
@@ -79,7 +80,8 @@ class poolGA:
 
 			notFinished = self.checkFinished()
 
-		for i in range(self.nPool, self.nPool + 500*(self.natoms - 1)):			# Alberto 31/05/2022: increase from 1000 to 500*(atoms-1)
+		for i in range(self.nPool, self.nPool + 10*(self.natoms - 1)):			# Alberto 31/05/2022: increase from 1000 to 500*(atoms-1) >>>03/10/2022 changed to 100*(natoms)
+			print("   poolGA", "i=", i, "i_max=", 10*sum(self.natoms-1))
 
 			check = checkPool()
 			converged = check.Convergence()
@@ -91,7 +93,7 @@ class poolGA:
 				and the some are still running
 				allow the pool to grow.
 				'''
-				
+
 				off = minMut(self.natoms,self.r_ij
 					,"random",self.eleNums
 					,self.eleNames,self.eleMasses

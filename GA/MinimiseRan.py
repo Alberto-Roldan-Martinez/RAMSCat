@@ -171,8 +171,8 @@ class minRan:
 				poolList = pool.readlines()
 				poolSize = len(poolList) / (self.natoms + 2)
 
-				print("spheri", self.sphericity, type(self.sphericity))
 				if poolSize < self.nPool and self.sphericity <= 1.:                                    # Alberto 05/08/2022 Added sphericity
+					print("   Adding to pool - MinimiseRan")
 					self.addToPool()
 				else:
 					AcceptReject = checkPool()
@@ -181,7 +181,7 @@ class minRan:
 					if Accept:
 						Index = AcceptReject.lowestIndex
 						Index = (Index*self.stride)+1
-
+						print("   Updating pool - MinimiseRan")
 						db.updatePool("Finish"
 									,Index,self.eleNums
 									,self.eleNames,self.eleMasses
