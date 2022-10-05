@@ -17,8 +17,8 @@ The Johnston Group
 
 '''
 
-import os,sys
-from random import randrange, uniform
+import os
+from random import uniform
 
 from GA.MinimiseRan import minRan 
 from GA.MinimiseOff import minOff
@@ -68,28 +68,26 @@ class poolGA:
 		Minimise random geometries and
 		add them to the pool.dat file.
 		'''
-		while db.findLastDir() < sum(self.eleNums)*100 + self.mutate * self.nPool:
-			while self.getPoolSize() < self.nPool:
-				print("   Adding to pool ", db.findLastDir() + 1, " - NewPoolGA")
-				pool = minRan(self.natoms,self.r_ij
-							  ,self.eleNums,self.eleNames
-							  ,self.eleMasses,self.nPool
-							  ,self.stride,self.subString
-							  ,self.boxAdd
-							  ,self.surface,self.surfGA)
+		while self.getPoolSize() < self.nPool:
+			print("   Adding to pool ", db.findLastDir() + 1, " - NewPoolGA")
+			pool = minRan(self.natoms,self.r_ij
+						  ,self.eleNums,self.eleNames
+						  ,self.eleMasses,self.nPool
+						  ,self.stride,self.subString
+						  ,self.boxAdd
+						  ,self.surface,self.surfGA)
+		'''
+		Once nPool structure are in
+		pool.dat begin crossover
+		and mutation. 
+		'''
+		'''
+		Set the mutation rate.
+		'''
+		mutateRate = self.mutate * self.nPool
 
-			'''
-			Once nPool structure are in
-			pool.dat begin crossover
-			and mutation. 
-			'''
-			
-			'''
-			Set the mutation rate.
-			'''
-			mutateRate = self.mutate * self.nPool
-
-#		for i in range(sum(self.eleNums)*100):				# Alberto 01/08/2022: Changed 1000 by sum(eleNums)*100 --> eleNums is list >> 03/10/2022 change "for" with "while" at the top
+#		for i in range(sum(self.eleNums)*100):				# Alberto 01/08/2022: Changed 1000 by sum(eleNums)*100 --> eleNums is list >> 03/10/2022 change "for" with "while"
+		while db.findLastDir() < sum(self.eleNums)*100:
 			choice = uniform(0, self.nPool)
 			if choice < mutateRate:
 				print("   Mutant", db.findLastDir() + 1, " - NewPoolGA")
@@ -107,6 +105,14 @@ class poolGA:
 					,self.subString,self.boxAdd
 					,self.surface,self.surfGA)
 
+		for i in range(mutateRate):				# Alberto 05/10/2022 added to ensure adding mutations independently of db.findLastDir()
+			print("   Mutant", db.findLastDir() + 1, " - NewPoolGA")
+			off = minMut(self.natoms,self.r_ij
+				,self.mutType,self.eleNums
+				,self.eleNames,self.eleMasses
+				,self.nPool,self.stride
+				,self.subString,self.boxAdd
+				,self.surface,self.surfGA)
 
 	def getPoolSize(self):
 
