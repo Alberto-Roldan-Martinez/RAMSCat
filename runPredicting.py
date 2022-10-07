@@ -31,10 +31,12 @@ nPool = 15
 #cross = "random"                                        #
 cross = "weighted"                                     # determined by fitness of the two clusters selected for crossover.
 # ------------------------- algorithm to generate mutants
-mutType = "random"                                     # new random cluster geometry
-#mutType = "move"                                        # selected from the pool and 20% of the geometry is displaced by up to 1 angstrom
-#mutType = "homotop"                                    # (only bimetallics) two atoms have their atom types swapped
-#mutType = "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
+
+mutType = ["random", "move", "rotate"]
+# "random"                                     # new random cluster geometry
+# "move"                                        # selected from the pool and 20% of the geometry is displaced by up to 1 angstrom
+# "rotate"                                     # (Surface global optimisation only) selected from the pool and a random rotation is performed.
+# "homotop"                                    # (only bimetallics) two atoms have their atom types swapped
 mutate = 0.4                                            # mutation ratio
 
 r_ij = 2 * sum([sum(bulk(i).get_cell_lengths_and_angles()[0:3]) / 3 for i in eleNames])/len(eleNames)
@@ -42,25 +44,12 @@ eleMasses = In.masses(eleNames)
 natoms = sum(eleNums)
 
 """ --------------------------- CALCULATION ---------------------------"""
-#fmax = 0.1*natoms						# interatomic force maximum in the optimisation
-subString = " ".join(str(i) for i in ["/home/alberto/Software/OTHER/NeuralNetwork/Predicting.py",
+#fmax = 0.5*natoms						# interatomic force maximum in the optimisation
+subString = " ".join(str(i) for i in ["/home/alberto/Software/RAMSCat/Predicting.py",
             "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], natoms])      # package to calculate the Energy
 
 StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
 				   boxAdd, surface, surfGA)
-# --------------------
-mutType = "move"
-subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting.py",
-            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], natoms])      # package to calculate the Energy
-StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
-                                   boxAdd, surface, surfGA)
-## --------------------
-#mutType = "rotate"
-#subString = " ".join(str(i) for i in ["~/bin/RAMSCat/Predicting.py",
-#            "-".join(eleNames), structure_file, support, vars(surface)['x'], vars(surface)['y'], vars(surface)['z'], fmax])      # package to calculate the Energy
-#StartCalc = poolGA(natoms, r_ij, eleNums, eleNames, eleMasses, mutate, nPool, cross, mutType, subString,
-#                                   boxAdd, surface, surfGA)
-
 # --------------------
 
 time_out = open("RAMSCat_Summary.txt", 'a+')

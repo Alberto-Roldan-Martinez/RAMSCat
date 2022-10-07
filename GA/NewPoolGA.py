@@ -18,7 +18,7 @@ The Johnston Group
 '''
 
 import os
-from random import uniform
+from random import uniform, randint
 
 from GA.MinimiseRan import minRan 
 from GA.MinimiseOff import minOff
@@ -87,12 +87,13 @@ class poolGA:
 		mutateRate = self.mutate * self.nPool
 
 #		for i in range(sum(self.eleNums)*100):				# Alberto 01/08/2022: Changed 1000 by sum(eleNums)*100 --> eleNums is list >> 03/10/2022 change "for" with "while"
-		while db.findLastDir() < sum(self.eleNums)*100:
+		while db.findLastDir() < sum(self.eleNums)*5:	#####################
 			choice = uniform(0, self.nPool)
 			if choice < mutateRate:
-				print("   Mutant", db.findLastDir() + 1, " - NewPoolGA")
+				mutantChoice = randint(0, len(self.mutType))		# Alberto 07/10/2022 Various mutant types added at once, randomly chosen at every mutant step
+				print("   Mutant:", self.mutType[mutantChoice], "structure", db.findLastDir() + 1, " - NewPoolGA")
 				off = minMut(self.natoms,self.r_ij
-					,self.mutType,self.eleNums
+					,self.mutType[mutantChoice], self.eleNums
 					,self.eleNames,self.eleMasses
 					,self.nPool,self.stride
 					,self.subString,self.boxAdd
@@ -104,15 +105,6 @@ class poolGA:
 					,self.nPool,self.cross,self.stride
 					,self.subString,self.boxAdd
 					,self.surface,self.surfGA)
-
-		for i in range(mutateRate):				# Alberto 05/10/2022 added to ensure adding mutations independently of db.findLastDir()
-			print("   Mutant", db.findLastDir() + 1, " - NewPoolGA")
-			off = minMut(self.natoms,self.r_ij
-				,self.mutType,self.eleNums
-				,self.eleNames,self.eleMasses
-				,self.nPool,self.stride
-				,self.subString,self.boxAdd
-				,self.surface,self.surfGA)
 
 	def getPoolSize(self):
 
