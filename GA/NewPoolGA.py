@@ -90,7 +90,7 @@ class poolGA:
 		while db.findLastDir() < sum(self.eleNums)*5:	#####################
 			choice = uniform(0, self.nPool)
 			if choice < mutateRate:
-				mutantChoice = randint(0, len(self.mutType))		# Alberto 07/10/2022 Various mutant types added at once, randomly chosen at every mutant step
+				mutantChoice = randint(0, len(self.mutType) - 1)		# Alberto 07/10/2022 Various mutant types added at once, randomly chosen at every mutant step
 				print("   Mutant:", self.mutType[mutantChoice], "structure", db.findLastDir() + 1, " - NewPoolGA")
 				off = minMut(self.natoms,self.r_ij
 					,self.mutType[mutantChoice], self.eleNums
