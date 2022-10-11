@@ -87,7 +87,7 @@ class poolGA:
 		mutateRate = self.mutate * self.nPool
 
 #		for i in range(sum(self.eleNums)*100):				# Alberto 01/08/2022: Changed 1000 by sum(eleNums)*100 --> eleNums is list >> 03/10/2022 change "for" with "while"
-		while db.findLastDir() < sum(self.eleNums)*5:	#####################
+		while db.findLastDir() < sum(self.eleNums)*100:
 			choice = uniform(0, self.nPool)
 			if choice < mutateRate:
 				mutantChoice = randint(0, len(self.mutType) - 1)		# Alberto 07/10/2022 Various mutant types added at once, randomly chosen at every mutant step
