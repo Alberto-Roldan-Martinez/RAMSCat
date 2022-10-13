@@ -297,3 +297,4 @@ else:
 		exit()
 
 	CrossRelation(labels[str(1)], y[str(1)], y[str(2)], "", "")
+#	CrossRelation(labels[str(1)], y[str(1)], y[str(3)], y[str(2)], y[str(3)])
