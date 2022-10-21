@@ -142,6 +142,7 @@ class Energy_prediction:
         e_factor = (len(c_coord)-1) * len(c_coord)/2
         if e_factor <= sum([ecoh_bulk([system[int(i)].symbol])[1] for i in c_coord])/len(c_coord):  # bulk coordination
             e_factor += 12/len(c_coord)
+
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:       # atoms without neighbours don't have Coh
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
@@ -150,7 +151,7 @@ class Energy_prediction:
                 #      element, cc, distance, distance, vector, gcn
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
-                e_cohesion += e/e_factor
+                e_cohesion += e/(len(c_coord[i])**2) #e_factor
                 f_cohesion[str(i)] += f/len(c_coord)
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
