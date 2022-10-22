@@ -171,6 +171,14 @@ def EnergyLevels(labels, x_label, x, y_label, y, y_limit):
 	SaveFig()
 
 
+def Trend(x, y, axis_min, axis_max):
+	popt = np.polyfit(x, y, 1)
+	poly1d_fn = np.poly1d(popt)
+	r2 = 1-np.sqrt(sum([(y[i] - poly1d_fn(x[i]))**2 for i in range(len(x))])/sum(i*i for i in y))
+	xx = np.linspace(axis_min, axis_max, 150)
+	return popt, r2, xx, poly1d_fn(xx)
+
+
 def CrossRelation(labels, x, y, x2, y2):
 	fig = plt.figure(figsize=(14, 8), clear=True)
 	ax = ["E_coh", "E_adh", "E_total"]
@@ -194,11 +202,17 @@ def CrossRelation(labels, x, y, x2, y2):
 		ax[i].xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 		ax[i].yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 		ax[i].plot([axis_min, axis_max], [axis_min, axis_max], 'k', lw=1.5)
+		popt, r2, xx, yy = Trend(x[i], y[i], axis_min, axis_max)
+		ax[i].plot(xx, yy)
+		print("plot:", i, "equation:", popt[0], "*E_DFT +", popt[1], "R^2=", r2)
 		for j in range(len(list(set(labels)))):
 			xx = [x[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 			yy = [y[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 			ax[i].plot(xx, yy, marker=imarker[j], color=icolour[j], ms=5, linestyle="None",
 					   label="n= " + str(list(set(labels))[j]))
+			for k in range(len(xx)):
+				ax[i].annotate(k, xy=(xx[k]-0.75, yy[k]), xycoords="data")
+
 			if len(x2) > 0:
 				xx2 = [x2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 				yy2 = [y2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]

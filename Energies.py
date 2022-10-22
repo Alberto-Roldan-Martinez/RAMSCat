@@ -151,13 +151,14 @@ class Energy_prediction:
                 #      element, cc, distance, distance, vector, gcn
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
-                e_cohesion += e/(len(c_coord[i])**2) #e_factor
+                e_cohesion += e/len(c_coord[i])
                 f_cohesion[str(i)] += f/len(c_coord)
 
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 
-        return float(e_cohesion), f_cohesion, float(e_atom)
+        return float((e_cohesion - 19.40321131853853)/21.651629316219744), f_cohesion, float(e_atom)
+#        return float(e_cohesion), f_cohesion, float(e_atom)
 
     # Adhesion energy measured from ALL cluster atoms.
     # The Adhesion, should be measured for all the atoms in the cluster independently if they are in
@@ -178,8 +179,9 @@ class Energy_prediction:
                                                                              distance_b,
                                                                              vector_distance_a,
                                                                              vector_distance_b)
-            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
-                                    round(distance_b/distances_opt[1], 3)])
+            if i in interface_indexes:
+                interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
+                                        round(distance_b/distances_opt[1], 3)])
             adh_f[str(i)] = f_adh
             # ONLY the cluster atoms at the interface contribute to the forces, otherwise the structure optimises as flat
 #            if i in interface_indexes:
@@ -213,8 +215,8 @@ class Energy_prediction:
         for n in range(len(interface_adh_e)):
             if interface_adh_e[n][0] in primary_sites:
                 adh_e += interface_adh_e[n][1] #/len(primary_sites)    # only interface works OK-ish
-            elif interface_adh_e[n][0] in secondary_sites:
-                adh_e += interface_adh_e[n][1]/(2 * len(c_coord))   # 2 * (len(secondary_sites) + len(primary_sites)))     # it works well-ish
+#            elif interface_adh_e[n][0] in secondary_sites:
+#                adh_e += interface_adh_e[n][1]/len(secondary_sites)     # it works well-ish  Other: 2 * len(c_coord)
 
         return float(adh_e), adh_f
 
