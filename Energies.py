@@ -57,7 +57,7 @@ class Energy_prediction:
     def __init__(self, system, support, support_size, c_coord, cluster_support_distances, interface_indexes, gcn_i, c_surf,
                  c_surf_area):
         # c_coord = dictionary with the indexes of coordinating atoms within the cluster
-        # cluster_support_distances = dictionary of interface cluster atoms with the minimum distances to site X and Y. --->> Updated on 18/08/2022, previouly interface_distances and changed to all the atoms in the cluster, not only the interface ones.
+        # cluster_support_distances = dictionary of all cluster atoms with the minimum distances to site X and Y. --->> Updated on 18/08/2022, previouly interface_distances and changed to all the atoms in the cluster, not only the interface ones.
         # interface_indexes = support_coordinating = dictionary with surface neighbours with cluster interface atoms
         # gcn_i = gnc = dictionary with the generalised coordination number for each atom in the cluster
         # c_surf = cluster_surface_index = indexes of cluster atoms with coordination within the cluster lower than its bulk
@@ -157,7 +157,7 @@ class Energy_prediction:
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord)
 
-        return float((e_cohesion - 19.40321131853853)/21.651629316219744), f_cohesion, float(e_atom)
+        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
 #        return float(e_cohesion), f_cohesion, float(e_atom)
 
     # Adhesion energy measured from ALL cluster atoms.
@@ -167,6 +167,7 @@ class Energy_prediction:
         interface_adh_e = []
         adh_f = {}
         for i in cluster_support_distances:
+            print(i)
             site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
             vector_distance_a = system.get_distance(int(i), int(site_index_a), mic=True, vector=True)
             site_symbol_b, site_index_b, distance_b = cluster_support_distances[i][1]
@@ -180,6 +181,7 @@ class Energy_prediction:
                                                                              vector_distance_a,
                                                                              vector_distance_b)
             if i in interface_indexes:
+                print("inter", i)
                 interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
                                         round(distance_b/distances_opt[1], 3)])
             adh_f[str(i)] = f_adh
@@ -214,9 +216,15 @@ class Energy_prediction:
         adh_e = 0
         for n in range(len(interface_adh_e)):
             if interface_adh_e[n][0] in primary_sites:
-                adh_e += interface_adh_e[n][1] #/len(primary_sites)    # only interface works OK-ish
-#            elif interface_adh_e[n][0] in secondary_sites:
-#                adh_e += interface_adh_e[n][1]/len(secondary_sites)     # it works well-ish  Other: 2 * len(c_coord)
+                if len(primary_sites) == 1:
+                    adh_e += interface_adh_e[n][1]          #/len(primary_sites)
+                else:
+                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
+            elif interface_adh_e[n][0] in secondary_sites:
+                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
+                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
+                else:
+                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
 
         return float(adh_e), adh_f
 

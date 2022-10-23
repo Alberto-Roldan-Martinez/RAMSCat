@@ -204,14 +204,14 @@ def CrossRelation(labels, x, y, x2, y2):
 		ax[i].plot([axis_min, axis_max], [axis_min, axis_max], 'k', lw=1.5)
 		popt, r2, xx, yy = Trend(x[i], y[i], axis_min, axis_max)
 		ax[i].plot(xx, yy)
-		print("plot:", i, "equation:", popt[0], "*E_DFT +", popt[1], "R^2=", r2)
+		print("plot:", i, "equation:", popt[0], "*E_DFT +", popt[1], "R^2=", round(r2, 2))
 		for j in range(len(list(set(labels)))):
 			xx = [x[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 			yy = [y[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 			ax[i].plot(xx, yy, marker=imarker[j], color=icolour[j], ms=5, linestyle="None",
 					   label="n= " + str(list(set(labels))[j]))
 			for k in range(len(xx)):
-				ax[i].annotate(k, xy=(xx[k]-0.75, yy[k]), xycoords="data")
+				ax[i].annotate(k, xy=(xx[k]-xx[k]*0.05, yy[k]), xycoords="data")
 
 			if len(x2) > 0:
 				xx2 = [x2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
