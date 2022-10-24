@@ -139,10 +139,6 @@ class Energy_prediction:
 #            f_cohesion[str(i)] = f
 
         # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
-        e_factor = (len(c_coord)-1) * len(c_coord)/2
-        if e_factor <= sum([ecoh_bulk([system[int(i)].symbol])[1] for i in c_coord])/len(c_coord):  # bulk coordination
-            e_factor += 12/len(c_coord)
-
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:       # atoms without neighbours don't have Coh
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
@@ -167,7 +163,6 @@ class Energy_prediction:
         interface_adh_e = []
         adh_f = {}
         for i in cluster_support_distances:
-            print(i)
             site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
             vector_distance_a = system.get_distance(int(i), int(site_index_a), mic=True, vector=True)
             site_symbol_b, site_index_b, distance_b = cluster_support_distances[i][1]
@@ -181,7 +176,6 @@ class Energy_prediction:
                                                                              vector_distance_a,
                                                                              vector_distance_b)
             if i in interface_indexes:
-                print("inter", i)
                 interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
                                         round(distance_b/distances_opt[1], 3)])
             adh_f[str(i)] = f_adh
@@ -196,10 +190,12 @@ class Energy_prediction:
         interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
         primary_sites = [interface_adh_e[0][0]]
         secondary_sites = []
+        print("0-->", interface_adh_e[0])
         for n in range(1, len(interface_adh_e)):
             i = interface_adh_e[n][0]
+            print(interface_adh_e[n])
             if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
-                if interface_adh_e[n][1] < interface_adh_e[0][1]*0.70:												    # 0.70 << arbitrary parameter
+                if interface_adh_e[n][1] > interface_adh_e[0][1]*0.70:		# 24/10/2022   < changed by > 										    # 0.70 << arbitrary parameter
                     primary_sites.append(i)
                     for j in c_coord[str(i)]:
                         if j in interface_indexes:
@@ -207,7 +203,7 @@ class Energy_prediction:
         if len(interface_adh_e) == len(primary_sites):
             for n in range(1, len(interface_adh_e)):
                 i = interface_adh_e[n][0]
-                if interface_adh_e[n][3]/interface_adh_e[n][4] > 1.0:
+                if interface_adh_e[n][3]/interface_adh_e[n][4] < 1.0:      # 24/10/2022   < changed by > assuming that the first site (a) is the dominant one.
                     primary_sites.remove(i)
                     secondary_sites.append(i)
         secondary_sites = list(set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if

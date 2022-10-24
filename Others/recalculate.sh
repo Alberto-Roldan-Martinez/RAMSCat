@@ -25,4 +25,4 @@ for i in Au2 Au3  Au4  Au5  Au6  Au7  Au8  Au9 Au10
   echo "" >> ../Measured_Relaxed.dat;
  cd ..;
 done;
-python3 ~/Software/RAMSCat/Pre_Data_Collection/Plot.py Measured_Static.dat Predicted.dat
+# python3 ~/Software/RAMSCat/Pre_Data_Collection/Plot.py Measured_Static.dat Predicted.dat
