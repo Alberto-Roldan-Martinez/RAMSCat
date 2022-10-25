@@ -41,7 +41,7 @@ class Coordination:
                         sites_index_all,            # 2 dictionary with the indexes of surface sites per kind of site
                         interface_cluster_index,    # 3 indexes of cluster atoms coordinating with a site at 1.5 * optimised distance
                         interface_support_index,    # 4 indexes of the support coordinating with the cluster at 1.5 * optimised distance
-                        cluster_support_distances   # 5 dictionary of interface cluster atoms with the minimum distances to site X and Y.] -->> Updated on the 18/08/2022 to include all cluster atoms -->> changed back, as it make the cluster to overbing the surface
+                        cluster_support_distances   # 5 dictionary of all cluster atoms with the minimum distances to site X and Y
                     ])
         keys.append("Others")
 
@@ -80,8 +80,9 @@ class Coordination:
             support_zmax = max([i.position[2] for i in system if i.symbol == site])
             sites_index = [i.index for i in system if i.symbol == site and i.position[2] >= support_zmax - 1]  # gets the site atoms index in the support
             s_sites.update({site: sites_index})
-            cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
-            interface_cluster_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
+# Alberto 25/10/2022 --- Repeated
+#            cluster_zmin = min([i.position[2] for i in system if i.symbol in cluster_elements])
+#            interface_cluster_index = [i.index for i in system if i.symbol in cluster_elements and i.position[2] <= cluster_zmin + 1]
 
             optimised_distance = [opt_atom_distance(support, site, i) for i in cluster_elements]
             distance_cutoff = sum(optimised_distance) / len(optimised_distance)

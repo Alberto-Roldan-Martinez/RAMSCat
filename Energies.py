@@ -162,12 +162,20 @@ class Energy_prediction:
     def e_adhesion(self, cluster_support_distances, system, support, c_coord, interface_indexes):
         interface_adh_e = []
         adh_f = {}
-        for i in cluster_support_distances:
+        support_height = []
+        cluster_interface_height = []
+        for i in interface_indexes:
+            support_height.append(sum([system[j].position[2] for j in interface_indexes[i]])/len(interface_indexes[i]))
+            cluster_interface_height.append(system[i].position[2])
+        support_height_average = round(sum(support_height) / len(interface_indexes), 5)
+        cluster_interface_height_average = round(sum(cluster_interface_height)/len(interface_indexes) -
+                                                 support_height_average, 5)
+        for i in cluster_support_distances:             # ALL cluster atoms
             site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
             vector_distance_a = system.get_distance(int(i), int(site_index_a), mic=True, vector=True)
             site_symbol_b, site_index_b, distance_b = cluster_support_distances[i][1]
             vector_distance_b = system.get_distance(int(i), int(site_index_b), mic=True, vector=True)
-#                                           support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
+            #                               support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
             e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
                                                                              system[int(i)].symbol,
                                                                              len(c_coord[str(i)]),
@@ -175,54 +183,82 @@ class Energy_prediction:
                                                                              distance_b,
                                                                              vector_distance_a,
                                                                              vector_distance_b)
-            if i in interface_indexes:
-                interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5), round(distance_a/distances_opt[0], 3),
-                                        round(distance_b/distances_opt[1], 3)])
+
+            interface_adh_e.append([i, round(e_adh, 5), round(e_min, 5),
+                                    round(system[i].position[2] - support_height_average, 5)])
+#                                    round(distance_a, 3),
+#                                    round(distance_a/distances_opt[0], 3),
+#                                    round(distance_b, 3),
+#                                    round(distance_b/distances_opt[1], 3)])
             adh_f[str(i)] = f_adh
-            # ONLY the cluster atoms at the interface contribute to the forces, otherwise the structure optimises as flat
-#            if i in interface_indexes:
-#                adh_f[str(i)] = f_adh
 
-       # Adhesion Energy Prediction RULES
-       # there is the distinction between two adsorption sites, i.e., strong and weak.
-       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
-        interface_adh_e.sort(key=lambda x: x[1])
-        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
-        primary_sites = [interface_adh_e[0][0]]
-        secondary_sites = []
-        print("0-->", interface_adh_e[0])
-        for n in range(1, len(interface_adh_e)):
-            i = interface_adh_e[n][0]
-            print(interface_adh_e[n])
-            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
-                if interface_adh_e[n][1] > interface_adh_e[0][1]*0.70:		# 24/10/2022   < changed by > 										    # 0.70 << arbitrary parameter
-                    primary_sites.append(i)
-                    for j in c_coord[str(i)]:
-                        if j in interface_indexes:
-                            secondary_sites.append(j)
-        if len(interface_adh_e) == len(primary_sites):
-            for n in range(1, len(interface_adh_e)):
-                i = interface_adh_e[n][0]
-                if interface_adh_e[n][3]/interface_adh_e[n][4] < 1.0:      # 24/10/2022   < changed by > assuming that the first site (a) is the dominant one.
-                    primary_sites.remove(i)
-                    secondary_sites.append(i)
-        secondary_sites = list(set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-                               interface_adh_e[i][0] not in primary_sites]))
-        # Predict Adhesion energy
-        adh_e = 0
-        for n in range(len(interface_adh_e)):
-            if interface_adh_e[n][0] in primary_sites:
-                if len(primary_sites) == 1:
-                    adh_e += interface_adh_e[n][1]          #/len(primary_sites)
-                else:
-                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
-            elif interface_adh_e[n][0] in secondary_sites:
-                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
-                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
-                else:
-                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
+        primary_interaction = [i[0] for i in interface_adh_e if i[3] <= cluster_interface_height_average
+                               and i[0] in interface_indexes]
+        secondary_interaction = [i[0] for i in interface_adh_e if i[3] > cluster_interface_height_average
+                               and i[0] in interface_indexes]
+        primary_energy = []
+        secondary_energy = 0
+        secondary = []
+        considered = []
 
-        return float(adh_e), adh_f
+#        print("prim", primary_interaction, "sec", secondary_interaction)
+        for i in range(len(interface_adh_e)):
+            if interface_adh_e[i][0] in primary_interaction:
+                next_to_primary = [j for j in secondary_interaction if j in c_coord[str(interface_adh_e[i][0])]]
+                considered += next_to_primary
+                primary_energy.append(interface_adh_e[i][1]/(len(primary_interaction) + len(next_to_primary)))
+                for j in next_to_primary:
+                    secondary.append([n[1]/len(next_to_primary) for n in interface_adh_e if n[0] == j][0])
+        if len(secondary) > 0:
+            secondary_energy = sum(secondary)/len(secondary)
+        # not tested
+#        for j in secondary_interaction:
+#            if j not in considered:
+#                print("sec", j)
+#                secondary_energy += float([n[1] for n in interface_adh_e if n[0] == j][0])
+
+        adh_e = sum(primary_energy) + secondary_energy          # OK without second_e, with second_e higher R^2
+
+#       # Adhesion Energy Prediction RULES
+#       # there is the distinction between two adsorption sites, i.e., strong and weak.
+#       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
+#        interface_adh_e.sort(key=lambda x: x[1])
+#        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
+#        primary_sites = [interface_adh_e[0][0]]
+#        secondary_sites = []
+#        print("0-->", interface_adh_e[0])
+#        for n in range(1, len(interface_adh_e)):
+#            i = interface_adh_e[n][0]
+#            print(interface_adh_e[n])
+#            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
+#                if interface_adh_e[n][1] > interface_adh_e[0][1]*0.70:		# 24/10/2022   < changed by > 										    # 0.70 << arbitrary parameter
+#                    primary_sites.append(i)
+#                    for j in c_coord[str(i)]:
+#                        if j in interface_indexes:
+#                            secondary_sites.append(j)
+#        if len(interface_adh_e) == len(primary_sites):
+#            for n in range(1, len(interface_adh_e)):
+#                i = interface_adh_e[n][0]
+#                if interface_adh_e[n][3]/interface_adh_e[n][4] < 1.0:      # 24/10/2022   < changed by > assuming that the first site (a) is the dominant one.
+#                    primary_sites.remove(i)
+#                    secondary_sites.append(i)
+#        secondary_sites = list(set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
+#                               interface_adh_e[i][0] not in primary_sites]))
+#        # Predict Adhesion energy
+#        adh_e = 0
+#        for n in range(len(interface_adh_e)):
+#            if interface_adh_e[n][0] in primary_sites:
+#                if len(primary_sites) == 1:
+#                    adh_e += interface_adh_e[n][1]          #/len(primary_sites)
+#                else:
+#                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
+#            elif interface_adh_e[n][0] in secondary_sites:
+#                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
+#                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
+#                else:
+#                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
+
+        return float((adh_e - -2.3948032474619936)/0.1690357137147622), adh_f
 
 
 
