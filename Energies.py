@@ -139,7 +139,9 @@ class Energy_prediction:
 #            f_cohesion[str(i)] = f
 
         # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
+        indexes = []
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:       # atoms without neighbours don't have Coh
+            coh_e = []
             f_cohesion[str(i)] = np.zeros(3)
             for j in [n for n in c_coord if n != i]:
                 distance = float(system.get_distance(int(i), int(j), mic=True))
@@ -147,14 +149,24 @@ class Energy_prediction:
                 #      element, cc, distance, distance, vector, gcn
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
-                e_cohesion += e/len(c_coord[i])
+#                e_cohesion += e/len(c_coord[i])
+                coh_e.append([i, j, distance, e])
                 f_cohesion[str(i)] += f/len(c_coord)
-
             e_atom += float(isolated_atoms(system[int(i)].symbol))
-            average_coordination += len(c_coord[i]) / len(c_coord)
+            average_coordination += len(c_coord[i]) / len(c_coord[str(i)])
 
-        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
-#        return float(e_cohesion), f_cohesion, float(e_atom)
+
+# energy by the closest??
+            coh_e.sort(key=lambda x: x[2])
+            indexes.append(str(coh_e[0][0]))
+            indexes.append(str(coh_e[0][1]))
+            e_cohesion += coh_e[0][3]        # double counting i --> j and j --> i
+        e_factor = 1 + max([indexes.count(i) for i in list(set(indexes))]) #* 2
+        print(indexes, [indexes.count(i) for i in list(set(indexes))], e_factor)
+
+
+#        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
+        return float(e_cohesion/e_factor), f_cohesion, float(e_atom)
 
     # Adhesion energy measured from ALL cluster atoms.
     # The Adhesion, should be measured for all the atoms in the cluster independently if they are in
@@ -168,7 +180,7 @@ class Energy_prediction:
             support_height.append(sum([system[j].position[2] for j in interface_indexes[i]])/len(interface_indexes[i]))
             cluster_interface_height.append(system[i].position[2])
         support_height_average = round(sum(support_height) / len(interface_indexes), 5)
-        cluster_interface_height_average = round(sum(cluster_interface_height)/len(interface_indexes) -
+        cluster_interface_height_ave = round(sum(cluster_interface_height)/len(interface_indexes) -
                                                  support_height_average, 5)
         for i in cluster_support_distances:             # ALL cluster atoms
             site_symbol_a, site_index_a, distance_a = cluster_support_distances[i][0]
@@ -192,6 +204,27 @@ class Energy_prediction:
 #                                    round(distance_b/distances_opt[1], 3)])
             adh_f[str(i)] = f_adh
 
+        interface_adh_e.sort(key=lambda x: x[3])
+        primary = []
+        secondary = []
+        primary_energy = 0
+        secondary_energy = 0
+        for index in interface_adh_e:
+            if index[0] not in secondary and index[3] <= cluster_interface_height_ave and index[0] in interface_indexes:
+                primary.append(index[0])
+                primary_energy += float(index[1])
+                for i in c_coord[str(index[0])]:
+                    if i in interface_indexes:
+                        secondary.append(i)
+                        secondary_energy += sum([j[1] for j in interface_adh_e if j[0] == i])/len(c_coord[str(index[0])])
+            elif index[0] in interface_indexes:
+#                primary.append(index[0])
+                primary_energy += float(index[1]/len(interface_adh_e))
+
+        adh_e = primary_energy - secondary_energy
+
+
+        '''
         primary_interaction = [i[0] for i in interface_adh_e if i[3] <= cluster_interface_height_average
                                and i[0] in interface_indexes]
         secondary_interaction = [i[0] for i in interface_adh_e if i[3] > cluster_interface_height_average
@@ -203,21 +236,27 @@ class Energy_prediction:
 
 #        print("prim", primary_interaction, "sec", secondary_interaction)
         for i in range(len(interface_adh_e)):
+            print(interface_adh_e[i])
             if interface_adh_e[i][0] in primary_interaction:
                 next_to_primary = [j for j in secondary_interaction if j in c_coord[str(interface_adh_e[i][0])]]
+                print(interface_adh_e[i][0], next_to_primary)
                 considered += next_to_primary
-                primary_energy.append(interface_adh_e[i][1]/(len(primary_interaction) + len(next_to_primary)))
                 for j in next_to_primary:
-                    secondary.append([n[1]/len(next_to_primary) for n in interface_adh_e if n[0] == j][0])
+                    secondary.append([n[1] for n in interface_adh_e if n[0] == j][0])
+                if len(next_to_primary) < 1:
+                    next_to_primary = [1]
+                primary_energy.append(interface_adh_e[i][1])  # * len(next_to_primary)))
         if len(secondary) > 0:
             secondary_energy = sum(secondary)/len(secondary)
         # not tested
-#        for j in secondary_interaction:
-#            if j not in considered:
-#                print("sec", j)
+        for j in secondary_interaction:
+            if j not in considered:
+                print("sec", j)
+                primary_energy.append(interface_adh_e[j][1])
 #                secondary_energy += float([n[1] for n in interface_adh_e if n[0] == j][0])
 
-        adh_e = sum(primary_energy) + secondary_energy          # OK without second_e, with second_e higher R^2
+        adh_e = sum(primary_energy) - secondary_energy          # OK without second_e, with second_e higher R^2
+        '''
 
 #       # Adhesion Energy Prediction RULES
 #       # there is the distinction between two adsorption sites, i.e., strong and weak.
@@ -258,7 +297,7 @@ class Energy_prediction:
 #                else:
 #                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
 
-        return float((adh_e - -2.3948032474619936)/0.1690357137147622), adh_f
+        return float(adh_e), adh_f
 
 
 
