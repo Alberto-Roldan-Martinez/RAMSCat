@@ -140,6 +140,7 @@ class Energy_prediction:
 
         # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
         indexes = []
+        coh_e_library = {}
         for i in [n for n in c_coord if len(c_coord[n]) > 0]:       # atoms without neighbours don't have Coh
             coh_e = []
             f_cohesion[str(i)] = np.zeros(3)
@@ -150,23 +151,29 @@ class Energy_prediction:
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
 #                e_cohesion += e/len(c_coord[i])
-                coh_e.append([i, j, distance, e])
                 f_cohesion[str(i)] += f/len(c_coord)
+
+                if j in [str(n) for n in c_coord[str(i)]]:
+                    coh_e.append([i, j, distance, e])
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord[str(i)])
 
 
 # energy by the closest??
-            coh_e.sort(key=lambda x: x[2])
+            coh_e.sort(key=lambda x: x[3])
             indexes.append(str(coh_e[0][0]))
             indexes.append(str(coh_e[0][1]))
-            e_cohesion += coh_e[0][3]        # double counting i --> j and j --> i
-        e_factor = 1 + max([indexes.count(i) for i in list(set(indexes))]) #* 2
-        print(indexes, [indexes.count(i) for i in list(set(indexes))], e_factor)
+            coh_e_library[str(i)] = sum([index[3] for index in coh_e])/len(coh_e) #coh_e[0][3] >>> OK-ish
+#            e_cohesion += coh_e[0][3] #sum([index[3] for index in coh_e])       # double counting i --> j and j --> i and for each neaghbouring atom
+#            print(coh_e[0][3])
+        e_factor = 1
+        for i in coh_e_library:
+            e_cohesion += coh_e_library[i]/indexes.count(i)
+            print(coh_e_library[i], indexes.count(i))
 
 
 #        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
-        return float(e_cohesion/e_factor), f_cohesion, float(e_atom)
+        return float(e_cohesion/len(c_coord)), f_cohesion, float(e_atom)
 
     # Adhesion energy measured from ALL cluster atoms.
     # The Adhesion, should be measured for all the atoms in the cluster independently if they are in

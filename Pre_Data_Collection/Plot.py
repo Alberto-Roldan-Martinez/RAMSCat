@@ -189,11 +189,11 @@ def CrossRelation(labels, x, y, x2, y2):
 		ax[i].tick_params(axis='both', labelsize=14)
 		ax[i].axis("scaled")
 		if i < 2:
-			axis_max = max(x[i] + y[i])*0.9 # + x2[i] + y2[i])*0.9
-			axis_min = min(x[i] + y[i])*1.1 # + x2[i] + y2[i])*1.1
+			axis_max = max(x[i] + y[i])*0.9		# + x2[i] + y2[i])*0.9
+			axis_min = min(x[i] + y[i])*1.1		# + x2[i] + y2[i])*1.1
 		else:
-			axis_max = max(x[i] + y[i])+1 # + x2[i] + y2[i])+1
-			axis_min = min(x[i] + y[i])-1 # + x2[i] + y2[i])-1
+			axis_max = max(x[i] + y[i])+1		# + x2[i] + y2[i])+1
+			axis_min = min(x[i] + y[i])-1		# + x2[i] + y2[i])-1
 		axis_step = (axis_max - axis_min)/5
 		ax[i].set_xlim([axis_min, axis_max])
 		ax[i].set_ylim([axis_min, axis_max])
