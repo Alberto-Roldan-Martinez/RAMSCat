@@ -180,17 +180,21 @@ def Trend(x, y, axis_min, axis_max):
 
 
 def CrossRelation(labels, x, y, x2, y2):
-	fig = plt.figure(figsize=(14, 8), clear=True)
+	fig = plt.figure(figsize=(14, 9), clear=True)
 	ax = ["E_coh", "E_adh", "E_total"]
-	ax[0] = fig.add_subplot(GridSpec(2, 2)[0])
-	ax[1] = fig.add_subplot(GridSpec(2, 2)[2])
-	ax[2] = fig.add_subplot(GridSpec(2, 2)[:, -1])
+	ax[0] = plt.subplot2grid(shape=(2, 3), loc=(0, 0), colspan=1)
+	ax[1] = plt.subplot2grid(shape=(2, 3), loc=(1, 0), colspan=1)
+	ax[2] = plt.subplot2grid(shape=(2, 3), loc=(0, 1), rowspan=2, colspan=2)
+	plt.subplots_adjust(left=0.1, right=0.99, bottom=0.1, top=0.95, wspace=0.3, hspace=0.3)
 	for i in range(3):
 		ax[i].tick_params(axis='both', labelsize=14)
 		ax[i].axis("scaled")
-		if i < 2:
+		if i == 0:
 			axis_max = max(x[i] + y[i])*0.9		# + x2[i] + y2[i])*0.9
-			axis_min = min(x[i] + y[i])*1.1		# + x2[i] + y2[i])*1.1
+			axis_min = min(x[i] + y[i])*1.15	# + x2[i] + y2[i])*1.1
+		elif i == 1:
+			axis_max = 0.2		# + x2[i] + y2[i])*0.9
+			axis_min = min(x[i] + y[i])*1.15	# + x2[i] + y2[i])*1.1
 		else:
 			axis_max = max(x[i] + y[i])+1		# + x2[i] + y2[i])+1
 			axis_min = min(x[i] + y[i])-1		# + x2[i] + y2[i])-1
@@ -210,16 +214,22 @@ def CrossRelation(labels, x, y, x2, y2):
 			yy = [y[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 			ax[i].plot(xx, yy, marker=imarker[j], color=icolour[j], ms=5, linestyle="None",
 					   label="n= " + str(list(set(labels))[j]))
+			# ANNOTATE
+#			for k in range(len(xx)):
+#				ax[i].annotate(k, xy=(xx[k]-0.05, yy[k]), xycoords="data")
+			# HIGHLIGHT
 			for k in range(len(xx)):
-				ax[i].annotate(k, xy=(xx[k]-0.05, yy[k]), xycoords="data")
-
+				if xx[k] == min(xx):
+					ax[i].plot(xx[k], yy[k], marker=imarker[j], color=icolour[j], ms=10,
+							   linestyle="None", markerfacecolor='none')
 			if len(x2) > 0:
 				xx2 = [x2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 				yy2 = [y2[i][k] for k in range(len(labels)) if labels[k] == list(set(labels))[j]]
 				ax[i].plot(xx2, yy2, marker=imarker[j], color=icolour[j], ms=7, linestyle="None", markerfacecolor='none')
-				for n in range(len(xx)):
-					ax[i].arrow(xx[n], yy[n], xx2[n]-xx[n], yy2[n]-yy[n],# head_width=0.1, head_length=0.1,
-								fc=icolour[j], ec=icolour[j])
+				# ADD ARROW
+#				for n in range(len(xx)):
+#					ax[i].arrow(xx[n], yy[n], xx2[n]-xx[n], yy2[n]-yy[n],# head_width=0.1, head_length=0.1,
+#								fc=icolour[j], ec=icolour[j])
 		legend = ax[i].legend(loc="best")
 	ax[0].set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax[0].set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
@@ -228,7 +238,7 @@ def CrossRelation(labels, x, y, x2, y2):
 	ax[2].set_xlabel("$E_{Total}^{DFT}$ $(eV)$", fontsize=16)
 	ax[2].set_ylabel("Predicted $E_{Total}$ $(eV)$", fontsize=16)
 
-	fig.tight_layout()
+#	fig.tight_layout()
 	plt.ion()
 	plt.show()
 	SaveFig()

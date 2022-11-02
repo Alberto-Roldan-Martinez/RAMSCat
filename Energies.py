@@ -150,30 +150,22 @@ class Energy_prediction:
                 #      element, cc, distance, distance, vector, gcn
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
-#                e_cohesion += e/len(c_coord[i])
+                coh_e.append([i, j, distance, e])
                 f_cohesion[str(i)] += f/len(c_coord)
-
-                if j in [str(n) for n in c_coord[str(i)]]:
-                    coh_e.append([i, j, distance, e])
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord[str(i)])
 
-
-# energy by the closest??
+            # The energy is defined by the closest to atom i
             coh_e.sort(key=lambda x: x[3])
             indexes.append(str(coh_e[0][0]))
             indexes.append(str(coh_e[0][1]))
-            coh_e_library[str(i)] = sum([index[3] for index in coh_e])/len(coh_e) #coh_e[0][3] >>> OK-ish
-#            e_cohesion += coh_e[0][3] #sum([index[3] for index in coh_e])       # double counting i --> j and j --> i and for each neaghbouring atom
-#            print(coh_e[0][3])
-        e_factor = 1
+            coh_e_library[str(i)] = coh_e[0][3]*1.3
         for i in coh_e_library:
-            e_cohesion += coh_e_library[i]/indexes.count(i)
-            print(coh_e_library[i], indexes.count(i))
-
+            e_cohesion += coh_e_library[i]/indexes.count(i)             # double counting i --> j and j --> i
 
 #        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
         return float(e_cohesion/len(c_coord)), f_cohesion, float(e_atom)
+
 
     # Adhesion energy measured from ALL cluster atoms.
     # The Adhesion, should be measured for all the atoms in the cluster independently if they are in
