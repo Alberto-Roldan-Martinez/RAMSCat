@@ -124,20 +124,6 @@ class Energy_prediction:
         f_cohesion = {}
         e_atom = 0
         average_coordination = 0
-        # Energy and Forces of each atom in cluster with coordination > 0 against the average distance to its neighbours
-#        for i in [n for n in c_coord if len(c_coord[n]) > 0]:
-#            average_distance = 0
-#            average_distance_vector = np.zeros(3)
-#            for j in c_coord[i]:
-#                average_distance += float(system.get_distance(int(i), int(j), mic=True)/len(c_coord[i]))
-#                average_distance_vector += np.array((system.get_distance(int(i), int(j), mic=True, vector=True))
-#                                                   /len(c_coord[i]))
-##                           element, cc, distance, distance, vector, gcn
-#            e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]),
-#                              average_distance, list(average_distance_vector), gcn_i[int(i)])
-#            e_cohesion += e/(1 + 1.5 * len(c_coord))                  # to avoid double counting the Coh contribution per atom
-#            f_cohesion[str(i)] = f
-
         # Energy and Forces of each atom in cluster with coordination > 0 (i.e. with gcn) against each individual atom in the cluster
         indexes = []
         coh_e_library = {}
@@ -159,11 +145,10 @@ class Energy_prediction:
             coh_e.sort(key=lambda x: x[3])
             indexes.append(str(coh_e[0][0]))
             indexes.append(str(coh_e[0][1]))
-            coh_e_library[str(i)] = coh_e[0][3]*1.3
+            coh_e_library[str(i)] = coh_e[0][3]
         for i in coh_e_library:
             e_cohesion += coh_e_library[i]/indexes.count(i)             # double counting i --> j and j --> i
 
-#        return float((e_cohesion - 19.74491768132711)/22.70794595195173), f_cohesion, float(e_atom)
         return float(e_cohesion/len(c_coord)), f_cohesion, float(e_atom)
 
 
@@ -204,13 +189,13 @@ class Energy_prediction:
             adh_f[str(i)] = f_adh
 
         interface_adh_e.sort(key=lambda x: x[3])
-        primary = []
+#        primary = []
         secondary = []
         primary_energy = 0
         secondary_energy = 0
         for index in interface_adh_e:
             if index[0] not in secondary and index[3] <= cluster_interface_height_ave and index[0] in interface_indexes:
-                primary.append(index[0])
+#                primary.append(index[0])
                 primary_energy += float(index[1])
                 for i in c_coord[str(index[0])]:
                     if i in interface_indexes:
@@ -221,80 +206,6 @@ class Energy_prediction:
                 primary_energy += float(index[1]/len(interface_adh_e))
 
         adh_e = primary_energy - secondary_energy
-
-
-        '''
-        primary_interaction = [i[0] for i in interface_adh_e if i[3] <= cluster_interface_height_average
-                               and i[0] in interface_indexes]
-        secondary_interaction = [i[0] for i in interface_adh_e if i[3] > cluster_interface_height_average
-                               and i[0] in interface_indexes]
-        primary_energy = []
-        secondary_energy = 0
-        secondary = []
-        considered = []
-
-#        print("prim", primary_interaction, "sec", secondary_interaction)
-        for i in range(len(interface_adh_e)):
-            print(interface_adh_e[i])
-            if interface_adh_e[i][0] in primary_interaction:
-                next_to_primary = [j for j in secondary_interaction if j in c_coord[str(interface_adh_e[i][0])]]
-                print(interface_adh_e[i][0], next_to_primary)
-                considered += next_to_primary
-                for j in next_to_primary:
-                    secondary.append([n[1] for n in interface_adh_e if n[0] == j][0])
-                if len(next_to_primary) < 1:
-                    next_to_primary = [1]
-                primary_energy.append(interface_adh_e[i][1])  # * len(next_to_primary)))
-        if len(secondary) > 0:
-            secondary_energy = sum(secondary)/len(secondary)
-        # not tested
-        for j in secondary_interaction:
-            if j not in considered:
-                print("sec", j)
-                primary_energy.append(interface_adh_e[j][1])
-#                secondary_energy += float([n[1] for n in interface_adh_e if n[0] == j][0])
-
-        adh_e = sum(primary_energy) - secondary_energy          # OK without second_e, with second_e higher R^2
-        '''
-
-#       # Adhesion Energy Prediction RULES
-#       # there is the distinction between two adsorption sites, i.e., strong and weak.
-#       # interaction with the stronger site, i.e., sites[0], has preference over sites[1]
-#        interface_adh_e.sort(key=lambda x: x[1])
-#        interface_indexes = [interface_adh_e[i][0] for i in range(len(interface_adh_e))]
-#        primary_sites = [interface_adh_e[0][0]]
-#        secondary_sites = []
-#        print("0-->", interface_adh_e[0])
-#        for n in range(1, len(interface_adh_e)):
-#            i = interface_adh_e[n][0]
-#            print(interface_adh_e[n])
-#            if i not in secondary_sites or interface_adh_e[n][1] < interface_adh_e[n][2]*0.60: 				            # 0.60 << arbitrary parameter
-#                if interface_adh_e[n][1] > interface_adh_e[0][1]*0.70:		# 24/10/2022   < changed by > 										    # 0.70 << arbitrary parameter
-#                    primary_sites.append(i)
-#                    for j in c_coord[str(i)]:
-#                        if j in interface_indexes:
-#                            secondary_sites.append(j)
-#        if len(interface_adh_e) == len(primary_sites):
-#            for n in range(1, len(interface_adh_e)):
-#                i = interface_adh_e[n][0]
-#                if interface_adh_e[n][3]/interface_adh_e[n][4] < 1.0:      # 24/10/2022   < changed by > assuming that the first site (a) is the dominant one.
-#                    primary_sites.remove(i)
-#                    secondary_sites.append(i)
-#        secondary_sites = list(set([interface_adh_e[i][0] for i in range(len(interface_adh_e)) if
-#                               interface_adh_e[i][0] not in primary_sites]))
-#        # Predict Adhesion energy
-#        adh_e = 0
-#        for n in range(len(interface_adh_e)):
-#            if interface_adh_e[n][0] in primary_sites:
-#                if len(primary_sites) == 1:
-#                    adh_e += interface_adh_e[n][1]          #/len(primary_sites)
-#                else:
-#                    adh_e += interface_adh_e[n][1]/(len(primary_sites) * 2/3)
-#            elif interface_adh_e[n][0] in secondary_sites:
-#                if len(secondary_sites) <= 2 and interface_adh_e[n][1] < -1.5:
-#                    adh_e += interface_adh_e[n][1]/(2 * (len(secondary_sites) + len(primary_sites)))
-#                else:
-#                    adh_e += interface_adh_e[n][1]/(2 * len(secondary_sites))
 
         return float(adh_e), adh_f
 
