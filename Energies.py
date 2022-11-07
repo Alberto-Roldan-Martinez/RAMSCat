@@ -200,12 +200,13 @@ class Energy_prediction:
                 for i in c_coord[str(index[0])]:
                     if i in interface_indexes:
                         secondary.append(i)
-                        secondary_energy += sum([j[1] for j in interface_adh_e if j[0] == i])/len(c_coord[str(index[0])])
-            elif index[0] in interface_indexes:
+                        i_neighbours = [k for k in c_coord[str(index[0])] if k in interface_indexes]
+                        secondary_energy += sum([j[1] for j in interface_adh_e if j[0] == i])/len(i_neighbours)
+            elif index[0] not in secondary and index[0] in interface_indexes:
 #                primary.append(index[0])
-                primary_energy += float(index[1]/len(interface_adh_e))
+                primary_energy += float(index[1]/(1 + len([i for i in c_coord[str(index[0])] if i in interface_indexes])))
 
-        adh_e = primary_energy - secondary_energy
+        adh_e = primary_energy # - secondary_energy
 
         return float(adh_e), adh_f
 
