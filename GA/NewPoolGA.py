@@ -69,7 +69,7 @@ class poolGA:
 		add them to the pool.dat file.
 		'''
 		while self.getPoolSize() < self.nPool:
-			print("   Adding to pool ", db.findLastDir() + 1, " - NewPoolGA")
+			print("   Adding to pool ", db.findLastDir() + 1)
 			pool = minRan(self.natoms,self.r_ij
 						  ,self.eleNums,self.eleNames
 						  ,self.eleMasses,self.nPool
@@ -91,7 +91,7 @@ class poolGA:
 			choice = uniform(0, self.nPool)
 			if choice < mutateRate:
 				mutantChoice = randint(0, len(self.mutType) - 1)		# Alberto 07/10/2022 Various mutant types added at once, randomly chosen at every mutant step
-				print("   Mutant:", self.mutType[mutantChoice], "structure", db.findLastDir() + 1, " - NewPoolGA")
+#				print("   Mutant:", self.mutType[mutantChoice], db.findLastDir() + 1, " - NewPoolGA")
 				off = minMut(self.natoms,self.r_ij
 					,self.mutType[mutantChoice], self.eleNums
 					,self.eleNames,self.eleMasses
@@ -99,7 +99,7 @@ class poolGA:
 					,self.subString,self.boxAdd
 					,self.surface,self.surfGA)
 			else:
-				print("   Offspring", db.findLastDir() + 1, " - NewPoolGA")
+#				print("   Offspring", db.findLastDir() + 1, " - NewPoolGA")
 				off = minOff(self.natoms,self.eleNums
 					,self.eleNames,self.eleMasses
 					,self.nPool,self.cross,self.stride

@@ -84,8 +84,7 @@ class minMut:
 		Mutation methods add to 
 		mutant attribute. 
 		'''
-
-		if self.mutType == "rotate": 
+		if self.mutType == "rotate":
 			self.rotateMutate()
 		elif self.mutType == "random":
 			self.randomMutate()
@@ -373,3 +372,4 @@ class minMut:
 					,self.eleNames,self.eleMasses
 					,self.finalEnergy, self.sphericity, self.finalCoords
 					,self.stride,self.vaspIN.box)
+			print("   Mutant:", self.mutType, db.findLastDir() + 1)

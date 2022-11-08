@@ -188,3 +188,4 @@ class minOff:
 					,self.eleNames,self.eleMasses
 					,self.finalEnergy, self.sphericity, self.finalCoords
 					,self.stride,self.vaspIN.box)
+			print("   Offspring:", db.findLastDir() + 1)
