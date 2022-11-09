@@ -137,7 +137,7 @@ class Energy_prediction:
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
                 coh_e.append([i, j, distance, e])
-                f_cohesion[str(i)] += f/len(c_coord)
+                f_cohesion[str(i)] += f
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord[str(i)])
 

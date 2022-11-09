@@ -107,7 +107,8 @@ class Coordination:
 #                dist_array = []
 #                for j in sites_index:
 #                    dist_array.append([j, system.get_distance(n, j, mic=True, vector=False)])
-           # Using the entirety of the cluster insted of only the interface atoms: It seems to favour flat structures
+            # Using the entirety of the cluster insted of only the interface atoms: It seems to favour flat structures
+            # in small clusters
             for n in cluster_index:
                 dist_array = []
                 for j in sites_index:
