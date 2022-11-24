@@ -231,6 +231,9 @@ def CrossRelation(labels, x, y, x2, y2):
 #					ax[i].arrow(xx[n], yy[n], xx2[n]-xx[n], yy2[n]-yy[n],# head_width=0.1, head_length=0.1,
 #								fc=icolour[j], ec=icolour[j])
 		legend = ax[i].legend(loc="best")
+	ax[2].annotate("Samples = " + str(len(x[0])*3), xy=(axis_min+5, axis_max-5),
+				   xycoords="data", size=14,
+				   bbox=dict(boxstyle="round, pad=0.1", fc="white", ec="k", lw=1, alpha=0.4))
 	ax[0].set_xlabel("$E_{Coh}^{DFT}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax[0].set_ylabel("Predicted $E_{Coh}$ $(eV \cdot atom^{ \minus 1})$", fontsize=16)
 	ax[1].set_xlabel("$E_{Adh}^{DFT}$ $(eV)$", fontsize=16)

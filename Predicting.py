@@ -21,7 +21,10 @@ cluster_elements = [i for i in sys.argv[1].split("-")]                      # El
 structurefile = sys.argv[2] 												# file name, e.g. POSCAR
 support = sys.argv[3]                                                       # Surface name
 support_size = [sys.argv[4], sys.argv[5], sys.argv[6]] #"/home/alberto/RESEARCH/OTHER/DATASET/RPBE/Supports/MgO/MgO/Surface/OUTCAR"
-fmax = 0.5*int(sys.argv[7])
+if int(sys.argv[7]) < 5:
+    fmax = 0.5*int(sys.argv[7])
+else:
+    fmax = 2
 ####################################################################################################
 
 path = os.getcwd()
