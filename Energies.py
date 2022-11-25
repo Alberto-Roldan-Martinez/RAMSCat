@@ -172,7 +172,6 @@ class Energy_prediction:
             site_symbol_b, site_index_b, distance_b = cluster_support_distances[i][1]
             vector_distance_b = system.get_distance(int(i), int(site_index_b), mic=True, vector=True)
             #                               support, element, icc, distance_a, distance_b, vector_distance_a, vector_distance_b
-            print(i, len(c_coord[str(i)]))
             try:
                 e_adh, f_adh, reference_e, e_min, distances_opt = e_adh_energies(support,
                                                                              system[int(i)].symbol,
