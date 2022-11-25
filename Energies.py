@@ -182,6 +182,7 @@ class Energy_prediction:
                                                                              vector_distance_b)
             except:
                 e_adh = 0
+                f_adh = 0
                 e_min = 0
                 continue
 
