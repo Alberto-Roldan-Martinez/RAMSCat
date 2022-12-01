@@ -137,7 +137,7 @@ class Energy_prediction:
                 e, f = ecoh_trend([system[int(i)].symbol], len(c_coord[i]), distance, list(distance_vector),
                                   gcn_i[int(i)])
                 coh_e.append([i, j, distance, e])
-                f_cohesion[str(i)] += f/(len(c_coord) - 1)
+                f_cohesion[str(i)] += f/len(c_coord)        # normalised by the number of neighbours, i.e., with the strongest interactions
             e_atom += float(isolated_atoms(system[int(i)].symbol))
             average_coordination += len(c_coord[i]) / len(c_coord[str(i)])
 
@@ -147,7 +147,7 @@ class Energy_prediction:
             indexes.append(str(coh_e[0][1]))
             coh_e_library[str(i)] = coh_e[0][3]
         for i in coh_e_library:
-            e_cohesion += coh_e_library[i]/indexes.count(i)             # double counting i --> j and j --> i
+            e_cohesion += coh_e_library[i]/indexes.count(i)             # to avoid double counting i --> j and j --> i
 
         return float(e_cohesion/len(c_coord)), f_cohesion, float(e_atom)
 
