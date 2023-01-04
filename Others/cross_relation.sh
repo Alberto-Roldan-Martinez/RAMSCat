@@ -4,9 +4,9 @@
 rm Measured_Relaxed.dat  Measured_Static.dat  Predicted.dat
 head -30 Au2/1/Predicted.dat >> Predicted.dat;
 cp Predicted.dat Measured_Static.dat
-cp Predicted.dat Measured_Relaxed.dat
+#cp Predicted.dat Measured_Relaxed.dat
 
-for i in Au2 Au3  Au4  Au5  Au6  Au7  Au8  Au9 Au10
+for i in Au2 Au3  Au4  Au5  Au6  Au7  Au8  Au9 Au10 Au20
  do cd $i; 
   re='^[0-9]+$'; 
   for j in $(ls); 
@@ -15,13 +15,13 @@ for i in Au2 Au3  Au4  Au5  Au6  Au7  Au8  Au9 Au10
       pwd
       tail -1 Predicted.dat >> ../../Predicted.dat;
       tail -1 Validation/Static/Measured.dat >> ../../Measured_Static.dat ;
-      tail -1 Validation/Relaxed/Measured.dat >> ../../Measured_Relaxed.dat ;
+#      tail -1 Validation/Relaxed/Measured.dat >> ../../Measured_Relaxed.dat ;
       cd ..; 
      fi ;
     done;
   echo "" >> ../Predicted.dat;
   echo "" >> ../Measured_Static.dat ;
-  echo "" >> ../Measured_Relaxed.dat;
+#  echo "" >> ../Measured_Relaxed.dat;
  cd ..;
 done;
 python3 ~/Software/RAMSCat/Pre_Data_Collection/Plot.py Measured_Static.dat Predicted.dat
